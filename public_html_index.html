@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zelix v0.4.0</title>
+    
+    <!-- Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Config -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#DC2626',
+                        secondary: '#10B981',
+                        dark: '#0c0a09',
+                        panel: '#1c1917',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="flex flex-col min-h-screen pb-10 bg-stone-100 text-stone-900 dark:bg-dark dark:text-stone-300">
+
+    <!-- HEADER -->
+    <div class="sticky top-0 z-40 bg-white/95 dark:bg-dark/95 backdrop-blur border-b border-stone-200 dark:border-stone-800 shadow-md">
+        <div class="max-w-4xl mx-auto px-4 py-3">
+            <div class="flex justify-between items-start mb-3">
+                <div class="flex flex-col">
+                    <div class="flex items-center gap-2">
+                        <button onclick="UI.openSetupModal('system')" class="text-stone-400 hover:text-primary transition-colors">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        </button>
+                        <span class="text-xs font-black text-primary tracking-tighter uppercase">Zelix v0.4</span>
+                    </div>
+                    <span id="user-greeting" class="text-[10px] font-bold text-stone-600 dark:text-stone-300 mt-0.5">...</span>
+                </div>
+                <div class="text-right">
+                    <div id="live-time" class="text-xl font-mono font-bold leading-none text-stone-900 dark:text-white">--:--</div>
+                    <div id="live-date" class="text-[10px] font-bold uppercase text-stone-500 dark:text-stone-400 mt-0.5">--.--.----</div>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center mb-3">
+                <div class="flex gap-2">
+                    <button onclick="UI.openHistoryModal()" class="text-[10px] font-bold bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 border border-stone-300 dark:border-stone-700 px-3 py-1 rounded hover:text-white hover:bg-stone-700 transition-colors">📖 LOG</button>
+                    <button onclick="Logic.checkWorkoutEntry()" class="text-[10px] font-bold bg-primary text-white px-3 py-1 rounded hover:bg-red-700 shadow-md flex items-center gap-1 transition-transform active:scale-95">🏋️ GYM</button>
+                </div>
+            </div>
+
+            <div id="action-card" class="bg-white dark:bg-panel rounded-lg p-3 border-l-2 border-stone-300 dark:border-stone-600 flex justify-between items-center gap-3 shadow-sm transition-colors duration-300">
+                <div class="flex-1 overflow-hidden">
+                    <div class="flex items-center gap-2">
+                        <span id="next-time" class="text-xs font-mono text-stone-500 bg-white dark:bg-stone-950 px-1 rounded shadow-inner">--:--</span>
+                        <span id="next-label" class="text-[9px] font-bold text-stone-400 dark:text-stone-600 uppercase tracking-widest">NÁSLEDUJE</span>
+                    </div>
+                    <h2 id="next-title" class="text-sm sm:text-base font-bold text-stone-900 dark:text-white truncate leading-tight mt-1 uppercase">Načítám...</h2>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div id="countdown" class="font-mono text-lg sm:text-xl font-bold text-primary tracking-tighter">--:--</div>
+                    <button id="btn-confirm" onclick="Logic.confirmAction()" class="bg-white dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-900 dark:text-white text-xs font-bold py-2 px-3 rounded border border-stone-300 dark:border-stone-700 shadow-sm transition-all">✓</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <main class="max-w-4xl mx-auto p-4 space-y-6 flex-grow w-full">
+        <div class="flex justify-between items-center">
+            <div class="flex gap-2">
+                <div id="week-badge" class="text-[10px] font-mono leading-none text-stone-500 border border-stone-300 dark:border-stone-700 px-2 py-1 rounded bg-white dark:bg-stone-900">...</div>
+                <div id="day-badge" class="text-[10px] font-mono leading-none text-stone-500 dark:text-stone-400 uppercase">...</div>
+            </div>
+            <button id="btn-force-rest" onclick="Logic.toggleForceRest()" class="text-[10px] font-bold bg-stone-200 dark:bg-stone-900 text-stone-600 dark:text-stone-400 border border-stone-300 dark:border-stone-700 px-2.5 py-1 rounded hover:text-primary transition-colors">🛌 VOLNO</button>
+        </div>
+
+        <section>
+            <div id="timeline-list" class="space-y-3 relative border-l border-stone-300 dark:border-stone-800 ml-2 pl-4"></div>
+        </section>
+
+        <section class="bg-white dark:bg-panel rounded-xl p-4 border border-stone-200 dark:border-stone-800 shadow-sm transition-colors duration-300">
+             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 gap-2">
+                 <h4 class="text-[10px] text-stone-500 font-bold uppercase tracking-widest">Analýza Výkonu</h4>
+                 <select id="chart-select" onchange="UI.updateChart(this.value)" class="z-select !w-auto !py-1 text-xs font-bold"></select>
+             </div>
+             <div class="chart-container"><canvas id="progressChart"></canvas></div>
+        </section>
+    </main>
+
+    <!-- MODALS PLACEHOLDERS -->
+    <!-- Setup Modal -->
+    <div id="setup-modal" class="modal fixed w-full h-full top-0 left-0 flex items-center justify-center z-[200] bg-black/90 backdrop-blur-sm opacity-0 pointer-events-none">
+        <div class="w-11/12 max-w-2xl bg-white dark:bg-panel border border-stone-200 dark:border-stone-700 p-0 rounded-xl shadow-2xl max-h-[90vh] flex flex-col overflow-hidden">
+            <div class="border-b border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-900/50">
+                <div class="p-4 text-center"><h2 class="text-xl font-black text-primary uppercase tracking-tighter">NASTAVENÍ</h2></div>
+                <div class="flex">
+                    <div class="tab-btn active" onclick="UI.switchTab('system')" id="tab-btn-system">Systém</div>
+                    <div class="tab-btn" onclick="UI.switchTab('user')" id="tab-btn-user">Uživatel</div>
+                    <div class="tab-btn" onclick="UI.switchTab('supps')" id="tab-btn-supps">Stack</div>
+                    <div class="tab-btn" onclick="UI.switchTab('exercises')" id="tab-btn-exercises">Cviky</div>
+                </div>
+            </div>
+            <div class="p-5 overflow-y-auto flex-grow space-y-6">
+                <!-- System -->
+                <div id="tab-content-system" class="space-y-6">
+                    <div class="bg-stone-50 dark:bg-stone-900 p-3 rounded border border-stone-200 dark:border-stone-800">
+                        <label class="text-[10px] font-bold block mb-2 uppercase opacity-60">Vzhled</label>
+                        <div class="grid grid-cols-3 gap-1.5">
+                            <button onclick="Data.setTheme('light')" class="py-2 rounded text-[10px] border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 font-bold" id="theme-light">LIGHT</button>
+                            <button onclick="Data.setTheme('dark')" class="py-2 rounded text-[10px] border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 font-bold" id="theme-dark">DARK</button>
+                            <button onclick="Data.setTheme('auto')" class="py-2 rounded text-[10px] border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 font-bold" id="theme-auto">AUTO</button>
+                        </div>
+                    </div>
+                    <div class="pt-2 border-t border-stone-200 dark:border-stone-800">
+                        <div class="grid grid-cols-2 gap-2 mb-4">
+                            <button onclick="Data.exportData()" class="py-2.5 bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 font-bold text-xs rounded border border-stone-300 dark:border-stone-700 uppercase">⬇ Export</button>
+                            <label class="py-2.5 bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 font-bold text-xs rounded border border-stone-300 dark:border-stone-700 uppercase text-center cursor-pointer">⬆ Import <input type="file" class="hidden" onchange="Data.importData(this)"></label>
+                        </div>
+                        <button onclick="UI.openWipeModal()" class="w-full py-2 bg-red-50 dark:bg-red-900/10 text-red-600 dark:text-red-500 font-bold text-xs rounded border border-red-200 dark:border-red-900 uppercase">Smazat Data</button>
+                    </div>
+                </div>
+                <!-- User -->
+                <div id="tab-content-user" class="hidden space-y-6">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-stone-50 dark:bg-stone-900 p-3 rounded border border-stone-200 dark:border-stone-800"><label class="text-[10px] font-bold block mb-2 uppercase opacity-60">Jméno</label><input type="text" id="setup-name" class="z-input font-bold"></div>
+                        <div class="bg-stone-50 dark:bg-stone-900 p-3 rounded border border-stone-200 dark:border-stone-800"><label class="text-[10px] font-bold block mb-2 uppercase opacity-60">Sport</label><input type="text" id="setup-sport" class="z-input font-bold"></div>
+                    </div>
+                    <div><h3 class="text-xs font-bold text-stone-500 uppercase mb-3 tracking-widest text-center border-b border-stone-200 dark:border-stone-800 pb-2">Rozvrh</h3><div class="space-y-2" id="setup-days-container"></div></div>
+                </div>
+                <!-- Supps -->
+                <div id="tab-content-supps" class="hidden space-y-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-xs font-bold text-stone-500 uppercase">Můj Stack</span>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[9px] text-stone-500">Aktivní</span>
+                            <div class="relative"><input id="setup-supps-enabled" type="checkbox" class="sr-only" checked onchange="Data.saveSetup()"><div class="w-8 h-4 bg-stone-300 dark:bg-stone-700 rounded-full"></div><div class="dot absolute w-4 h-4 bg-white rounded-full shadow"></div></div>
+                        </div>
+                    </div>
+                    <div id="supp-stack-list" class="space-y-2 max-h-[300px] overflow-y-auto"></div>
+                    <div class="bg-stone-50 dark:bg-stone-900/50 p-3 rounded border border-stone-200 dark:border-stone-800 space-y-2 mt-4">
+                        <div class="grid grid-cols-2 gap-2"><input type="text" id="new-supp-name" class="z-input" placeholder="Název"><input type="text" id="new-supp-dose" class="z-input" placeholder="Dávka"></div>
+                        <div class="grid grid-cols-2 gap-2"><select id="new-supp-timing" class="z-select"><option value="morning">Ráno</option><option value="pre">Před tréninkem</option><option value="intra">Při tréninku</option><option value="post">Po tréninku</option><option value="evening">Večer</option></select><select id="new-supp-freq" class="z-select"><option value="all">Každý den</option><option value="training">Jen trénink</option><option value="rest">Jen volno</option></select></div>
+                        <button onclick="UI.addSupplement()" class="w-full bg-stone-200 dark:bg-stone-800 text-stone-800 dark:text-white font-bold text-xs py-2 rounded uppercase border border-stone-300 dark:border-stone-700">Přidat</button>
+                    </div>
+                </div>
+                <!-- Exercises -->
+                <div id="tab-content-exercises" class="hidden space-y-4">
+                    <div class="flex gap-2 mb-4"><select id="edit-ex-week" class="z-select" onchange="UI.renderExerciseEditor()"><option value="A">Týden A</option><option value="B">Týden B</option></select><select id="edit-ex-day" class="z-select" onchange="UI.renderExerciseEditor()"><option value="1">Pondělí</option><option value="2">Úterý</option><option value="3">Středa</option><option value="4">Čtvrtek</option><option value="5">Pátek</option><option value="6">Sobota</option><option value="0">Neděle</option></select></div>
+                    <div id="exercises-list" class="space-y-2 bg-stone-50 dark:bg-stone-900 p-2 rounded border border-stone-200 dark:border-stone-800 max-h-[300px] overflow-y-auto"></div>
+                    <div class="flex gap-2 pt-2"><input type="text" id="new-ex-name" class="z-input" placeholder="Nový cvik..."><button onclick="UI.addExercise()" class="bg-stone-200 dark:bg-stone-800 px-4 rounded font-bold text-xl hover:text-primary transition-colors">+</button></div>
+                </div>
+            </div>
+            <div class="p-4 border-t border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-panel flex gap-2">
+                <button onclick="UI.closeSetupModal()" class="flex-1 py-3 bg-stone-200 dark:bg-stone-800 text-stone-800 dark:text-white font-bold rounded-lg text-xs uppercase transition-all">Zrušit</button>
+                <button onclick="Data.saveSetup()" class="flex-1 py-3 bg-primary text-white font-bold rounded-lg text-xs uppercase shadow-lg active:scale-95">Uložit</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gym Log Modal -->
+    <div id="workout-modal" class="modal fixed w-full h-full top-0 left-0 flex items-center justify-center z-[100] bg-black/90 backdrop-blur-sm opacity-0 pointer-events-none">
+        <div class="modal-container bg-white dark:bg-panel w-full md:w-11/12 md:max-w-lg mx-auto rounded-t-2xl md:rounded-xl shadow-2xl z-50 h-[92vh] md:h-auto flex flex-col absolute bottom-0 md:relative border border-stone-200 dark:border-stone-700">
+            <div class="p-4 border-b border-stone-200 dark:border-stone-800 flex justify-between items-center bg-stone-50 dark:bg-panel rounded-t-xl sticky top-0 z-20">
+                <h2 id="modal-title" class="text-lg font-black text-primary uppercase">Gym Log</h2>
+                <button onclick="UI.closeWorkoutModal()" class="text-stone-400 text-3xl px-2">&times;</button>
+            </div>
+            <div class="p-4 space-y-4 flex-grow overflow-y-auto" id="modal-exercises"></div>
+            <div class="p-4 border-t border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-panel sticky bottom-0 z-20 pb-8 md:pb-4">
+                <button onclick="Logic.finishWorkout()" class="w-full bg-primary hover:bg-red-700 text-white font-bold py-3.5 rounded-lg uppercase tracking-widest shadow-xl transition-all active:scale-95">Uložit Trénink</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- History Modal -->
+    <div id="history-modal" class="modal fixed w-full h-full top-0 left-0 flex items-center justify-center z-[150] bg-black/90 backdrop-blur-sm opacity-0 pointer-events-none">
+        <div class="w-11/12 max-w-xl bg-white dark:bg-panel border border-stone-200 dark:border-stone-700 rounded-xl shadow-2xl max-h-[85vh] flex flex-col overflow-hidden">
+            <div class="p-4 border-b border-stone-200 dark:border-stone-800 flex justify-between items-center bg-stone-50 dark:bg-panel sticky top-0">
+                <h2 class="text-lg font-black text-primary uppercase">Historie</h2>
+                <button onclick="UI.closeHistoryModal()" class="text-stone-400 text-2xl px-2">&times;</button>
+            </div>
+            <div class="p-0 overflow-y-auto bg-stone-50 dark:bg-stone-900/50 flex-grow" id="history-content"></div>
+        </div>
+    </div>
+
+    <!-- Entry Manager Modal -->
+    <div id="entry-manager-modal" class="modal fixed w-full h-full top-0 left-0 flex items-center justify-center z-[250] bg-black/90 backdrop-blur-sm opacity-0 pointer-events-none">
+        <div class="w-11/12 max-w-sm bg-white dark:bg-panel border border-stone-200 dark:border-stone-700 p-0 rounded-xl shadow-2xl overflow-hidden">
+            <div class="p-4 border-b border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-900/50"><h3 id="mgr-title" class="font-black text-stone-800 dark:text-white uppercase text-center">Úprava</h3><p id="mgr-subtitle" class="text-[10px] text-stone-500 text-center uppercase tracking-widest mt-1">...</p></div>
+            <div class="p-5 space-y-4">
+                <div class="grid grid-cols-3 gap-2"><div class="flex flex-col"><label class="text-[9px] font-bold text-stone-400 uppercase text-center">KG</label><input type="number" id="mgr-kg" class="z-input text-center font-bold"></div><div class="flex flex-col"><label class="text-[9px] font-bold text-stone-400 uppercase text-center">OPAK</label><input type="number" id="mgr-reps" class="z-input text-center font-bold"></div><div class="flex flex-col"><label class="text-[9px] font-bold text-stone-400 uppercase text-center">SÉRIE</label><input type="number" id="mgr-sets" class="z-input text-center font-bold"></div></div>
+                <div class="flex gap-1" id="mgr-rpe-cont"><button onclick="UI.setMgrRPE('easy', this)" class="rpe-btn flex-1">EASY</button><button onclick="UI.setMgrRPE('medium', this)" class="rpe-btn flex-1">OK</button><button onclick="UI.setMgrRPE('hard', this)" class="rpe-btn flex-1">HARD</button></div>
+                <div class="pt-4 border-t border-stone-200 dark:border-stone-800 space-y-2"><button onclick="Logic.saveEntryEdit()" class="w-full py-3 bg-primary hover:bg-red-700 text-white font-bold text-xs rounded uppercase shadow-lg">Uložit změny</button><div class="flex gap-2"><button onclick="Logic.deleteEntry()" class="flex-1 py-2 bg-stone-200 dark:bg-stone-800 hover:bg-red-100 dark:hover:bg-red-900/20 text-stone-600 dark:text-stone-400 hover:text-red-600 dark:hover:text-red-400 font-bold text-[10px] rounded uppercase border border-transparent hover:border-red-500 transition-colors">Smazat cvik</button><button onclick="UI.openSessionDeleteModal()" class="flex-1 py-2 bg-stone-200 dark:bg-stone-800 hover:bg-red-600 text-stone-600 dark:text-stone-400 hover:text-white font-bold text-[10px] rounded uppercase border border-transparent hover:border-red-600 transition-colors">Smazat trénink</button></div></div>
+            </div>
+            <div class="p-3 bg-stone-100 dark:bg-stone-900 border-t border-stone-200 dark:border-stone-800"><button onclick="UI.closeEntryManager()" class="w-full py-2 text-xs font-bold text-stone-500 uppercase hover:text-stone-800 dark:hover:text-white">Zrušit</button></div>
+        </div>
+    </div>
+
+    <!-- Utils -->
+    <div id="wipe-modal" class="modal fixed w-full h-full top-0 left-0 flex items-center justify-center z-[300] bg-black/95 opacity-0 pointer-events-none"><div class="w-11/12 max-w-sm bg-white dark:bg-panel p-6 rounded-xl text-center border border-red-500 shadow-2xl"><h2 class="text-xl font-bold mb-4 uppercase text-red-600">Smazat vše?</h2><div class="flex gap-2"><button onclick="UI.closeWipeModal()" class="flex-1 py-3 bg-stone-200 dark:bg-stone-800 rounded text-xs font-bold uppercase">Zpět</button><button onclick="Data.hardReset()" class="flex-1 py-3 bg-red-600 text-white rounded text-xs font-bold uppercase">Smazat</button></div></div></div>
+    <div id="duplicate-modal" class="modal fixed w-full h-full top-0 left-0 flex items-center justify-center z-[250] bg-black/80 opacity-0 pointer-events-none"><div class="bg-white dark:bg-panel p-6 rounded-xl max-w-sm text-center border border-primary/50 shadow-2xl"><h3 class="font-bold mb-4 uppercase text-stone-900 dark:text-white">Dnes již trénováno</h3><div class="flex gap-2"><button onclick="UI.closeDuplicateModal()" class="flex-1 py-3 bg-stone-200 dark:bg-stone-800 rounded text-xs font-bold uppercase">Zrušit</button><button onclick="Logic.forceOpenWorkout()" class="flex-1 py-3 bg-primary text-white rounded text-xs font-bold uppercase">Přidat</button></div></div></div>
+    <div id="session-delete-modal" class="modal fixed w-full h-full top-0 left-0 flex items-center justify-center z-[260] bg-black/95 opacity-0 pointer-events-none"><div class="w-11/12 max-w-sm bg-white dark:bg-panel p-6 rounded-xl text-center border border-red-500 shadow-2xl"><h2 class="text-xl font-bold mb-4 uppercase text-red-600">Smazat trénink?</h2><p id="del-session-date" class="text-sm opacity-70 mb-6 font-mono font-bold">...</p><div class="flex gap-2"><button onclick="UI.closeSessionDeleteModal()" class="flex-1 py-3 bg-stone-200 dark:bg-stone-800 rounded text-xs font-bold uppercase">Zpět</button><button onclick="Logic.executeSessionDelete()" class="flex-1 py-3 bg-red-600 text-white rounded text-xs font-bold uppercase">Smazat</button></div></div></div>
+
+    <!-- LOAD SCRIPTS -->
+    <script src="data.js"></script>
+    <script src="logic.js"></script>
+    <script src="ui.js"></script>
+    <script>
+        window.onload = function() {
+            Data.init();
+        }
+    </script>
+</body>
+</html>
