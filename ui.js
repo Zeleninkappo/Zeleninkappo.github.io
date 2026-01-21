@@ -227,15 +227,29 @@ const UI = {
     },
 
     addExercise: function() {
-        const w = document.getElementById('edit-ex-week').value;
-        const d = document.getElementById('edit-ex-day').value;
-        const n = document.getElementById('new-ex-name').value;
-        if (n) {
-            Data.state.customWorkouts[w][d].exercises.push(n);
-            document.getElementById('new-ex-name').value = '';
-            this.renderExerciseEditor();
+    const w = document.getElementById('edit-ex-week').value;
+    const d = document.getElementById('edit-ex-day').value;
+    const nInput = document.getElementById('new-ex-name');
+    const nwInput = document.getElementById('new-ex-noweight'); // Checkbox
+
+    const n = nInput.value.trim();
+    if (n) {
+        // Přidáme cvik do rozvrhu
+        Data.state.customWorkouts[w][d].exercises.push(n);
+
+        // Pokud je zaškrtnuto "Bez váhy", uložíme si to do DB
+        if (nwInput.checked) {
+            if (!Data.state.userNoWeight) Data.state.userNoWeight = [];
+            Data.state.userNoWeight.push(n);
         }
-    },
+
+        // Reset formuláře
+        nInput.value = '';
+        nwInput.checked = false; // Odškrtnout pro příště
+        Data.saveDB(); // Uložit změny hned
+        this.renderExerciseEditor();
+    }
+},
     
     removeExercise: function(w, d, i) { Data.state.customWorkouts[w][d].exercises.splice(i, 1); this.renderExerciseEditor(); },
     moveExercise: function(w, d, i, dir) {
@@ -263,7 +277,7 @@ const UI = {
             }
 
             let pl = ll ? (ll.kg > 0 ? `${ll.sets}x${ll.reps}x${ll.kg}kg` : `${ll.sets}x${ll.reps} (Vl.)`) : "První záznam";
-            let wIn = Data.NO_WEIGHT_EXERCISES.some(x => ex.includes(x)) ?
+            let wIn = Data.isNoWeight(ex) ? 
                 `<div class="input-disabled">VLASTNÍ</div><input type="hidden" id="kg-${i}" value="0">` :
                 `<input type="number" id="kg-${i}" class="z-input" placeholder="kg" value="${st.weight || ''}">`;
             

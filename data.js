@@ -43,6 +43,7 @@ const Data = {
     // Current State
     state: { 
         version: '0.3.0', 
+        userNoWeight: [],
         user: { name: 'Sportovec', sport: 'Sport' }, 
         settings: { theme: 'dark', days: {} }, 
         stack: [], 
@@ -59,6 +60,14 @@ const Data = {
         Logic.init();
         UI.init();
     },
+    
+    isNoWeight: function(ex) {
+    // 1. Je to v systémovém seznamu? (částečná shoda)
+    const sys = this.NO_WEIGHT_EXERCISES.some(x => ex.includes(x));
+    // 2. Je to v uživatelském seznamu? (přesná shoda)
+    const usr = this.state.userNoWeight && this.state.userNoWeight.includes(ex);
+    return sys || usr;
+},
 
     loadDB: function() {
         let src = localStorage.getItem(this.DB_KEY);

@@ -6,6 +6,7 @@
     70% { box-shadow: 0 0 0 6px rgba(220, 38, 38, 0); }
     100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
 }
+#new-ex-noweight:checked + div { background-color: #DC2626; border-color: #DC2626; } #new-ex-noweight:checked ~ .check-icon { display: block; }
 
 .urgent-pulse {
     animation: pulse-red 2s infinite;

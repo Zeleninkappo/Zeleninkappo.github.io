@@ -191,7 +191,7 @@ const Logic = {
             const kg = parseFloat(document.getElementById(`kg-${i}`).value) || 0;
             const r = parseFloat(document.getElementById(`reps-${i}`).value) || 0;
             const s = parseFloat(document.getElementById(`sets-${i}`).value) || 0;
-            const isNoWeight = Data.NO_WEIGHT_EXERCISES.some(x => ex.includes(x));
+            const isNoWeight = Data.isNoWeight(ex); 
 
             if (r > 0) {
                 let nKg = kg;
