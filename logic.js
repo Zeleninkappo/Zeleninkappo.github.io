@@ -193,7 +193,7 @@ const Logic = {
             const s = parseFloat(document.getElementById(`sets-${i}`).value) || 0;
             const isNoWeight = Data.NO_WEIGHT_EXERCISES.some(x => ex.includes(x));
 
-            if (kg > 0 || (isNoWeight && r > 0)) {
+            if (r > 0) {
                 let nKg = kg;
                 const rpe = this.tempActiveRPEs[ex] || 'medium';
                 if (!isNoWeight) {
