@@ -19,21 +19,6 @@
 
 ---
 
-## 🚀 Rychlý Start
-
-Jelikož je Zelix **Single Page Application (SPA)** bez backendu, spuštění je triviální:
-
-### Možnost A: GitHub Pages (Doporučeno)
-1.  Nahrajte soubory do svého GitHub repozitáře.
-2.  V nastavení repozitáře zapněte **GitHub Pages**.
-3.  Aplikace poběží na `https://vase-jmeno.github.io/repozitář/`.
-
-### Možnost B: Lokálně
-1.  Stáhněte si tento repozitář (ZIP nebo `git clone`).
-2.  Otevřete soubor `index.html` v libovolném moderním prohlížeči (Chrome, Safari, Edge).
-
----
-
 ## 📖 Uživatelský Manuál
 
 ### 1. Prvotní Nastavení ⚙️
