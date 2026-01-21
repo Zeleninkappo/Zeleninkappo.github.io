@@ -6,8 +6,20 @@ const Data = {
     DB_KEY: 'ZELIX_DB_V030',
     
     // Default Data
-    NO_WEIGHT_EXERCISES: ["Plank", "Russian Twists", "Hanging Leg Raises", "Box Jumps", "Burpees", "Ab Wheel", "Strečink", "Procházka", "Sauna"],
-
+    NO_WEIGHT_EXERCISES: [
+        // Původní
+        "Plank", "Russian Twists", "Hanging Leg Raises", "Box Jumps", "Burpees", "Ab Wheel", 
+        "Strečink", "Procházka", "Sauna",
+        
+        // Doplněné - Mobilita & Core
+        "Cat-Camel", "Bird-Dog", "Foam Rolling", "Side Plank", "Leg Raises", 
+        "Cobra Stretch", "Hip Stretch",
+        
+        // Doplněné - Calisthenics & Explosive
+        "Pull Ups", "Chin Ups", "Dips", "Plyo Push Ups", "Broad Jumps", 
+        "Nordic Hamstring Curl", "Glute Ham Raise"
+    ], 
+    
     defaultA: { 
         1: { title: "Upper Power A", exercises: ["Bench Press", "Barbell Row", "Military Press", "Dips", "Face Pulls", "Biceps Barbell Curl"] }, 
         2: { title: "Lower Hyper A", exercises: ["Squat", "RDL", "Leg Press", "Leg Extension", "Calf Raise", "Plank"] }, 
