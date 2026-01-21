@@ -143,6 +143,20 @@ const Logic = {
         Data.saveDB();
         this.update();
     },
+    
+    setRPE: function(ex, rpe, i, btn) {
+        // 1. Uložíme hodnotu do dočasného stavu
+        this.tempActiveRPEs[ex] = rpe;
+
+        // 2. Vizuální feedback (přepínání tříd na tlačítkách)
+        const parent = btn.parentElement;
+        // Odstraníme selected třídy ze všech sourozenců
+        Array.from(parent.children).forEach(b => {
+            b.classList.remove('selected-easy', 'selected-medium', 'selected-hard');
+        });
+        // Přidáme správnou barvu aktuálnímu tlačítku
+        btn.classList.add(`selected-${rpe}`);
+    },
 
     // Workout Logic
     checkWorkoutEntry: function() {
