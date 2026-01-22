@@ -1,8 +1,12 @@
-const CACHE_NAME = 'zelix-v0.4.2';
+importScripts('config.js'); // Načte APP_VERSION
+
+const CACHE_NAME = `zelix-v${APP_VERSION}`; 
+
 const ASSETS = [
   './',
   './index.html',
   './style.css',
+  './config.js',
   './data.js',
   './logic.js',
   './ui.js',
