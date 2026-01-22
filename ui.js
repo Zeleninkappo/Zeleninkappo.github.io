@@ -274,23 +274,20 @@ const UI = {
     },
 
     // --- WORKOUT MODAL ---
-    openWorkoutModal: function(w, stats, history) {
+   openWorkoutModal: function(w, stats, history) {
         const c = document.getElementById('modal-exercises');
         c.innerHTML = '';
         document.getElementById('modal-title').innerText = w.title;
 
-        // 1. Uložíme si kontext pro Autosave
         Logic.currentSessionExercises = w.exercises;
 
-        // 2. Zkusíme načíst rozpracovaný koncept
         const rawDraft = localStorage.getItem('ZELIX_WORKOUT_DRAFT');
         const draft = rawDraft ? JSON.parse(rawDraft) : {};
-        const hasDraft = Object.keys(draft).length > 0;
 
         w.exercises.forEach((ex, i) => {
             const st = stats[ex] || { weight: 0, reps: 8, sets: 4 };
             
-            // Historie (pro info "Minule")
+            // Historie
             const rev = [...history].reverse();
             let ll = null;
             for (let s of rev) {
@@ -299,8 +296,7 @@ const UI = {
             }
             let pl = ll ? (ll.kg > 0 ? `${ll.sets}x${ll.reps}x${ll.kg}kg` : `${ll.sets}x${ll.reps} (Vl.)`) : "První záznam";
 
-            // 3. Rozhodování: Použít Draft nebo Historii?
-            // Pokud máme draft pro tento cvik, použijeme ho. Jinak bereme historii/default.
+            // Rozhodování: Draft vs Historie
             let valKg = st.weight || '';
             let valReps = st.reps;
             let valSets = st.sets;
@@ -311,22 +307,28 @@ const UI = {
                 valReps = draft[ex].reps;
                 valSets = draft[ex].sets;
                 activeRPE = draft[ex].rpe;
-                // Musíme to říct i Logice, aby to fungovalo při uložení
                 if (activeRPE) Logic.tempActiveRPEs[ex] = activeRPE;
             }
 
+            // Předvýpočet 1RM pro zobrazení
+            let initialOrm = '';
+            if (valKg > 0 && valReps > 1) {
+                const ormCalc = Math.round(valKg * (1 + valReps/30));
+                initialOrm = `Est. 1RM: ${ormCalc}kg`;
+            }
+
             // Generování HTML
+            // ZMĚNA: oninput volá Logic.handleInput(${i})
             let wIn = Data.isNoWeight(ex) ? 
                 `<div class="input-disabled">VLASTNÍ</div><input type="hidden" id="kg-${i}" value="0">` :
-                `<input type="number" id="kg-${i}" class="z-input" placeholder="kg" value="${valKg}" oninput="Logic.saveWorkoutDraft()">`;
+                `<input type="number" id="kg-${i}" class="z-input" placeholder="kg" value="${valKg}" oninput="Logic.handleInput(${i})">`;
             
             const searchLink = `https://www.google.com/search?q=${encodeURIComponent(ex + ' cvik technika')}`;
-
-            // RPE Tlačítka - musíme předvybrat, pokud bylo v draftu
             const rpeClass = (r) => activeRPE === r ? `selected-${r}` : '';
 
+            // ZMĚNA: Přidán div s id="orm-${i}"
             c.innerHTML += `
-            <div class="bg-stone-100 dark:bg-stone-900 p-3 rounded border border-stone-200 dark:border-stone-800 shadow-sm">
+            <div class="bg-stone-100 dark:bg-stone-900 p-3 rounded border border-stone-200 dark:border-stone-800 shadow-sm relative">
                 <div class="flex justify-between mb-2 items-center">
                     <div class="flex items-center">
                         <span class="font-bold text-primary text-xs uppercase">${ex}</span>
@@ -336,19 +338,23 @@ const UI = {
                 </div>
                 <div class="grid grid-cols-3 gap-2 mb-2">
                     ${wIn}
-                    <input type="number" id="reps-${i}" class="z-input" placeholder="reps" value="${valReps}" oninput="Logic.saveWorkoutDraft()">
-                    <input type="number" id="sets-${i}" class="z-input" placeholder="sets" value="${valSets}" oninput="Logic.saveWorkoutDraft()">
+                    <input type="number" id="reps-${i}" class="z-input" placeholder="reps" value="${valReps}" oninput="Logic.handleInput(${i})">
+                    <input type="number" id="sets-${i}" class="z-input" placeholder="sets" value="${valSets}" oninput="Logic.handleInput(${i})">
                 </div>
-                <div class="flex gap-1" id="rpe-cont-${i}">
-                    <button onclick="Logic.setRPE('${ex}','easy',${i},this)" class="rpe-btn flex-1 ${rpeClass('easy')}">EASY</button>
-                    <button onclick="Logic.setRPE('${ex}','medium',${i},this)" class="rpe-btn flex-1 ${rpeClass('medium')}">OK</button>
-                    <button onclick="Logic.setRPE('${ex}','hard',${i},this)" class="rpe-btn flex-1 ${rpeClass('hard')}">HARD</button>
+                <div class="flex justify-between items-center mt-2">
+                    <div class="flex gap-1 flex-1 mr-4" id="rpe-cont-${i}">
+                        <button onclick="Logic.setRPE('${ex}','easy',${i},this)" class="rpe-btn flex-1 ${rpeClass('easy')}">EASY</button>
+                        <button onclick="Logic.setRPE('${ex}','medium',${i},this)" class="rpe-btn flex-1 ${rpeClass('medium')}">OK</button>
+                        <button onclick="Logic.setRPE('${ex}','hard',${i},this)" class="rpe-btn flex-1 ${rpeClass('hard')}">HARD</button>
+                    </div>
+                    <div id="orm-${i}" class="text-[10px] text-stone-400 font-mono font-bold whitespace-nowrap min-w-[60px] text-right">${initialOrm}</div>
                 </div>
             </div>`;
         });
-		const noteInput = document.getElementById('workout-note');
+        
+        // Načtení poznámky
+        const noteInput = document.getElementById('workout-note');
         if (noteInput) {
-            // Pokud v draftu je _note, načteme ho. Jinak vyčistíme pole.
             noteInput.value = (draft && draft._note) ? draft._note : '';
         }
         
@@ -571,6 +577,7 @@ window.onload = function() {
     Data.init();
 
 };
+
 
 
 
