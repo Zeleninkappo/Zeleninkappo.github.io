@@ -124,7 +124,11 @@ const Data = {
         if(nameEl) this.state.user.name = nameEl.value;
         const sportEl = document.getElementById('setup-sport');
         if(sportEl) this.state.user.sport = sportEl.value;
-        
+        if (!this.state.user.mealTimes) this.state.user.mealTimes = {};
+         this.state.user.mealTimes.breakfast = document.getElementById('setup-time-breakfast').value || '06:15';
+         this.state.user.mealTimes.lunch = document.getElementById('setup-time-lunch').value || '12:00';
+         this.state.user.mealTimes.dinner = document.getElementById('setup-time-dinner').value || '20:00';
+       
         if(!this.state.settings) this.state.settings={days:{}}; 
         const days = {}; 
         for(let i=0; i<7; i++) { 
@@ -150,4 +154,5 @@ const Data = {
         this.saveDB();
         UI.applyTheme();
     }
+
 };
