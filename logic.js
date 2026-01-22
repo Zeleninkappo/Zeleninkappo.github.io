@@ -40,6 +40,9 @@ const Logic = {
         const d = new Date().getDay();
         const conf = Data.state.settings.days[d] || { type: 'rest', gymTime: '14:30', fieldTime: '19:30' };
         
+        // 1. Načteme časy jídel (nebo použijeme defaultní)
+        const mt = (Data.state.user && Data.state.user.mealTimes) ? Data.state.user.mealTimes : { breakfast: '06:15', lunch: '12:00', dinner: '20:00' };
+
         let type = this.forceRest ? 'rest' : conf.type;
         UI.updateDayBadge(type.toUpperCase());
 
@@ -55,9 +58,9 @@ const Logic = {
                     evs.push({ time: '09:00', title: `${s.name} (${s.dose})`, type: 'supp' })
                 );
             }
-            // Jídlo (zobrazuje se vždy)
-            //evs.push({ time: '12:00', title: 'Oběd', type: 'food' });
-            //evs.push({ time: '20:00', title: 'Večeře', type: 'food' });
+            // Jídlo - VLASTNÍ ČASY
+            evs.push({ time: mt.lunch, title: 'Oběd', type: 'food' });
+            evs.push({ time: mt.dinner, title: 'Večeře', type: 'food' });
         } 
         // --- TRAINING DAYS (Trénink) ---
         else {
@@ -65,27 +68,25 @@ const Logic = {
             const fT = conf.fieldTime;
 
             if (supps.enabled && Data.state.stack) {
-                // Ranní stack + DÁVKA
                 Data.state.stack.filter(s => s.timing === 'morning').forEach(s => 
                     evs.push({ time: '06:00', title: `${s.name} (${s.dose})`, type: 'supp' })
                 );
             }
-            // Jídlo (zobrazuje se vždy)
-            evs.push({ time: '06:15', title: 'Snídaně', type: 'food' });
-			evs.push({ time: '12:00', title: 'Oběd', type: 'food' });
-            evs.push({ time: '20:00', title: 'Večeře', type: 'food' });
+            // Snídaně - VLASTNÍ ČAS
+            evs.push({ time: mt.breakfast, title: 'Snídaně', type: 'food' });
+            // Oběd a Večeře i v tréninkový den
+            evs.push({ time: mt.lunch, title: 'Oběd', type: 'food' });
+            evs.push({ time: mt.dinner, title: 'Večeře', type: 'food' });
 
             // Gym Logic
             if (type === 'gym' || type === 'double') {
                 if (supps.enabled && Data.state.stack) {
-                    // Pre-workout + DÁVKA
                     Data.state.stack.filter(s => s.timing === 'pre').forEach(s => 
                         evs.push({ time: this.addMin(gT, -30), title: `${s.name} (${s.dose})`, type: 'urgent' })
                     );
                 }
                 evs.push({ time: gT, title: 'GYM TRÉNINK', type: 'activity' });
                 if (supps.enabled && Data.state.stack) {
-                    // Post-workout + DÁVKA
                     Data.state.stack.filter(s => s.timing === 'post').forEach(s => 
                         evs.push({ time: this.addMin(gT, 90), title: `${s.name} (${s.dose})`, type: 'supp' })
                     );
@@ -97,9 +98,8 @@ const Logic = {
                 evs.push({ time: fT, title: sport.toUpperCase(), type: 'activity-high' });
             }
 
-            // Evening (společné pro všechny dny, pokud je aktivní tréninkový režim)
+            // Evening
             if (supps.enabled && Data.state.stack) {
-                // Večerní stack + DÁVKA
                 Data.state.stack.filter(s => s.timing === 'evening').forEach(s => 
                     evs.push({ time: '22:00', title: `${s.name} (${s.dose})`, type: 'rest' })
                 );
@@ -286,5 +286,6 @@ const Logic = {
 
 
 };
+
 
 
