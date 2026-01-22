@@ -149,6 +149,16 @@ const UI = {
 
     closeSetupModal: function() { document.getElementById('setup-modal').classList.remove('active'); },
 
+	openWeightModal: function() {
+        document.getElementById('new-bodyweight').value = '';
+        document.getElementById('weight-modal').classList.add('active');
+        // Auto-focus na input
+        setTimeout(() => document.getElementById('new-bodyweight').focus(), 100);
+    },
+	
+    closeWeightModal: function() { document.getElementById('weight-modal').classList.remove('active'); },
+
+	
     switchTab: function(t) {
         ['system', 'user', 'supps', 'exercises'].forEach(x => {
             document.getElementById(`tab-content-${x}`).classList.add('hidden');
@@ -477,52 +487,79 @@ const UI = {
     populateChartSelect: function() {
         const s = document.getElementById('chart-select');
         const c = s.value;
-        const ex = new Set(["Bench Press"]);
+        const ex = new Set();
         if (Data.state.workout_history) Data.state.workout_history.forEach(x => x.logs.forEach(l => ex.add(l.ex)));
+        
         s.innerHTML = '';
+        
+        // 1. Přidáme možnost Tělesná váha
+        const bwOpt = document.createElement('option');
+        bwOpt.value = 'Bodyweight';
+        bwOpt.text = '⚖️ Tělesná váha';
+        s.appendChild(bwOpt);
+
         Array.from(ex).sort().forEach(e => {
             const o = document.createElement('option');
             o.value = e; o.text = e; s.appendChild(o);
         });
-        if (Array.from(ex).includes(c)) s.value = c;
-        else if (ex.size > 0) this.updateChart(Array.from(ex)[0]);
+
+        if (c === 'Bodyweight') s.value = 'Bodyweight';
+        else if (Array.from(ex).includes(c)) s.value = c;
+        else if (ex.size > 0) this.updateChart('Bodyweight'); // Default na váhu nebo první cvik
     },
 
     updateChart: function(exName) {
         const ctx = document.getElementById('progressChart').getContext('2d');
-        const h = Data.state.workout_history.filter(x => x.logs.some(l => l.ex === exName));
-        const labels = h.map(x => x.date.split('T')[0].split('-').reverse().join('.'));
-        const wD = h.map(x => { const l=x.logs.find(y=>y.ex===exName); return l?l.kg:0; });
-        const vD = h.map(x => { const l=x.logs.find(y=>y.ex===exName); return l?(l.sets*l.reps):0; });
-        const showW = wD.some(w => w > 0);
+        const tC = document.documentElement.classList.contains('dark') ? '#a8a29e' : '#57534e';
+        const gC = document.documentElement.classList.contains('dark') ? '#292524' : '#e5e7eb';
+        
+        let labels = [], d1 = [], d2 = [], label1 = '', label2 = '', showY1 = false;
+
+        // --- MÓD: TĚLESNÁ VÁHA ---
+        if (exName === 'Bodyweight') {
+            const h = Data.state.bodyweight_history || [];
+            labels = h.map(x => x.date.split('T')[0].split('-').reverse().join('.'));
+            d1 = h.map(x => x.kg);
+            label1 = 'Váha (kg)';
+            // (Volitelně: d2 by mohl být průměr, ale nechme to jednoduché)
+        } 
+        // --- MÓD: CVIKY ---
+        else {
+            const h = Data.state.workout_history.filter(x => x.logs.some(l => l.ex === exName));
+            labels = h.map(x => x.date.split('T')[0].split('-').reverse().join('.'));
+            d1 = h.map(x => { const l=x.logs.find(y=>y.ex===exName); return l?l.kg:0; });
+            d2 = h.map(x => { const l=x.logs.find(y=>y.ex===exName); return l?(l.sets*l.reps):0; });
+            label1 = 'Váha (kg)';
+            label2 = 'Objem (reps)';
+            showY1 = true;
+        }
 
         if (this.chartInst) this.chartInst.destroy();
 
-        const tC = document.documentElement.classList.contains('dark') ? '#a8a29e' : '#57534e';
-        const gC = document.documentElement.classList.contains('dark') ? '#292524' : '#e5e7eb';
+        const datasets = [{
+            label: label1, data: d1, type: 'line',
+            borderColor: '#DC2626', backgroundColor: '#DC2626',
+            yAxisID: 'y', tension: 0.3, borderWidth: 2, pointRadius: 3
+        }];
+
+        if (showY1 && d2.length > 0) {
+            datasets.push({
+                label: label2, data: d2,
+                backgroundColor: document.documentElement.classList.contains('dark') ? '#292524' : '#d6d3d1',
+                yAxisID: 'y1', barThickness: 10, borderRadius: 4, type: 'bar'
+            });
+        }
 
         this.chartInst = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels,
-                datasets: [{
-                    label: 'Váha', data: wD, type: 'line',
-                    borderColor: '#DC2626', backgroundColor: '#DC2626',
-                    yAxisID: 'y', tension: 0.3, borderWidth: 2, pointRadius: 3, hidden: !showW
-                }, {
-                    label: 'Objem', data: vD,
-                    backgroundColor: document.documentElement.classList.contains('dark') ? '#292524' : '#d6d3d1',
-                    yAxisID: 'y1', barThickness: 10, borderRadius: 4
-                }]
-            },
+            data: { labels, datasets },
             options: {
                 responsive: true, maintainAspectRatio: false,
                 interaction: { mode: 'index', intersect: false },
                 plugins: { legend: { display: true, labels: { color: tC, font: { size: 10 }, boxWidth: 8 } } },
                 scales: {
                     x: { grid: { display: false }, ticks: { color: tC, font: { size: 10 } } },
-                    y: { type: 'linear', display: showW, position: 'left', grid: { color: gC }, ticks: { color: '#DC2626', font: { size: 10 } }, title: { display: false } },
-                    y1: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false }, ticks: { color: tC, font: { size: 10 } }, title: { display: false } }
+                    y: { type: 'linear', display: true, position: 'left', grid: { color: gC }, ticks: { color: '#DC2626', font: { size: 10 } } },
+                    y1: { type: 'linear', display: showY1, position: 'right', grid: { drawOnChartArea: false }, ticks: { color: tC, font: { size: 10 } } }
                 }
             }
         });
@@ -534,6 +571,7 @@ window.onload = function() {
     Data.init();
 
 };
+
 
 
 
