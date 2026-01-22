@@ -42,7 +42,8 @@ const Data = {
 
     // Current State
     state: { 
-        version: '0.3.0', 
+        version: '0.4.2',
+        bodyweight_history: [],
         userNoWeight: [],
         user: { name: 'Sportovec', sport: 'Sport' }, 
         settings: { theme: 'dark', days: {} }, 
@@ -156,3 +157,4 @@ const Data = {
     }
 
 };
+
