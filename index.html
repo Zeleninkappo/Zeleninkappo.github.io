@@ -56,6 +56,7 @@
                 <div class="flex gap-2">
                     <button onclick="UI.openHistoryModal()" class="text-[10px] font-bold bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 border border-stone-300 dark:border-stone-700 px-3 py-1 rounded hover:text-white hover:bg-stone-700 transition-colors">📖 LOG</button>
                     <button onclick="Logic.checkWorkoutEntry()" class="text-[10px] font-bold bg-primary text-white px-3 py-1 rounded hover:bg-red-700 shadow-md flex items-center gap-1 transition-transform active:scale-95">🏋️ GYM</button>
+                    <button onclick="UI.openWeightModal()" class="text-[10px] font-bold bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 border border-stone-300 dark:border-stone-700 px-3 py-1 rounded hover:text-white hover:bg-stone-700 transition-colors">⚖️ VÁHA</button>
                 </div>
             </div>
 
@@ -251,6 +252,19 @@
     <!-- Utils -->
     <div id="wipe-modal" class="modal fixed w-full h-full top-0 left-0 flex items-center justify-center z-[300] bg-black/95 opacity-0 pointer-events-none"><div class="w-11/12 max-w-sm bg-white dark:bg-panel p-6 rounded-xl text-center border border-red-500 shadow-2xl"><h2 class="text-xl font-bold mb-4 uppercase text-red-600">Smazat vše?</h2><div class="flex gap-2"><button onclick="UI.closeWipeModal()" class="flex-1 py-3 bg-stone-200 dark:bg-stone-800 rounded text-xs font-bold uppercase">Zpět</button><button onclick="Data.hardReset()" class="flex-1 py-3 bg-red-600 text-white rounded text-xs font-bold uppercase">Smazat</button></div></div></div>
     <div id="duplicate-modal" class="modal fixed w-full h-full top-0 left-0 flex items-center justify-center z-[250] bg-black/80 opacity-0 pointer-events-none"><div class="bg-white dark:bg-panel p-6 rounded-xl max-w-sm text-center border border-primary/50 shadow-2xl"><h3 class="font-bold mb-4 uppercase text-stone-900 dark:text-white">Dnes již trénováno</h3><div class="flex gap-2"><button onclick="UI.closeDuplicateModal()" class="flex-1 py-3 bg-stone-200 dark:bg-stone-800 rounded text-xs font-bold uppercase">Zrušit</button><button onclick="Logic.forceOpenWorkout()" class="flex-1 py-3 bg-primary text-white rounded text-xs font-bold uppercase">Přidat</button></div></div></div>
+    <div id="weight-modal" class="modal fixed w-full h-full top-0 left-0 flex items-center justify-center z-[250] bg-black/80 opacity-0 pointer-events-none">
+    <div class="bg-white dark:bg-panel p-6 rounded-xl max-w-sm w-11/12 text-center border border-stone-200 dark:border-stone-700 shadow-2xl">
+        <h3 class="font-black mb-4 uppercase text-stone-900 dark:text-white text-lg">Zadat váhu</h3>
+        <div class="relative w-24 mx-auto mb-6">
+            <input type="number" id="new-bodyweight" step="0.1" class="z-input text-center font-bold text-2xl p-2" placeholder="00.0">
+            <span class="absolute right-[-20px] bottom-3 text-stone-400 font-bold text-xs">kg</span>
+        </div>
+        <div class="flex gap-2">
+            <button onclick="UI.closeWeightModal()" class="flex-1 py-3 bg-stone-200 dark:bg-stone-800 rounded text-xs font-bold uppercase transition-colors hover:bg-stone-300 dark:hover:bg-stone-700">Zrušit</button>
+            <button onclick="Logic.saveBodyweight()" class="flex-1 py-3 bg-primary text-white rounded text-xs font-bold uppercase shadow-lg hover:bg-red-700 transition-colors">Uložit</button>
+        </div>
+    </div>
+</div>
     <div id="session-delete-modal" class="modal fixed w-full h-full top-0 left-0 flex items-center justify-center z-[260] bg-black/95 opacity-0 pointer-events-none"><div class="w-11/12 max-w-sm bg-white dark:bg-panel p-6 rounded-xl text-center border border-red-500 shadow-2xl"><h2 class="text-xl font-bold mb-4 uppercase text-red-600">Smazat trénink?</h2><p id="del-session-date" class="text-sm opacity-70 mb-6 font-mono font-bold">...</p><div class="flex gap-2"><button onclick="UI.closeSessionDeleteModal()" class="flex-1 py-3 bg-stone-200 dark:bg-stone-800 rounded text-xs font-bold uppercase">Zpět</button><button onclick="Logic.executeSessionDelete()" class="flex-1 py-3 bg-red-600 text-white rounded text-xs font-bold uppercase">Smazat</button></div></div></div>
 
     <!-- LOAD SCRIPTS -->
@@ -265,6 +279,7 @@
 </body>
 
 </html>
+
 
 
 
