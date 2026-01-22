@@ -336,6 +336,11 @@ const UI = {
                 </div>
             </div>`;
         });
+		const noteInput = document.getElementById('workout-note');
+        if (noteInput) {
+            // Pokud v draftu je _note, načteme ho. Jinak vyčistíme pole.
+            noteInput.value = (draft && draft._note) ? draft._note : '';
+        }
         
         document.getElementById('workout-modal').classList.add('active');
     },
@@ -374,6 +379,17 @@ const UI = {
                         <div class="col-span-1 text-right uppercase text-[9px] font-bold ${r.rpe==='easy'?'text-green-500':r.rpe==='hard'?'text-red-500':'text-yellow-500'}">${r.rpe||'-'}</div>
                     </div>`;
                 }).join('');
+				
+				const sessionNote = Data.state.workout_history[r.sIdx].note || '';
+                const noteHtml = sessionNote ? `<div class="col-span-4 text-[9px] text-stone-400 italic mt-1 border-t border-stone-100 dark:border-stone-800 pt-1">📝 ${sessionNote}</div>` : '';
+
+                return `
+                    <div onclick="UI.openEntryManager('${ex}',${r.sIdx},${r.lIdx})" class="grid grid-cols-4 gap-2 text-xs py-3 border-b border-stone-200 dark:border-stone-800 last:border-0 text-stone-600 dark:text-stone-400 cursor-pointer hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors">
+                        <div class="col-span-1 font-mono opacity-70">${dFormatted}</div>
+                        <div class="col-span-1 font-bold text-stone-900 dark:text-white">${w}</div>
+                        <div class="col-span-1">${r.sets} x ${r.reps}</div>
+                        <div class="col-span-1 text-right uppercase text-[9px] font-bold ${r.rpe==='easy'?'text-green-500':r.rpe==='hard'?'text-red-500':'text-yellow-500'}">${r.rpe||'-'}</div>
+                        ${noteHtml} </div>`;
 
                 cont.innerHTML += `
                     <div class="bg-white dark:bg-panel mb-2">
@@ -519,4 +535,5 @@ window.onload = function() {
     Data.init();
 
 };
+
 
