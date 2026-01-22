@@ -47,33 +47,46 @@ const Logic = {
         const supps = Data.state.supplements || { enabled: false };
         const sport = Data.state.user.sport || 'Sport';
 
+        // --- REST DAYS (Volno) ---
         if (type === 'rest') {
-            if (supps.enabled) {
-                if (Data.state.stack) Data.state.stack.filter(s => s.timing === 'morning').forEach(s => evs.push({ time: '09:00', title: s.name, type: 'supp' }));
-                evs.push({ time: '12:00', title: 'Oběd', type: 'food' });
-                evs.push({ time: '20:00', title: 'Večeře', type: 'food' });
-            } else {
-                evs.push({ time: '--:--', title: 'Dnes volno', type: 'rest' });
+            if (supps.enabled && Data.state.stack) {
+                // Ranní stack + DÁVKA
+                Data.state.stack.filter(s => s.timing === 'morning').forEach(s => 
+                    evs.push({ time: '09:00', title: `${s.name} (${s.dose})`, type: 'supp' })
+                );
             }
-        } else {
+            // Jídlo (zobrazuje se vždy)
+            evs.push({ time: '12:00', title: 'Oběd', type: 'food' });
+            evs.push({ time: '20:00', title: 'Večeře', type: 'food' });
+        } 
+        // --- TRAINING DAYS (Trénink) ---
+        else {
             const gT = conf.gymTime;
             const fT = conf.fieldTime;
 
-            if (supps.enabled) {
-                if (Data.state.stack) Data.state.stack.filter(s => s.timing === 'morning').forEach(s => evs.push({ time: '06:00', title: s.name, type: 'supp' }));
-                evs.push({ time: '06:15', title: 'Snídaně', type: 'food' });
-				evs.push({ time: '12:00', title: 'Oběd', type: 'food' });
-                evs.push({ time: '20:00', title: 'Večeře', type: 'food' });
+            if (supps.enabled && Data.state.stack) {
+                // Ranní stack + DÁVKA
+                Data.state.stack.filter(s => s.timing === 'morning').forEach(s => 
+                    evs.push({ time: '06:00', title: `${s.name} (${s.dose})`, type: 'supp' })
+                );
             }
+            // Snídaně (zobrazuje se vždy)
+            evs.push({ time: '06:15', title: 'Snídaně', type: 'food' });
 
             // Gym Logic
             if (type === 'gym' || type === 'double') {
                 if (supps.enabled && Data.state.stack) {
-                    Data.state.stack.filter(s => s.timing === 'pre').forEach(s => evs.push({ time: this.addMin(gT, -30), title: s.name, type: 'urgent' }));
+                    // Pre-workout + DÁVKA
+                    Data.state.stack.filter(s => s.timing === 'pre').forEach(s => 
+                        evs.push({ time: this.addMin(gT, -30), title: `${s.name} (${s.dose})`, type: 'urgent' })
+                    );
                 }
                 evs.push({ time: gT, title: 'GYM TRÉNINK', type: 'activity' });
                 if (supps.enabled && Data.state.stack) {
-                    Data.state.stack.filter(s => s.timing === 'post').forEach(s => evs.push({ time: this.addMin(gT, 90), title: s.name, type: 'supp' }));
+                    // Post-workout + DÁVKA
+                    Data.state.stack.filter(s => s.timing === 'post').forEach(s => 
+                        evs.push({ time: this.addMin(gT, 90), title: `${s.name} (${s.dose})`, type: 'supp' })
+                    );
                 }
             }
 
@@ -82,9 +95,12 @@ const Logic = {
                 evs.push({ time: fT, title: sport.toUpperCase(), type: 'activity-high' });
             }
 
-            // Evening
+            // Evening (společné pro všechny dny, pokud je aktivní tréninkový režim)
             if (supps.enabled && Data.state.stack) {
-                Data.state.stack.filter(s => s.timing === 'evening').forEach(s => evs.push({ time: '22:00', title: s.name, type: 'rest' }));
+                // Večerní stack + DÁVKA
+                Data.state.stack.filter(s => s.timing === 'evening').forEach(s => 
+                    evs.push({ time: '22:00', title: `${s.name} (${s.dose})`, type: 'rest' })
+                );
             }
         }
 
@@ -268,3 +284,4 @@ const Logic = {
 
 
 };
+
