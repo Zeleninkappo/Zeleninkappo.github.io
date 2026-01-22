@@ -42,7 +42,7 @@ const Data = {
 
     // Current State
     state: { 
-        version: '0.4.2',
+        version: typeof APP_VERSION !== 'undefined' ? APP_VERSION : '0.0.0',
         bodyweight_history: [],
         userNoWeight: [],
         user: { name: 'Sportovec', sport: 'Sport' }, 
@@ -157,4 +157,5 @@ const Data = {
     }
 
 };
+
 
