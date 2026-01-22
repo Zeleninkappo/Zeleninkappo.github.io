@@ -218,6 +218,7 @@
             </div>
             <div class="p-4 space-y-4 flex-grow overflow-y-auto" id="modal-exercises"></div>
             <div class="p-4 border-t border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-panel sticky bottom-0 z-20 pb-8 md:pb-4">
+                <textarea id="workout-note" rows="2" class="w-full mb-3 p-2 text-xs rounded border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-300 resize-none focus:outline-none focus:border-primary transition-colors" placeholder="Poznámka k tréninku (např. únava, nový pre-workout...)" oninput="Logic.saveWorkoutDraft()"></textarea>
                 <button onclick="Logic.finishWorkout()" class="w-full bg-primary hover:bg-red-700 text-white font-bold py-3.5 rounded-lg uppercase tracking-widest shadow-xl transition-all active:scale-95">Uložit Trénink</button>
             </div>
         </div>
@@ -264,6 +265,7 @@
 </body>
 
 </html>
+
 
 
 
