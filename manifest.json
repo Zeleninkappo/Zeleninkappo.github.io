@@ -1,5 +1,5 @@
 {
-  "name": "Zelix Training Log",
+  "name": "Zelix App",
   "short_name": "Zelix",
   "start_url": "./index.html",
   "display": "standalone",
