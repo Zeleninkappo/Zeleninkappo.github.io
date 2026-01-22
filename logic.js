@@ -62,6 +62,8 @@ const Logic = {
             if (supps.enabled) {
                 if (Data.state.stack) Data.state.stack.filter(s => s.timing === 'morning').forEach(s => evs.push({ time: '06:00', title: s.name, type: 'supp' }));
                 evs.push({ time: '06:15', title: 'Snídaně', type: 'food' });
+				evs.push({ time: '12:00', title: 'Oběd', type: 'food' });
+                evs.push({ time: '20:00', title: 'Večeře', type: 'food' });
             }
 
             // Gym Logic
@@ -263,5 +265,6 @@ const Logic = {
         UI.openHistoryModal(); 
         this.update();
     },
+
 
 };
