@@ -30,6 +30,10 @@
         }
     </script>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#DC2626">
+<link rel="apple-touch-icon" href="icon-192.png">
 </head>
 <body class="flex flex-col min-h-screen pb-10 bg-stone-100 text-stone-900 dark:bg-dark dark:text-stone-300">
 
@@ -276,9 +280,18 @@
             Data.init();
         }
     </script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+                .then(() => console.log('Zelix PWA: Service Worker Registered'))
+                .catch((err) => console.log('Zelix PWA: Registration Failed', err));
+        }
+    </script>
+</body>
 </body>
 
 </html>
+
 
 
 
