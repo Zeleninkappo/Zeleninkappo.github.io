@@ -220,7 +220,9 @@ const Logic = {
                 draft[ex] = { kg, reps, sets, rpe };
             }
         });
-
+		const note = document.getElementById('workout-note').value;
+        if (note) draft._note = note;
+		
         localStorage.setItem('ZELIX_WORKOUT_DRAFT', JSON.stringify(draft));
     },
 
@@ -234,6 +236,7 @@ const Logic = {
         const w = Data.state.customWorkouts[this.currentWeekType][d];
         const t = new Date().toISOString().split('T')[0];
         const l = [];
+		const noteVal = document.getElementById('workout-note').value.trim();
 
         w.exercises.forEach((ex, i) => {
             const kg = parseFloat(document.getElementById(`kg-${i}`).value) || 0;
@@ -254,7 +257,7 @@ const Logic = {
         });
 
         if (l.length > 0) {
-            Data.state.workout_history.push({ date: t, title: w.title, logs: l });
+            Data.state.workout_history.push({ date: t, title: w.title, logs: l, note: noteVal});
             Data.saveDB();
 			this.clearWorkoutDraft();
             UI.closeWorkoutModal();
@@ -315,6 +318,7 @@ const Logic = {
 
 
 };
+
 
 
 
