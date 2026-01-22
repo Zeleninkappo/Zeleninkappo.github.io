@@ -226,6 +226,34 @@ const Logic = {
         localStorage.setItem('ZELIX_WORKOUT_DRAFT', JSON.stringify(draft));
     },
 
+	saveBodyweight: function() {
+        const val = parseFloat(document.getElementById('new-bodyweight').value);
+        if (!val || val <= 0) return;
+
+        const today = new Date().toISOString().split('T')[0];
+        
+        // Inicializace pole, pokud neexistuje
+        if (!Data.state.bodyweight_history) Data.state.bodyweight_history = [];
+
+        // Pokud už dnes záznam je, přepíšeme ho (vymažeme starý pro dnešek)
+        Data.state.bodyweight_history = Data.state.bodyweight_history.filter(x => x.date !== today);
+        
+        // Přidáme nový
+        Data.state.bodyweight_history.push({ date: today, kg: val });
+        
+        // Seřadíme podle data (pro jistotu)
+        Data.state.bodyweight_history.sort((a,b) => new Date(a.date) - new Date(b.date));
+
+        Data.saveDB();
+        UI.closeWeightModal();
+        
+        // Pokud je zrovna zobrazen graf váhy, aktualizujeme ho
+        const chartSel = document.getElementById('chart-select');
+        if (chartSel && chartSel.value === 'Bodyweight') {
+            UI.updateChart('Bodyweight');
+        }
+    },
+
     clearWorkoutDraft: function() {
         localStorage.removeItem('ZELIX_WORKOUT_DRAFT');
         this.tempActiveRPEs = {};
@@ -318,6 +346,7 @@ const Logic = {
 
 
 };
+
 
 
 
