@@ -56,8 +56,8 @@ const Logic = {
                 );
             }
             // Jídlo (zobrazuje se vždy)
-            evs.push({ time: '12:00', title: 'Oběd', type: 'food' });
-            evs.push({ time: '20:00', title: 'Večeře', type: 'food' });
+            //evs.push({ time: '12:00', title: 'Oběd', type: 'food' });
+            //evs.push({ time: '20:00', title: 'Večeře', type: 'food' });
         } 
         // --- TRAINING DAYS (Trénink) ---
         else {
@@ -70,8 +70,10 @@ const Logic = {
                     evs.push({ time: '06:00', title: `${s.name} (${s.dose})`, type: 'supp' })
                 );
             }
-            // Snídaně (zobrazuje se vždy)
+            // Jídlo (zobrazuje se vždy)
             evs.push({ time: '06:15', title: 'Snídaně', type: 'food' });
+			evs.push({ time: '12:00', title: 'Oběd', type: 'food' });
+            evs.push({ time: '20:00', title: 'Večeře', type: 'food' });
 
             // Gym Logic
             if (type === 'gym' || type === 'double') {
@@ -284,4 +286,5 @@ const Logic = {
 
 
 };
+
 
