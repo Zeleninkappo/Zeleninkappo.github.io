@@ -350,6 +350,7 @@ const UI = {
     closeDuplicateModal: function() { document.getElementById('duplicate-modal').classList.remove('active'); },
 
     // --- HISTORY MODAL ---
+    // --- HISTORY MODAL ---
     openHistoryModal: function() {
         const cont = document.getElementById('history-content');
         cont.innerHTML = '';
@@ -368,28 +369,26 @@ const UI = {
         } else {
             exs.forEach(ex => {
                 const h = allLogs.filter(l => l.ex === ex).sort((a, b) => new Date(b.date) - new Date(a.date));
+                
+                // ZDE BYLA CHYBA - logika poznámky musí být uvnitř map()
                 const rows = h.map(r => {
                     const w = r.kg > 0 ? `${r.kg}kg` : '<span class="opacity-50 text-[9px]">VLASTNÍ</span>';
                     const dFormatted = r.date.split('T')[0].split('-').reverse().join('.');
+                    
+                    // 1. Zjistíme poznámku (teď už známe 'r')
+                    const sessionNote = Data.state.workout_history[r.sIdx].note || '';
+                    const noteHtml = sessionNote ? `<div class="col-span-4 text-[9px] text-stone-400 italic mt-1 border-t border-stone-100 dark:border-stone-800 pt-1">📝 ${sessionNote}</div>` : '';
+
+                    // 2. Vrátíme řádek i s poznámkou
                     return `
                     <div onclick="UI.openEntryManager('${ex}',${r.sIdx},${r.lIdx})" class="grid grid-cols-4 gap-2 text-xs py-3 border-b border-stone-200 dark:border-stone-800 last:border-0 text-stone-600 dark:text-stone-400 cursor-pointer hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors">
                         <div class="col-span-1 font-mono opacity-70">${dFormatted}</div>
                         <div class="col-span-1 font-bold text-stone-900 dark:text-white">${w}</div>
                         <div class="col-span-1">${r.sets} x ${r.reps}</div>
                         <div class="col-span-1 text-right uppercase text-[9px] font-bold ${r.rpe==='easy'?'text-green-500':r.rpe==='hard'?'text-red-500':'text-yellow-500'}">${r.rpe||'-'}</div>
+                        ${noteHtml}
                     </div>`;
                 }).join('');
-				
-				const sessionNote = Data.state.workout_history[r.sIdx].note || '';
-                const noteHtml = sessionNote ? `<div class="col-span-4 text-[9px] text-stone-400 italic mt-1 border-t border-stone-100 dark:border-stone-800 pt-1">📝 ${sessionNote}</div>` : '';
-
-                return `
-                    <div onclick="UI.openEntryManager('${ex}',${r.sIdx},${r.lIdx})" class="grid grid-cols-4 gap-2 text-xs py-3 border-b border-stone-200 dark:border-stone-800 last:border-0 text-stone-600 dark:text-stone-400 cursor-pointer hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors">
-                        <div class="col-span-1 font-mono opacity-70">${dFormatted}</div>
-                        <div class="col-span-1 font-bold text-stone-900 dark:text-white">${w}</div>
-                        <div class="col-span-1">${r.sets} x ${r.reps}</div>
-                        <div class="col-span-1 text-right uppercase text-[9px] font-bold ${r.rpe==='easy'?'text-green-500':r.rpe==='hard'?'text-red-500':'text-yellow-500'}">${r.rpe||'-'}</div>
-                        ${noteHtml} </div>`;
 
                 cont.innerHTML += `
                     <div class="bg-white dark:bg-panel mb-2">
@@ -535,5 +534,6 @@ window.onload = function() {
     Data.init();
 
 };
+
 
 
