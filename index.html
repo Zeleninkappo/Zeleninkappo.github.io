@@ -136,6 +136,23 @@
                         <div class="bg-stone-50 dark:bg-stone-900 p-3 rounded border border-stone-200 dark:border-stone-800"><label class="text-[10px] font-bold block mb-2 uppercase opacity-60">Jméno</label><input type="text" id="setup-name" class="z-input font-bold"></div>
                         <div class="bg-stone-50 dark:bg-stone-900 p-3 rounded border border-stone-200 dark:border-stone-800"><label class="text-[10px] font-bold block mb-2 uppercase opacity-60">Sport</label><input type="text" id="setup-sport" class="z-input font-bold"></div>
                     </div>
+                    <div class="bg-stone-50 dark:bg-stone-900 p-3 rounded border border-stone-200 dark:border-stone-800 mt-4">
+                    <label class="text-[10px] font-bold block mb-2 uppercase opacity-60">Časy jídel</label>
+                        <div class="grid grid-cols-3 gap-2">
+                            <div>
+                            <label class="text-[9px] font-bold text-stone-400 uppercase">Snídaně</label>
+                        <input type="time" id="setup-time-breakfast" class="z-input text-center font-bold">
+                    </div>
+                    <div>
+                    <label class="text-[9px] font-bold text-stone-400 uppercase">Oběd</label>
+                    <input type="time" id="setup-time-lunch" class="z-input text-center font-bold">
+                    </div>
+                    <div>
+                    <label class="text-[9px] font-bold text-stone-400 uppercase">Večeře</label>
+                        <input type="time" id="setup-time-dinner" class="z-input text-center font-bold">
+                    </div>
+                </div>
+                    </div>
                     <div><h3 class="text-xs font-bold text-stone-500 uppercase mb-3 tracking-widest text-center border-b border-stone-200 dark:border-stone-800 pb-2">Rozvrh</h3><div class="space-y-2" id="setup-days-container"></div></div>
                 </div>
                 <!-- Supps -->
@@ -247,5 +264,6 @@
 </body>
 
 </html>
+
 
 
