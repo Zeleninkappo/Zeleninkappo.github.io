@@ -6,6 +6,10 @@ const UI = {
     chartInst: null,
 
     init: function() {
+        document.title = `${APP_NAME} v${APP_VERSION}`;
+        const verEl = document.getElementById('app-version-label');
+        if(verEl) verEl.innerText = `${APP_NAME} v${APP_VERSION}`;
+
         this.applyTheme();
         this.populateChartSelect();
         this.updateUserGreeting();
@@ -577,6 +581,7 @@ window.onload = function() {
     Data.init();
 
 };
+
 
 
 
