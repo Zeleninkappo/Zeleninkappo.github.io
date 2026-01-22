@@ -144,11 +144,11 @@
                         <span class="text-xs font-bold text-stone-500 uppercase">Můj Stack</span>
                         <div class="flex items-center gap-2">
                             <span class="text-[9px] text-stone-500">Aktivní</span>
-                            <div class="relative"><input id="setup-supps-enabled" type="checkbox" class="sr-only" checked onchange="Data.saveSetup()"><div class="w-8 h-4 bg-stone-300 dark:bg-stone-700 rounded-full"></div><div class="dot absolute w-4 h-4 bg-white rounded-full shadow"></div></div>
+                            <div class="relative"><input id="setup-supps-enabled" type="checkbox" class="sr-only" checked onchange="UI.toggleSuppInputs()"><div class="w-8 h-4 bg-stone-300 dark:bg-stone-700 rounded-full"></div><div class="dot absolute w-4 h-4 bg-white rounded-full shadow"></div></div>
                         </div>
                     </div>
                     <div id="supp-stack-list" class="space-y-2 max-h-[300px] overflow-y-auto"></div>
-                    <div class="bg-stone-50 dark:bg-stone-900/50 p-3 rounded border border-stone-200 dark:border-stone-800 space-y-2 mt-4">
+                    <div id="supps-inputs" class="bg-stone-50 dark:bg-stone-900/50 p-3 rounded border border-stone-200 dark:border-stone-800 space-y-2 mt-4">
                         <div class="grid grid-cols-2 gap-2"><input type="text" id="new-supp-name" class="z-input" placeholder="Název"><input type="text" id="new-supp-dose" class="z-input" placeholder="Dávka"></div>
                         <div class="grid grid-cols-2 gap-2"><select id="new-supp-timing" class="z-select"><option value="morning">Ráno</option><option value="pre">Před tréninkem</option><option value="intra">Při tréninku</option><option value="post">Po tréninku</option><option value="evening">Večer</option></select><select id="new-supp-freq" class="z-select"><option value="all">Každý den</option><option value="training">Jen trénink</option><option value="rest">Jen volno</option></select></div>
                         <button onclick="UI.addSupplement()" class="w-full bg-stone-200 dark:bg-stone-800 text-stone-800 dark:text-white font-bold text-xs py-2 rounded uppercase border border-stone-300 dark:border-stone-700">Přidat</button>
@@ -234,4 +234,5 @@
         }
     </script>
 </body>
+
 </html>
