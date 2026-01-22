@@ -4,6 +4,7 @@
 
 const Logic = {
     currentWeekType: 'A',
+	currentSessionExercises: [],
     currentSchedule: [],
     forceRest: false,
     nextIdx: 0,
@@ -176,6 +177,8 @@ const Logic = {
         });
         // Přidáme správnou barvu aktuálnímu tlačítku
         btn.classList.add(`selected-${rpe}`);
+		this.saveWorkoutDraft();
+		
     },
 
     // Workout Logic
@@ -199,6 +202,31 @@ const Logic = {
         
         this.tempActiveRPEs = {};
         UI.openWorkoutModal(w, Data.state.exercise_stats, Data.state.workout_history);
+    },
+
+	// --- AUTOSAVE SYSTEM ---
+    saveWorkoutDraft: function() {
+        if (!this.currentSessionExercises || this.currentSessionExercises.length === 0) return;
+        
+        const draft = {};
+        this.currentSessionExercises.forEach((ex, i) => {
+            const kg = document.getElementById(`kg-${i}`).value;
+            const reps = document.getElementById(`reps-${i}`).value;
+            const sets = document.getElementById(`sets-${i}`).value;
+            const rpe = this.tempActiveRPEs[ex] || null;
+
+            // Uložíme jen pokud je alespoň něco vyplněno
+            if (kg || reps || sets || rpe) {
+                draft[ex] = { kg, reps, sets, rpe };
+            }
+        });
+
+        localStorage.setItem('ZELIX_WORKOUT_DRAFT', JSON.stringify(draft));
+    },
+
+    clearWorkoutDraft: function() {
+        localStorage.removeItem('ZELIX_WORKOUT_DRAFT');
+        this.tempActiveRPEs = {};
     },
 
     finishWorkout: function() {
@@ -228,6 +256,7 @@ const Logic = {
         if (l.length > 0) {
             Data.state.workout_history.push({ date: t, title: w.title, logs: l });
             Data.saveDB();
+			this.clearWorkoutDraft();
             UI.closeWorkoutModal();
             UI.populateChartSelect();
             UI.updateChart(l[0].ex);
@@ -286,6 +315,7 @@ const Logic = {
 
 
 };
+
 
 
 
