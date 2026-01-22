@@ -133,6 +133,10 @@ const UI = {
         if(Data.state.user) {
             const name = document.getElementById('setup-name'); if(name) name.value = Data.state.user.name || '';
             const sport = document.getElementById('setup-sport'); if(sport) sport.value = Data.state.user.sport || '';
+			const mt = (Data.state.user && Data.state.user.mealTimes) ? Data.state.user.mealTimes : { breakfast: '06:15', lunch: '12:00', dinner: '20:00' };
+    		const tB = document.getElementById('setup-time-breakfast');if(tB) tB.value = mt.breakfast;
+    		const tL = document.getElementById('setup-time-lunch');if(tL) tL.value = mt.lunch;
+    		const tD = document.getElementById('setup-time-dinner');if(tD) tD.value = mt.dinner;
         }
         if(Data.state.supplements) {
             document.getElementById('setup-supps-enabled').checked = Data.state.supplements.enabled;
@@ -484,4 +488,5 @@ const UI = {
 // Initial Call
 window.onload = function() {
     Data.init();
+
 };
