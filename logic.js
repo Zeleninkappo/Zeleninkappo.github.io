@@ -226,6 +226,38 @@ const Logic = {
         localStorage.setItem('ZELIX_WORKOUT_DRAFT', JSON.stringify(draft));
     },
 
+	// --- 1RM CALCULATOR ---
+    handleInput: function(i) {
+        this.saveWorkoutDraft();
+
+
+        this.update1RM(i);
+    },
+
+    update1RM: function(i) {
+        const kgInput = document.getElementById(`kg-${i}`);
+        const repsInput = document.getElementById(`reps-${i}`);
+        const el = document.getElementById(`orm-${i}`);
+
+        if (!kgInput || !repsInput || !el) return;
+
+        const kg = parseFloat(kgInput.value) || 0;
+        const reps = parseFloat(repsInput.value) || 0;
+
+        if (kg > 0 && reps > 0) {
+            // Epley Formula: w * (1 + r/30)
+            const oneRm = Math.round(kg * (1 + reps/30));
+            // Zobrazíme jen pokud je 1RM odlišné od pracovní váhy (např. při 1 opakování je to stejné)
+            if (reps > 1) {
+                el.innerText = `Est. 1RM: ${oneRm}kg`;
+            } else {
+                el.innerText = ''; // U jedniček 1RM nezobrazujeme (je to ta váha)
+            }
+        } else {
+            el.innerText = '';
+        }
+    },
+
 	saveBodyweight: function() {
         const val = parseFloat(document.getElementById('new-bodyweight').value);
         if (!val || val <= 0) return;
@@ -346,6 +378,7 @@ const Logic = {
 
 
 };
+
 
 
 
