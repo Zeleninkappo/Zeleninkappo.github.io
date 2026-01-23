@@ -151,9 +151,7 @@ const Logic = {
             const eventMins = h * 60 + m;
             const diff = eventMins - currentMins;
 
-            // Upozornit 10 minut předem (a jen jednou pro danou událost)
-            // Podmínka: Je to za 10 min A ZÁROVEŇ jsme tuto událost (i) ještě neohlásili
-            if (diff === 10 && this.lastNotifiedEventIndex !== i) {
+           if (diff === 10 && this.lastNotifiedEventIndex !== i) {
                 
                 this.lastNotifiedEventIndex = i; // Označíme jako ohlášené
                 
@@ -162,9 +160,19 @@ const Logic = {
                 if (ev.type === 'activity') body = `🏋️ Připrav se! Trénink za 10 min.`;
                 if (ev.type === 'supp') body = `💊 Čas na suplementy: ${ev.title}`;
 
-                try {
-                    new Notification("Zelix Reminder", { body: body, icon: "icon-192.png", vibrate: [200, 100, 200] });
-                } catch(e) { console.log("Notify error", e); }
+                if (navigator.serviceWorker) {
+                    navigator.serviceWorker.ready.then(function(registration) {
+                        registration.showNotification("Zelix Reminder", {
+                            body: body,
+                            icon: "icon-192.png",
+                            vibrate: [200, 100, 200],
+                            tag: 'zelix-reminder' // 'tag' zajistí, že se notifikace nepřekrývají zbytečně
+                        });
+                    });
+                } else {
+                    // Fallback
+                    new Notification("Zelix Reminder", { body: body, icon: "icon-192.png" });
+                }
             }
         });
         
@@ -414,6 +422,7 @@ const Logic = {
 
 
 };
+
 
 
 
