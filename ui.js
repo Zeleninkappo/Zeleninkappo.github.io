@@ -32,8 +32,20 @@ const UI = {
             if (permission === "granted") {
                 const btn = document.getElementById('btn-notify-req');
                 if(btn) { btn.innerText = "AKTIVNÍ ✓"; btn.disabled = true; btn.classList.add('text-green-500'); }
-                // Pošleme testovací
-                new Notification("Zelix: Notifikace aktivní!", { body: "Teď už nic nezmeškáš.", icon: "icon-192.png" });
+                
+                // --- OPRAVA PRO ANDROID: Volání přes Service Worker ---
+                if (navigator.serviceWorker) {
+                    navigator.serviceWorker.ready.then(function(registration) {
+                        registration.showNotification("Zelix: Notifikace aktivní!", {
+                            body: "Teď už nic nezmeškáš.",
+                            icon: "icon-192.png",
+                            vibrate: [200, 100, 200]
+                        });
+                    });
+                } else {
+                    // Fallback pro PC bez SW
+                    new Notification("Zelix: Notifikace aktivní!", { body: "Teď už nic nezmeškáš.", icon: "icon-192.png" });
+                }
             }
         });
     },
@@ -596,6 +608,7 @@ window.onload = function() {
     Data.init();
 
 };
+
 
 
 
