@@ -23,6 +23,21 @@ const UI = {
         this.updateThemeButtons();
     },
 
+	requestNotifications: function() {
+        if (!("Notification" in window)) {
+            alert("Tvůj prohlížeč nepodporuje notifikace.");
+            return;
+        }
+        Notification.requestPermission().then(permission => {
+            if (permission === "granted") {
+                const btn = document.getElementById('btn-notify-req');
+                if(btn) { btn.innerText = "AKTIVNÍ ✓"; btn.disabled = true; btn.classList.add('text-green-500'); }
+                // Pošleme testovací
+                new Notification("Zelix: Notifikace aktivní!", { body: "Teď už nic nezmeškáš.", icon: "icon-192.png" });
+            }
+        });
+    },
+
     updateThemeButtons: function() {
         ['light', 'dark', 'auto'].forEach(m => {
             const btn = document.getElementById(`theme-${m}`);
@@ -581,6 +596,7 @@ window.onload = function() {
     Data.init();
 
 };
+
 
 
 
