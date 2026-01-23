@@ -11,6 +11,7 @@ const Logic = {
     tempActiveRPEs: {},
     activeEditSessionIdx: null,
     activeEditLogIdx: null,
+	lastNotifiedEventIndex: -1,
 
     init: function() {
         this.calculateWeekType();
@@ -19,7 +20,11 @@ const Logic = {
 
     startLoop: function() {
         this.update();
-        setInterval(() => this.updateDashboard(new Date()), 1000);
+        setInterval(() => {
+            const now = new Date();
+            this.updateDashboard(now);
+            this.checkNotifications(now); // <--- NOVÉ: Kontrola každou vteřinu
+        }, 1000);
     },
 
     update: function() {
@@ -132,6 +137,37 @@ const Logic = {
         
         this.nextIdx = f;
         UI.renderActionCard(f, this.currentSchedule[f], mins, now);
+    },
+
+	checkNotifications: function(now) {
+        if (Notification.permission !== "granted") return;
+
+        const currentMins = now.getHours() * 60 + now.getMinutes();
+        
+        this.currentSchedule.forEach((ev, i) => {
+            if (ev.time === '--:--') return;
+            
+            const [h, m] = ev.time.split(':').map(Number);
+            const eventMins = h * 60 + m;
+            const diff = eventMins - currentMins;
+
+            // Upozornit 10 minut předem (a jen jednou pro danou událost)
+            // Podmínka: Je to za 10 min A ZÁROVEŇ jsme tuto událost (i) ještě neohlásili
+            if (diff === 10 && this.lastNotifiedEventIndex !== i) {
+                
+                this.lastNotifiedEventIndex = i; // Označíme jako ohlášené
+                
+                let body = `Za 10 minut: ${ev.title}`;
+                if (ev.type === 'food') body = `🍽️ Nezapomeň se najíst: ${ev.title}`;
+                if (ev.type === 'activity') body = `🏋️ Připrav se! Trénink za 10 min.`;
+                if (ev.type === 'supp') body = `💊 Čas na suplementy: ${ev.title}`;
+
+                try {
+                    new Notification("Zelix Reminder", { body: body, icon: "icon-192.png", vibrate: [200, 100, 200] });
+                } catch(e) { console.log("Notify error", e); }
+            }
+        });
+        
     },
 
     addMin: function(t, m) {
@@ -378,6 +414,7 @@ const Logic = {
 
 
 };
+
 
 
 
