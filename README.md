@@ -1,4 +1,4 @@
-# Zelix v0.5 – Smart Training & Lifestyle Manager
+# Zelix – Smart Training & Lifestyle Manager
 
 ![Status](https://img.shields.io/badge/Status-Stable%20v0.5-success)
 ![Platform](https://img.shields.io/badge/Platform-PWA%20%7C%20Mobile-blue)
