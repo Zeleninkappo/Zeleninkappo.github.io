@@ -70,7 +70,7 @@ Projekt je postaven na čistých technologiích pro maximální výkon:
 
 ---
 
-*Vyvinuto v Pardubicích. KRYT Style.*
+*Vyvinuto v Pardubicích.*
 * **📅 Chytrá Časová Osa (Smart Schedule):** Dynamický rozvrh dne, který se generuje na základě vašeho nastavení (Gym, Sport, Volno). Automaticky připomíná jídlo, tréninky i suplementaci.
 * **📈 Autoregulace Zátěže (RPE):** Unikátní systém, který upravuje váhy pro příští trénink na základě vašeho pocitu (Easy/OK/Hard).
 * **🤸 Podpora Calisthenics:** Plná podpora pro cviky s vlastní vahou (možnost označit cvik jako "Bez váhy").
