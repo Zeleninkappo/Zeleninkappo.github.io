@@ -10,7 +10,8 @@ const ASSETS = [
   './data.js',
   './logic.js',
   './ui.js',
-  './manifest.json'
+  './manifest.json',
+  './README.md'
 ];
 
 // Instalace Service Workeru a cachování souborů
