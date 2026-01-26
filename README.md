@@ -1,4 +1,4 @@
-# Zelix v0.4 – Smart Training & Lifestyle Manager
+# Zelix – Smart Training & Lifestyle Manager
 
 ![Status](https://img.shields.io/badge/Status-Active-success)
 ![Technology](https://img.shields.io/badge/Tech-VanillaJS%20%7C%20Tailwind-blue)
