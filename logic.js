@@ -158,7 +158,7 @@ const Logic = {
             const eventMins = h * 60 + m;
             const diff = eventMins - currentMins;
 
-            // Upozornit v rozmezí 10 až 9 minut předem (pro jistotu, kdyby loop přeskočil sekundu)
+            // Upozornit v rozmezí 10 až 9 minut předem
             // A ZÁROVEŇ pokud jsme tuto událost (index i) dnes ještě neohlásili
             if (diff <= 10 && diff > 8 && !this.notifiedEvents.includes(i)) {
                 
@@ -176,7 +176,7 @@ const Logic = {
                             body: body,
                             icon: "icon-192.png",
                             vibrate: [200, 100, 200],
-                            tag: `zelix-evt-${i}`, // Unikátní tag pro každou událost
+                            tag: `zelix-evt-${i}`, 
                             renotify: true
                         });
                     });
@@ -189,4 +189,209 @@ const Logic = {
 
     addMin: function(t, m) {
         if(!t) return "--:--";
-        const [hh, mm] = t.split
+        const [hh, mm] = t.split(':').map(Number);
+        const d = new Date(); d.setHours(hh); d.setMinutes(mm + m);
+        return d.toLocaleTimeString('cs-CZ', {hour:'2-digit', minute:'2-digit'});
+    },
+
+    toggleForceRest: function() {
+        this.forceRest = !this.forceRest;
+        UI.toggleForceRestBtn(this.forceRest);
+        this.update();
+    },
+
+    confirmAction: function() {
+        const t = new Date().toISOString().split('T')[0];
+        if (!Data.state.completed_tasks[t]) Data.state.completed_tasks[t] = [];
+        Data.state.completed_tasks[t].push(this.nextIdx);
+        Data.saveDB();
+        this.update();
+    },
+
+    toggleTask: function(i) {
+        const t = new Date().toISOString().split('T')[0];
+        if (!Data.state.completed_tasks[t]) Data.state.completed_tasks[t] = [];
+        const idx = Data.state.completed_tasks[t].indexOf(i);
+        if (idx === -1) Data.state.completed_tasks[t].push(i);
+        else Data.state.completed_tasks[t].splice(idx, 1);
+        Data.saveDB();
+        this.update();
+    },
+    
+    setRPE: function(ex, rpe, i, btn) {
+        this.tempActiveRPEs[ex] = rpe;
+        const parent = btn.parentElement;
+        Array.from(parent.children).forEach(b => {
+            b.classList.remove('selected-easy', 'selected-medium', 'selected-hard');
+        });
+        btn.classList.add(`selected-${rpe}`);
+        this.saveWorkoutDraft();
+    },
+
+    // Workout Logic
+    checkWorkoutEntry: function() {
+        if (this.forceRest) { alert("Režim volna."); return; }
+        const today = new Date().toISOString().split('T')[0];
+        if (Data.state.workout_history.some(h => h.date === today)) {
+            UI.openDuplicateModal();
+        } else {
+            this.forceOpenWorkout();
+        }
+    },
+
+    forceOpenWorkout: function() {
+        UI.closeDuplicateModal();
+        if (!this.currentWeekType) this.calculateWeekType();
+        const d = new Date().getDay();
+        const w = Data.state.customWorkouts[this.currentWeekType][d];
+        this.tempActiveRPEs = {};
+        UI.openWorkoutModal(w, Data.state.exercise_stats, Data.state.workout_history);
+    },
+
+    saveWorkoutDraft: function() {
+        if (!this.currentSessionExercises || this.currentSessionExercises.length === 0) return;
+        const draft = {};
+        this.currentSessionExercises.forEach((ex, i) => {
+            const kg = document.getElementById(`kg-${i}`).value;
+            const reps = document.getElementById(`reps-${i}`).value;
+            const sets = document.getElementById(`sets-${i}`).value;
+            const rpe = this.tempActiveRPEs[ex] || null;
+            if (kg || reps || sets || rpe) {
+                draft[ex] = { kg, reps, sets, rpe };
+            }
+        });
+        const note = document.getElementById('workout-note').value;
+        if (note) draft._note = note;
+        localStorage.setItem('ZELIX_WORKOUT_DRAFT', JSON.stringify(draft));
+    },
+
+    handleInput: function(i) {
+        this.saveWorkoutDraft();
+        this.update1RM(i);
+    },
+
+    update1RM: function(i) {
+        const kgInput = document.getElementById(`kg-${i}`);
+        const repsInput = document.getElementById(`reps-${i}`);
+        const el = document.getElementById(`orm-${i}`);
+        if (!kgInput || !repsInput || !el) return;
+
+        const kg = parseFloat(kgInput.value) || 0;
+        const reps = parseFloat(repsInput.value) || 0;
+
+        if (kg > 0 && reps > 0) {
+            const oneRm = Math.round(kg * (1 + reps/30));
+            if (reps > 1) {
+                el.innerText = `Est. 1RM: ${oneRm}kg`;
+            } else {
+                el.innerText = '';
+            }
+        } else {
+            el.innerText = '';
+        }
+    },
+
+    saveBodyweight: function() {
+        const val = parseFloat(document.getElementById('new-bodyweight').value);
+        if (!val || val <= 0) return;
+        const today = new Date().toISOString().split('T')[0];
+        if (!Data.state.bodyweight_history) Data.state.bodyweight_history = [];
+        Data.state.bodyweight_history = Data.state.bodyweight_history.filter(x => x.date !== today);
+        Data.state.bodyweight_history.push({ date: today, kg: val });
+        Data.state.bodyweight_history.sort((a,b) => new Date(a.date) - new Date(b.date));
+        Data.saveDB();
+        UI.closeWeightModal();
+        const chartSel = document.getElementById('chart-select');
+        if (chartSel && chartSel.value === 'Bodyweight') {
+            UI.updateChart('Bodyweight');
+        }
+    },
+
+    clearWorkoutDraft: function() {
+        localStorage.removeItem('ZELIX_WORKOUT_DRAFT');
+        this.tempActiveRPEs = {};
+    },
+
+    finishWorkout: function() {
+        const d = new Date().getDay();
+        const w = Data.state.customWorkouts[this.currentWeekType][d];
+        const t = new Date().toISOString().split('T')[0];
+        const l = [];
+        const noteVal = document.getElementById('workout-note').value.trim();
+
+        w.exercises.forEach((ex, i) => {
+            const kg = parseFloat(document.getElementById(`kg-${i}`).value) || 0;
+            const r = parseFloat(document.getElementById(`reps-${i}`).value) || 0;
+            const s = parseFloat(document.getElementById(`sets-${i}`).value) || 0;
+            const isNoWeight = Data.isNoWeight(ex); 
+
+            if (r > 0) {
+                let nKg = kg;
+                const rpe = this.tempActiveRPEs[ex] || 'medium';
+                if (!isNoWeight) {
+                    if (rpe === 'easy') nKg += 2.5;
+                    else if (rpe === 'medium') nKg += 1.25;
+                }
+                l.push({ ex: ex, kg: kg, reps: r, sets: s, rpe: rpe });
+                Data.state.exercise_stats[ex] = { weight: Math.round(nKg * 2) / 2, reps: r, sets: s, rpe: rpe };
+            }
+        });
+
+        if (l.length > 0) {
+            Data.state.workout_history.push({ date: t, title: w.title, logs: l, note: noteVal});
+            Data.saveDB();
+            this.clearWorkoutDraft();
+            UI.closeWorkoutModal();
+            UI.populateChartSelect();
+            UI.updateChart(l[0].ex);
+            this.update();
+        } else {
+            alert("Vyplň alespoň jeden cvik.");
+        }
+    },
+
+    saveEntryEdit: function() {
+        if (this.activeEditSessionIdx === null) return;
+        const kg = parseFloat(document.getElementById('mgr-kg').value) || 0;
+        const r = parseFloat(document.getElementById('mgr-reps').value) || 0;
+        const s = parseFloat(document.getElementById('mgr-sets').value) || 0;
+        const rp = document.getElementById('mgr-rpe-cont').dataset.selected;
+        
+        const l = Data.state.workout_history[this.activeEditSessionIdx].logs[this.activeEditLogIdx];
+        l.kg = kg; l.reps = r; l.sets = s; l.rpe = rp;
+        
+        const ex = l.ex;
+        Data.state.exercise_stats[ex] = { weight: kg, reps: r, sets: s, rpe: rp };
+        
+        Data.saveDB();
+        UI.closeEntryManager();
+        UI.openHistoryModal();
+        UI.populateChartSelect();
+        UI.updateChart(ex);
+    },
+
+    deleteEntry: function() {
+        if (this.activeEditSessionIdx === null) return;
+        Data.state.workout_history[this.activeEditSessionIdx].logs.splice(this.activeEditLogIdx, 1);
+        if (Data.state.workout_history[this.activeEditSessionIdx].logs.length === 0) {
+            Data.state.workout_history.splice(this.activeEditSessionIdx, 1);
+        }
+        Data.saveDB();
+        UI.closeEntryManager();
+        UI.openHistoryModal();
+        this.update();
+    },
+
+    executeSessionDelete: function() {
+        if (this.activeEditSessionIdx === null) return;
+        const dateToRemove = Data.state.workout_history[this.activeEditSessionIdx].date;
+        Data.state.workout_history.splice(this.activeEditSessionIdx, 1);
+        if (Data.state.completed_tasks[dateToRemove]) {
+            delete Data.state.completed_tasks[dateToRemove];
+        }
+        Data.saveDB();
+        UI.closeSessionDeleteModal();
+        UI.openHistoryModal(); 
+        this.update();
+    }
+};
