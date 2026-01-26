@@ -46,6 +46,7 @@
                         <button onclick="UI.openSetupModal('system')" class="text-stone-400 hover:text-primary transition-colors">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                         </button>
+                        <button onclick="UI.openHelpModal()" class="text-stone-400 hover:text-primary transition-colors font-bold text-lg px-2" title="Nápověda">?</button>
                         <span span id="app-version-label" class="text-xs font-black text-primary tracking-tighter uppercase">Zelix App</span>
                     </div>
                     <span id="user-greeting" class="text-[10px] font-bold text-stone-600 dark:text-stone-300 mt-0.5">...</span>
@@ -258,6 +259,18 @@
             <div class="p-3 bg-stone-100 dark:bg-stone-900 border-t border-stone-200 dark:border-stone-800"><button onclick="UI.closeEntryManager()" class="w-full py-2 text-xs font-bold text-stone-500 uppercase hover:text-stone-800 dark:hover:text-white">Zrušit</button></div>
         </div>
     </div>
+    
+    <!-- Help Modal -->
+    <div id="help-modal" class="modal fixed w-full h-full top-0 left-0 flex items-center justify-center z-[300] bg-black/90 backdrop-blur-sm opacity-0 pointer-events-none">
+        <div class="w-11/12 max-w-2xl bg-white dark:bg-panel border border-stone-200 dark:border-stone-700 rounded-xl shadow-2xl max-h-[85vh] flex flex-col overflow-hidden">
+            <div class="p-4 border-b border-stone-200 dark:border-stone-800 flex justify-between items-center bg-stone-50 dark:bg-panel sticky top-0">
+                <h2 class="text-lg font-black text-primary uppercase">Manuál</h2> <button onclick="UI.closeHelpModal()" class="text-stone-400 text-2xl px-2">&times;</button>
+            </div>
+            <div id="help-content" class="p-6 overflow-y-auto space-y-4 text-sm text-stone-600 dark:text-stone-300 leading-relaxed">
+                Načítám...
+            </div>
+        </div>
+    </div>
 
     <!-- Utils -->
     <div id="wipe-modal" class="modal fixed w-full h-full top-0 left-0 flex items-center justify-center z-[300] bg-black/95 opacity-0 pointer-events-none"><div class="w-11/12 max-w-sm bg-white dark:bg-panel p-6 rounded-xl text-center border border-red-500 shadow-2xl"><h2 class="text-xl font-bold mb-4 uppercase text-red-600">Smazat vše?</h2><div class="flex gap-2"><button onclick="UI.closeWipeModal()" class="flex-1 py-3 bg-stone-200 dark:bg-stone-800 rounded text-xs font-bold uppercase">Zpět</button><button onclick="Data.hardReset()" class="flex-1 py-3 bg-red-600 text-white rounded text-xs font-bold uppercase">Smazat</button></div></div></div>
@@ -299,6 +312,7 @@
 </body>
 
 </html>
+
 
 
 
