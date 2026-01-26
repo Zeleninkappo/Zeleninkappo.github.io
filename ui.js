@@ -396,7 +396,49 @@ const UI = {
     openDuplicateModal: function() { document.getElementById('duplicate-modal').classList.add('active'); },
     closeDuplicateModal: function() { document.getElementById('duplicate-modal').classList.remove('active'); },
 
-    // --- HISTORY MODAL ---
+    openHelpModal: function() {
+        const modal = document.getElementById('help-modal');
+        const content = document.getElementById('help-content');
+        modal.classList.add('active');
+
+        // Stáhneme README.md
+        fetch('README.md')
+            .then(response => response.text())
+            .then(text => {
+                // Převedeme Markdown na HTML
+                content.innerHTML = this.parseMarkdown(text);
+            })
+            .catch(err => {
+                content.innerHTML = '<p class="text-red-500">Nepodařilo se načíst manuál offline.</p>';
+            });
+    },
+
+    closeHelpModal: function() { 
+        document.getElementById('help-modal').classList.remove('active'); 
+    },
+
+    // Jednoduchý "No-BS" Markdown parser
+    parseMarkdown: function(text) {
+        let html = text
+            // Odstraníme obrázky a badge (aby to nerušilo text)
+            .replace(/!\[.*?\]\(.*?\)/g, '')
+            // Nadpisy H1, H2, H3
+            .replace(/^# (.*$)/gim, '<h1 class="text-xl font-black text-primary uppercase mb-2 mt-4">$1</h1>')
+            .replace(/^## (.*$)/gim, '<h2 class="text-lg font-bold text-stone-900 dark:text-white uppercase mb-2 mt-4 border-b border-stone-200 dark:border-stone-800 pb-1">$1</h2>')
+            .replace(/^### (.*$)/gim, '<h3 class="text-md font-bold text-stone-800 dark:text-stone-200 uppercase mb-1 mt-3">$1</h3>')
+            // Tučné písmo
+            .replace(/\*\*(.*)\*\*/gim, '<strong class="text-stone-900 dark:text-white">$1</strong>')
+            // Odrážky
+            .replace(/^\* (.*$)/gim, '<li class="ml-4 list-disc marker:text-primary">$1</li>')
+            // Citace (Blockquote)
+            .replace(/^> (.*$)/gim, '<blockquote class="border-l-4 border-primary pl-4 italic opacity-80 my-2">$1</blockquote>')
+            // Vodorovná čára
+            .replace(/^---/gim, '<hr class="my-4 border-stone-200 dark:border-stone-800">')
+            // Zalomení řádků
+            .replace(/\n/gim, '<br>');
+
+        return html;
+    },
     // --- HISTORY MODAL ---
     openHistoryModal: function() {
         const cont = document.getElementById('history-content');
@@ -608,6 +650,7 @@ window.onload = function() {
     Data.init();
 
 };
+
 
 
 
