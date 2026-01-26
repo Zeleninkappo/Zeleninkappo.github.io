@@ -59,6 +59,23 @@ const UI = {
         });
     },
 
+	    checkNotificationStatus: function() {
+        const btn = document.getElementById('btn-notify-req');
+        if (!btn || !("Notification" in window)) return;
+
+        if (Notification.permission === "granted") {
+            // Pokud už je povoleno, rovnou tlačítko upravíme
+            btn.innerText = "AKTIVNÍ ✓";
+            btn.disabled = true;
+            btn.classList.add('text-green-500', 'cursor-default');
+            btn.classList.remove('hover:bg-primary', 'hover:text-white'); // Odstraníme hover efekty
+        } else if (Notification.permission === "denied") {
+            // Pokud to uživatel zakázal
+            btn.innerText = "ZAKÁZÁNO 🚫";
+            btn.classList.add('text-red-500');
+        }
+    },
+
     updateThemeButtons: function() {
         ['light', 'dark', 'auto'].forEach(m => {
             const btn = document.getElementById(`theme-${m}`);
@@ -659,6 +676,7 @@ window.onload = function() {
     Data.init();
 
 };
+
 
 
 
