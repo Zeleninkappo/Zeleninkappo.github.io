@@ -15,6 +15,15 @@ const UI = {
         this.updateUserGreeting();
     },
 
+	vibrate: function(pattern) {
+        // Ochrana proti chybám a podpora prohlížeče
+        if ("vibrate" in navigator) {
+            try {
+                navigator.vibrate(pattern);
+            } catch(e) { console.log("Vibrace blokována systémem"); }
+        }
+    },
+
     applyTheme: function() {
         const html = document.documentElement;
         const theme = (Data.state.settings && Data.state.settings.theme) ? Data.state.settings.theme : 'dark';
@@ -650,6 +659,7 @@ window.onload = function() {
     Data.init();
 
 };
+
 
 
 
