@@ -201,6 +201,7 @@ const Logic = {
     },
 
     confirmAction: function() {
+        UI.vibrate(80);
         const t = new Date().toISOString().split('T')[0];
         if (!Data.state.completed_tasks[t]) Data.state.completed_tasks[t] = [];
         Data.state.completed_tasks[t].push(this.nextIdx);
@@ -209,6 +210,7 @@ const Logic = {
     },
 
     toggleTask: function(i) {
+        UI.vibrate(20);
         const t = new Date().toISOString().split('T')[0];
         if (!Data.state.completed_tasks[t]) Data.state.completed_tasks[t] = [];
         const idx = Data.state.completed_tasks[t].indexOf(i);
@@ -219,6 +221,7 @@ const Logic = {
     },
     
     setRPE: function(ex, rpe, i, btn) {
+        UI.vibrate(30);
         this.tempActiveRPEs[ex] = rpe;
         const parent = btn.parentElement;
         Array.from(parent.children).forEach(b => {
@@ -338,6 +341,7 @@ const Logic = {
         });
 
         if (l.length > 0) {
+            UI.vibrate([100, 50, 100]);
             Data.state.workout_history.push({ date: t, title: w.title, logs: l, note: noteVal});
             Data.saveDB();
             this.clearWorkoutDraft();
@@ -346,6 +350,7 @@ const Logic = {
             UI.updateChart(l[0].ex);
             this.update();
         } else {
+            UI.vibrate([50, 50, 50, 50, 50]);
             alert("Vyplň alespoň jeden cvik.");
         }
     },
@@ -395,3 +400,4 @@ const Logic = {
         this.update();
     }
 };
+
