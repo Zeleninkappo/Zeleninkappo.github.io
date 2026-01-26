@@ -13,6 +13,7 @@ const UI = {
         this.applyTheme();
         this.populateChartSelect();
         this.updateUserGreeting();
+		this.checkNotificationStatus();
     },
 
 	vibrate: function(pattern) {
@@ -676,6 +677,7 @@ window.onload = function() {
     Data.init();
 
 };
+
 
 
 
