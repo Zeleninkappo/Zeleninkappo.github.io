@@ -99,7 +99,41 @@ const Data = {
         UI.applyTheme();
     },
 
-    saveSetup: function() { /* (Keep existing logic or updated via UI) */ },
+    saveSetup: function() {
+        // 1. Uložení User Info
+        const name = document.getElementById('setup-name').value;
+        const sport = document.getElementById('setup-sport').value;
+        if(name) this.state.user.name = name;
+        if(sport) this.state.user.sport = sport;
+
+        // 2. Uložení Časů Jídel
+        const tB = document.getElementById('setup-time-breakfast').value;
+        const tL = document.getElementById('setup-time-lunch').value;
+        const tD = document.getElementById('setup-time-dinner').value;
+        this.state.user.mealTimes = { breakfast: tB, lunch: tL, dinner: tD };
+
+        // 3. Uložení Stacku (Supplements toggle)
+        const suppsEn = document.getElementById('setup-supps-enabled').checked;
+        if(!this.state.supplements) this.state.supplements = {};
+        this.state.supplements.enabled = suppsEn;
+
+        // 4. Uložení Rozvrhu (Timeline)
+        const days = {};
+        for(let i=0; i<7; i++) {
+            const type = document.getElementById(`s-type-${i}`).value;
+            const gymT = document.getElementById(`s-gym-${i}`).value;
+            const fieldT = document.getElementById(`s-field-${i}`).value;
+            days[i] = { type: type, gymTime: gymT, fieldTime: fieldT };
+        }
+        this.state.settings.days = days;
+
+        // 5. Uložit a Refresh
+        this.saveDB();
+        UI.closeSetupModal();
+        UI.updateUserGreeting();
+        Logic.update(); // Překreslí timeline
+        UI.vibrate([50,50]);
+    }, 
 
     // --- MEGA GENERATOR 3000 ---
     // Toto je funkce, která "uvaří" trénink na míru
@@ -243,3 +277,4 @@ const Data = {
     }
 };
  
+
