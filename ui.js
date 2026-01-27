@@ -779,12 +779,6 @@ const UI = {
     }
 };
 
-// Initial Call
-window.onload = function() {
-    Data.init();
-
-};
-
 
 
 
