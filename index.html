@@ -273,6 +273,103 @@
         </div>
     </div>
 
+    <div id="onboarding-modal" class="modal fixed w-full h-full top-0 left-0 flex items-center justify-center z-[400] bg-stone-950/95 opacity-0 pointer-events-none transition-opacity duration-500 backdrop-blur-sm">
+        <div class="w-11/12 max-w-md bg-stone-900 border border-stone-800 p-0 rounded-2xl text-center shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="w-full h-1 bg-stone-800">
+                <div id="ob-progress" class="h-full bg-primary transition-all duration-500" style="width: 25%"></div>
+            </div>
+            
+            <div class="p-8 overflow-y-auto">
+                
+                <div id="ob-step-1" class="step-content space-y-6 transition-all duration-300">
+                    <div class="w-16 h-16 bg-stone-800 rounded-full flex items-center justify-center mx-auto mb-4 border border-stone-700 shadow-lg">
+                        <span class="text-3xl">👋</span>
+                    </div>
+                    <h2 class="text-2xl font-black text-white uppercase tracking-tighter">Vítej v bunkru</h2>
+                    <p class="text-stone-400 text-sm">Jsem Zelix. Tvůj nový operační systém pro trénink. Jaké je tvé kódové označení?</p>
+                    <input type="text" id="ob-name" class="w-full bg-stone-800 border border-stone-700 text-white text-center font-bold text-xl py-4 rounded-xl focus:border-primary focus:outline-none placeholder-stone-600 transition-colors" placeholder="Tvé Jméno">
+                    <button onclick="UI.nextOnboardingStep(2)" class="w-full bg-primary hover:bg-red-600 text-white font-black py-4 rounded-xl uppercase tracking-widest shadow-lg transition-transform active:scale-95">Potvrdit</button>
+                </div>
+
+                <div id="ob-step-2" class="step-content space-y-4 hidden opacity-0 translate-x-10">
+                    <h2 class="text-xl font-black text-white uppercase">Cíl Mise?</h2>
+                    <p class="text-stone-400 text-sm">Upravím tréninkové parametry podle toho, na co cílíš.</p>
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="UI.selectGoal('strength', this)" class="goal-btn p-4 bg-stone-800 border border-stone-700 rounded-xl hover:border-white transition-all group">
+                            <div class="text-2xl mb-2">🐂</div>
+                            <div class="font-bold text-white text-sm group-hover:text-primary">SÍLA</div>
+                            <div class="text-[9px] text-stone-500 mt-1">Nízká opakování, těžké váhy.</div>
+                        </button>
+                        <button onclick="UI.selectGoal('hypertrophy', this)" class="goal-btn p-4 bg-stone-800 border border-stone-700 rounded-xl hover:border-white transition-all group border-primary ring-1 ring-primary"> <div class="text-2xl mb-2">🦍</div>
+                            <div class="font-bold text-white text-sm group-hover:text-primary">OBJEM</div>
+                            <div class="text-[9px] text-stone-500 mt-1">Klasický bodybuilding (8-12 reps).</div>
+                        </button>
+                        <button onclick="UI.selectGoal('endurance', this)" class="goal-btn p-4 bg-stone-800 border border-stone-700 rounded-xl hover:border-white transition-all group">
+                            <div class="text-2xl mb-2">🏃</div>
+                            <div class="font-bold text-white text-sm group-hover:text-primary">KONDICE</div>
+                            <div class="text-[9px] text-stone-500 mt-1">Vysoká opakování, supersérie.</div>
+                        </button>
+                        <button onclick="UI.selectGoal('explosive', this)" class="goal-btn p-4 bg-stone-800 border border-stone-700 rounded-xl hover:border-white transition-all group">
+                            <div class="text-2xl mb-2">🧨</div>
+                            <div class="font-bold text-white text-sm group-hover:text-primary">VÝBUŠNOST</div>
+                            <div class="text-[9px] text-stone-500 mt-1">Atletika, dynamika.</div>
+                        </button>
+                    </div>
+                    <input type="hidden" id="ob-goal" value="hypertrophy">
+                    <button onclick="UI.nextOnboardingStep(3)" class="w-full bg-stone-100 hover:bg-white text-stone-900 font-bold py-3 rounded-xl uppercase tracking-widest mt-4">Další</button>
+                </div>
+
+                <div id="ob-step-3" class="step-content space-y-4 hidden opacity-0 translate-x-10">
+                    <h2 class="text-xl font-black text-white uppercase">Kalibrace (Volitelné)</h2>
+                    <p class="text-stone-400 text-sm">Znáš svá maxima (1RM)? Zadej je, ať můžu počítat rekordy. Jinak nech prázdné.</p>
+                    
+                    <div class="space-y-3">
+                        <div class="relative">
+                            <span class="absolute left-4 top-3 text-stone-500 font-bold text-xs uppercase">Bench Press</span>
+                            <input type="number" id="ob-pr-bench" class="w-full bg-stone-800 border border-stone-700 text-white text-right font-bold py-3 px-4 rounded-xl focus:border-primary focus:outline-none placeholder-stone-600" placeholder="0">
+                            <span class="absolute right-8 top-3.5 text-stone-500 text-xs">kg</span>
+                        </div>
+                        <div class="relative">
+                            <span class="absolute left-4 top-3 text-stone-500 font-bold text-xs uppercase">Dřep / Squat</span>
+                            <input type="number" id="ob-pr-squat" class="w-full bg-stone-800 border border-stone-700 text-white text-right font-bold py-3 px-4 rounded-xl focus:border-primary focus:outline-none placeholder-stone-600" placeholder="0">
+                            <span class="absolute right-8 top-3.5 text-stone-500 text-xs">kg</span>
+                        </div>
+                        <div class="relative">
+                            <span class="absolute left-4 top-3 text-stone-500 font-bold text-xs uppercase">Mrtvý tah</span>
+                            <input type="number" id="ob-pr-dl" class="w-full bg-stone-800 border border-stone-700 text-white text-right font-bold py-3 px-4 rounded-xl focus:border-primary focus:outline-none placeholder-stone-600" placeholder="0">
+                            <span class="absolute right-8 top-3.5 text-stone-500 text-xs">kg</span>
+                        </div>
+                    </div>
+                    <button onclick="UI.nextOnboardingStep(4)" class="w-full bg-stone-100 hover:bg-white text-stone-900 font-bold py-3 rounded-xl uppercase tracking-widest mt-4">Uložit & Další</button>
+                    <button onclick="UI.nextOnboardingStep(4)" class="w-full text-stone-500 font-bold text-xs uppercase py-2 hover:text-white">Nevím / Přeskočit</button>
+                </div>
+
+                <div id="ob-step-4" class="step-content space-y-6 hidden opacity-0 translate-x-10">
+                    <h2 class="text-xl font-black text-white uppercase">Finále: Rozvrh</h2>
+                    <p class="text-stone-400 text-sm">Kdy chceš makat?</p>
+                    
+                    <div class="grid grid-cols-1 gap-2">
+                        <button onclick="UI.finishOnboarding(3)" class="p-3 bg-stone-800 hover:bg-stone-700 border border-stone-700 hover:border-white rounded-xl text-left group transition-all flex items-center justify-between">
+                            <div><div class="font-bold text-white group-hover:text-primary">3x Týdně (Start)</div><div class="text-[9px] text-stone-500">Po • St • Pá</div></div>
+                            <span class="text-2xl opacity-50 grayscale group-hover:grayscale-0">🥉</span>
+                        </button>
+                        <button onclick="UI.finishOnboarding(4)" class="p-3 bg-stone-800 hover:bg-stone-700 border border-stone-700 hover:border-white rounded-xl text-left group transition-all flex items-center justify-between">
+                            <div><div class="font-bold text-white group-hover:text-primary">4x Týdně (Klasika)</div><div class="text-[9px] text-stone-500">Po • Út • Čt • Pá</div></div>
+                            <span class="text-2xl opacity-50 grayscale group-hover:grayscale-0">🥈</span>
+                        </button>
+                        <button onclick="UI.finishOnboarding(5)" class="p-3 bg-stone-800 hover:bg-stone-700 border border-stone-700 hover:border-white rounded-xl text-left group transition-all flex items-center justify-between">
+                            <div><div class="font-bold text-white group-hover:text-primary">5x Týdně (Grind)</div><div class="text-[9px] text-stone-500">Po-Pá (Víkend volno)</div></div>
+                            <span class="text-2xl opacity-50 grayscale group-hover:grayscale-0">🥇</span>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
     <!-- Utils -->
     <div id="wipe-modal" class="modal fixed w-full h-full top-0 left-0 flex items-center justify-center z-[300] bg-black/95 opacity-0 pointer-events-none"><div class="w-11/12 max-w-sm bg-white dark:bg-panel p-6 rounded-xl text-center border border-red-500 shadow-2xl"><h2 class="text-xl font-bold mb-4 uppercase text-red-600">Smazat vše?</h2><div class="flex gap-2"><button onclick="UI.closeWipeModal()" class="flex-1 py-3 bg-stone-200 dark:bg-stone-800 rounded text-xs font-bold uppercase">Zpět</button><button onclick="Data.hardReset()" class="flex-1 py-3 bg-red-600 text-white rounded text-xs font-bold uppercase">Smazat</button></div></div></div>
     <div id="duplicate-modal" class="modal fixed w-full h-full top-0 left-0 flex items-center justify-center z-[250] bg-black/80 opacity-0 pointer-events-none"><div class="bg-white dark:bg-panel p-6 rounded-xl max-w-sm text-center border border-primary/50 shadow-2xl"><h3 class="font-bold mb-4 uppercase text-stone-900 dark:text-white">Dnes již trénováno</h3><div class="flex gap-2"><button onclick="UI.closeDuplicateModal()" class="flex-1 py-3 bg-stone-200 dark:bg-stone-800 rounded text-xs font-bold uppercase">Zrušit</button><button onclick="Logic.forceOpenWorkout()" class="flex-1 py-3 bg-primary text-white rounded text-xs font-bold uppercase">Přidat</button></div></div></div>
@@ -312,6 +409,7 @@
 </body>
 
 </html>
+
 
 
 
