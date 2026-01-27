@@ -90,6 +90,113 @@ const UI = {
         });
     },
 
+    selectGoal: function(goal, btn) {
+        document.getElementById('ob-goal').value = goal;
+        // Reset vizuálu tlačítek
+        document.querySelectorAll('.goal-btn').forEach(b => {
+            b.classList.remove('border-primary', 'ring-1', 'ring-primary');
+            b.classList.add('border-stone-700');
+        });
+        // Aktivace vybraného
+        btn.classList.remove('border-stone-700');
+        btn.classList.add('border-primary', 'ring-1', 'ring-primary');
+        UI.vibrate(20);
+    },
+
+    nextOnboardingStep: function(targetStep) {
+        // Validace kroku 1
+        if (targetStep === 2) {
+            const name = document.getElementById('ob-name').value.trim();
+            if (!name) { UI.vibrate([50,50]); return; }
+            Data.state.user.name = name;
+        }
+
+        // Posun Progress Baru
+        const progress = (targetStep / 4) * 100;
+        document.getElementById('ob-progress').style.width = `${progress}%`;
+
+        // Animace přepnutí oken
+        const current = document.querySelector('.step-content:not(.hidden)');
+        const next = document.getElementById(`ob-step-${targetStep}`);
+        
+        if(current) {
+            current.classList.add('opacity-0', '-translate-x-10');
+            setTimeout(() => {
+                current.classList.add('hidden');
+                next.classList.remove('hidden');
+                setTimeout(() => next.classList.remove('opacity-0', 'translate-x-10'), 50);
+            }, 300);
+        }
+        UI.vibrate(20);
+    },
+
+	    finishOnboarding: function(daysCount) {
+        // 1. Získání dat
+        const goal = document.getElementById('ob-goal').value;
+        const prBench = parseFloat(document.getElementById('ob-pr-bench').value) || 0;
+        const prSquat = parseFloat(document.getElementById('ob-pr-squat').value) || 0;
+        const prDL = parseFloat(document.getElementById('ob-pr-dl').value) || 0;
+
+        // 2. GENERÁTOR SPUTĚN ⚙️
+        // Tato funkce v Data.js vygeneruje kompletní customWorkouts (A i B)
+        // a vrátí nám strukturu dnů (kdy je gym).
+        const scheduleMap = Data.generateProgram(goal, daysCount);
+
+        // 3. Nastavení Settings (Timeline)
+        const days = {};
+        for(let i=0; i<7; i++) {
+            // Default rest
+            days[i] = { type: 'rest', gymTime: '14:30', fieldTime: '19:30' };
+            
+            // Pokud generátor určil, že v tento den (index) se cvičí:
+            if (scheduleMap[i]) {
+                days[i].type = 'gym';
+                days[i].gymTime = '17:00';
+            }
+        }
+        
+        if(!Data.state.settings) Data.state.settings = {};
+        Data.state.settings.days = days;
+        Data.state.user.goal = goal;
+
+        // 4. Uložení PRs (Falešná historie pro odznáčky)
+        if (prBench > 0 || prSquat > 0 || prDL > 0) {
+            const prLog = [];
+            // Helper pro přidání PR
+            const addPR = (exName, kg) => {
+                prLog.push({ ex: exName, kg: kg, reps: 1, sets: 1, rpe: 'hard' });
+                // Aktualizujeme i staty, aby se to nabídlo jako váha
+                if(!Data.state.exercise_stats[exName]) Data.state.exercise_stats[exName] = {};
+                Data.state.exercise_stats[exName].weight = kg;
+            };
+
+            if (prBench > 0) addPR("Bench Press", prBench);
+            if (prSquat > 0) addPR("Squat", prSquat);
+            if (prDL > 0) addPR("Deadlift", prDL);
+            
+            // Pushneme to do historie s datem včera
+            const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
+            
+            Data.state.workout_history.push({
+                date: yesterday.toISOString().split('T')[0],
+                title: "Kalibrace (Import)",
+                logs: prLog,
+                note: "Automatický import maximálek."
+            });
+        }
+
+        Data.saveDB();
+
+        // 5. Finále
+        document.getElementById('onboarding-modal').classList.remove('active');
+        this.updateUserGreeting();
+        Logic.update();
+        
+        UI.vibrate([100, 50, 100, 50, 200]); // Fanfára
+        setTimeout(() => alert(`Mise zahájena, ${Data.state.user.name}.\nRežim: ${goal.toUpperCase()}\nPlán vygenerován na míru.`), 500);
+    },
+
+
     updateUserGreeting: function() {
         const el = document.getElementById('user-greeting');
         if(el && Data.state.user) el.innerText = `Čau, ${Data.state.user.name}`;
@@ -677,6 +784,7 @@ window.onload = function() {
     Data.init();
 
 };
+
 
 
 
