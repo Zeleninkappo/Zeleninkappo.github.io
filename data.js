@@ -32,6 +32,7 @@ const Data = {
         version: typeof APP_VERSION !== 'undefined' ? APP_VERSION : '0.0.0',
         bodyweight_history: [],
         userNoWeight: [],
+        lastBackupDate: new Date().toISOString(),
         user: { name: 'Sportovec', sport: 'Sport', goal: 'hypertrophy' }, 
         settings: { theme: 'auto', days: {} }, 
         stack: [], 
@@ -65,6 +66,7 @@ const Data = {
                 let parsed = JSON.parse(src);
                 this.state = { ...this.state, ...parsed };
                 if (!this.state.customWorkouts) this.state.customWorkouts = { A: {}, B: {} };
+                if (!this.state.lastBackupDate) this.state.lastBackupDate = new Date().toISOString(); 
                 this.saveDB();
             } catch (e) { console.warn("DB Corruption"); }
         }
@@ -74,11 +76,19 @@ const Data = {
     hardReset: function() { localStorage.clear(); location.reload(); },
     
     exportData: function() {
-        const a = document.createElement('a');
-        a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.state));
-        a.download = `zelix_backup.json`;
-        a.click();
-    },
+    this.state.lastBackupDate = new Date().toISOString();
+    this.saveDB();
+    
+    const d = new Date();
+    const dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+
+    const a = document.createElement('a');
+    a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.state));
+    a.download = `zelix_backup_${dateStr}.json`;
+    a.click();
+
+    if (typeof UI !== 'undefined') UI.vibrate([50,50]);
+},
 
     importData: function(input) {
         const r = new FileReader();
@@ -308,6 +318,7 @@ const Data = {
     }
 };
  
+
 
 
 
