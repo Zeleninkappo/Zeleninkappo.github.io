@@ -351,7 +351,7 @@ const Logic = {
             this.update();
         } else {
             UI.vibrate([50, 50, 50, 50, 50]);
-            alert("Vyplň alespoň jeden cvik.");
+            UI.openAlertModal("Prázdný Trénink", "Musíš vyplnit alespoň jednu sérii u jednoho cviku.");
         }
     },
 
@@ -400,4 +400,5 @@ const Logic = {
         this.update();
     }
 };
+
 
