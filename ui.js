@@ -270,8 +270,12 @@ const UI = {
         const done = Data.state.completed_tasks[today] || [];
         
         evs.forEach((ev, i) => {
-            const isDone = done.includes(i);
+            // Generujeme stejné ID jako v logice
+            const taskId = `${ev.time}|${ev.title}`;
+            const isDone = done.includes(taskId);
+            
             const check = isDone ? '<span class="text-green-500 font-bold">✓</span>' : `<span class="w-1.5 h-1.5 rounded-full ${ev.type==='urgent'?'bg-red-500 animate-pulse':'bg-stone-400 dark:bg-stone-600'}"></span>`;
+            
             c.innerHTML += `
                 <div onclick="Logic.toggleTask(${i})" class="flex items-center gap-3 text-sm p-1 rounded transition-colors cursor-pointer hover:bg-stone-50 dark:hover:bg-stone-900/50">
                     <span class="font-mono text-[10px] text-stone-500 w-10 text-right ${isDone ? 'opacity-30' : ''}">${ev.time}</span>
@@ -949,6 +953,7 @@ const UI = {
         });
     }
 };
+
 
 
 
