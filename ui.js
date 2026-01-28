@@ -182,8 +182,15 @@ const UI = {
         this.updateUserGreeting();
         Logic.update();
         
-        UI.vibrate([100, 50, 100, 50, 200]);
-        setTimeout(() => alert(`Mise zahájena, ${Data.state.user.name}.\nRežim: ${goal.toUpperCase()}\nPlán vygenerován na míru.`), 500);
+        UI.vibrate([100, 50, 100, 50, 200]); // Fanfára
+        
+        setTimeout(() => {
+            this.openSuccessModal(
+                `Vítej v týmu, ${Data.state.user.name}`,
+                `Režim: <span class="text-primary font-black">${goal.toUpperCase()}</span><br><br>Tvůj tréninkový plán byl vygenerován a kalibrován podle zadaných dat.<br><br>Hodně štěstí.`
+            );
+        }, 500);
+    },
     },
 
     updateUserGreeting: function() {
@@ -776,4 +783,5 @@ const UI = {
         });
     }
 };
+
 
