@@ -385,6 +385,25 @@
         </div>
     </div>
 </div>
+    
+    <div id="success-modal" class="modal fixed w-full h-full top-0 left-0 flex items-center justify-center z-[500] bg-black/90 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="w-11/12 max-w-sm bg-white dark:bg-panel p-6 rounded-xl text-center border border-primary/50 shadow-2xl relative overflow-hidden transform transition-all scale-95" id="success-modal-content">
+            <div class="absolute top-0 left-0 w-full h-1.5 bg-primary"></div>
+            
+            <div class="mb-4 text-primary text-4xl animate-bounce mt-2">✅</div>
+            
+            <h2 id="success-title" class="text-xl font-black mb-2 uppercase text-stone-900 dark:text-white tracking-tighter">Mise Zahájena</h2>
+            
+            <p id="success-msg" class="text-sm text-stone-500 dark:text-stone-300 mb-8 leading-relaxed">
+                Plán nahrán do systému.
+            </p>
+            
+            <button onclick="UI.closeSuccessModal()" class="w-full py-3.5 bg-primary hover:bg-red-700 text-white font-bold rounded-lg uppercase shadow-lg tracking-widest transition-transform active:scale-95">
+                Rozumím
+            </button>
+        </div>
+    </div>
+    
     <div id="session-delete-modal" class="modal fixed w-full h-full top-0 left-0 flex items-center justify-center z-[260] bg-black/95 opacity-0 pointer-events-none"><div class="w-11/12 max-w-sm bg-white dark:bg-panel p-6 rounded-xl text-center border border-red-500 shadow-2xl"><h2 class="text-xl font-bold mb-4 uppercase text-red-600">Smazat trénink?</h2><p id="del-session-date" class="text-sm opacity-70 mb-6 font-mono font-bold">...</p><div class="flex gap-2"><button onclick="UI.closeSessionDeleteModal()" class="flex-1 py-3 bg-stone-200 dark:bg-stone-800 rounded text-xs font-bold uppercase">Zpět</button><button onclick="Logic.executeSessionDelete()" class="flex-1 py-3 bg-red-600 text-white rounded text-xs font-bold uppercase">Smazat</button></div></div></div>
 
     <!-- LOAD SCRIPTS -->
@@ -406,6 +425,7 @@
     </script>
 </body>
 </html>
+
 
 
 
