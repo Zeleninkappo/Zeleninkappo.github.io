@@ -301,14 +301,13 @@ const Data = {
         this.state.customWorkouts[week][day].exercises = newExercises;
         
         // Nastavíme i titulek, pokud chybí
-        if (!this.state.customWorkouts[week][day].title) {
-            this.state.customWorkouts[week][day].title = `${type} (${variant})`;
-        }
+       this.state.customWorkouts[week][day].title = `${type.replace('_', ' ')} (${variant})`;
 
         this.saveDB();
     }
 };
  
+
 
 
 
