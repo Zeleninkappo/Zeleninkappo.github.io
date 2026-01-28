@@ -354,6 +354,53 @@ const UI = {
     },
 	
     closeWeightModal: function() { document.getElementById('weight-modal').classList.remove('active'); },
+
+    openConfirmModal: function(title, msg, callback) {
+        document.getElementById('confirm-title').innerText = title;
+        document.getElementById('confirm-msg').innerHTML = msg;
+        
+        const btnYes = document.getElementById('confirm-btn-yes');
+        // Odstraníme staré listenery (klonováním) a přidáme nový
+        const newBtn = btnYes.cloneNode(true);
+        btnYes.parentNode.replaceChild(newBtn, btnYes);
+        
+        newBtn.onclick = () => {
+            callback();
+            this.closeConfirmModal();
+        };
+
+        const modal = document.getElementById('confirm-modal');
+        const content = document.getElementById('confirm-modal-content');
+        modal.classList.add('active');
+        setTimeout(() => content.classList.remove('scale-95'), 10);
+        content.classList.add('scale-100');
+        this.vibrate(20);
+    },
+
+    closeConfirmModal: function() {
+        const modal = document.getElementById('confirm-modal');
+        const content = document.getElementById('confirm-modal-content');
+        content.classList.remove('scale-100'); content.classList.add('scale-95');
+        setTimeout(() => modal.classList.remove('active'), 150);
+    },
+
+    openAlertModal: function(title, msg) {
+        document.getElementById('alert-title').innerText = title;
+        document.getElementById('alert-msg').innerHTML = msg;
+        const modal = document.getElementById('alert-modal');
+        const content = document.getElementById('alert-modal-content');
+        modal.classList.add('active');
+        setTimeout(() => content.classList.remove('scale-95'), 10);
+        content.classList.add('scale-100');
+        this.vibrate(50);
+    },
+
+    closeAlertModal: function() {
+        const modal = document.getElementById('alert-modal');
+        const content = document.getElementById('alert-modal-content');
+        content.classList.remove('scale-100'); content.classList.add('scale-95');
+        setTimeout(() => modal.classList.remove('active'), 150);
+    },
 	
     switchTab: function(t) {
         ['system', 'user', 'supps', 'exercises'].forEach(x => {
@@ -843,6 +890,7 @@ const UI = {
         });
     }
 };
+
 
 
 
