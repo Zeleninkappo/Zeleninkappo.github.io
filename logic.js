@@ -17,6 +17,8 @@ const Logic = {
     lastCheckDate: null,
 
     init: function() {
+        this.forceRest = Data.state.forceRest || false;
+        UI.toggleForceRestBtn(this.forceRest);
         this.calculateWeekType();
         this.startLoop();
     },
@@ -196,6 +198,8 @@ const Logic = {
 
     toggleForceRest: function() {
         this.forceRest = !this.forceRest;
+        Data.state.forceRest = this.forceRest;
+        Data.saveDB();
         UI.toggleForceRestBtn(this.forceRest);
         this.update();
     },
@@ -453,6 +457,7 @@ const Logic = {
         this.update();
     }
 };
+
 
 
 
