@@ -465,8 +465,26 @@ const UI = {
 
     toggleTimeInputs: function(i) {
         const t = document.getElementById(`s-type-${i}`).value;
-        document.getElementById(`s-gym-${i}`).classList.toggle('opacity-20', t === 'rest' || t === 'training');
-        document.getElementById(`s-field-${i}`).classList.toggle('opacity-20', t !== 'double' && t !== 'training');
+        const gymIn = document.getElementById(`s-gym-${i}`);
+        const fieldIn = document.getElementById(`s-field-${i}`);
+        const restPh = document.getElementById(`s-rest-${i}`);
+
+        // Reset (všechno schovat)
+        gymIn.classList.add('hidden');
+        fieldIn.classList.add('hidden');
+        restPh.classList.add('hidden');
+
+        // Zobrazit jen to potřebné
+        if (t === 'rest') {
+            restPh.classList.remove('hidden');
+        } else if (t === 'gym') {
+            gymIn.classList.remove('hidden');
+        } else if (t === 'training') { // "Sport"
+            fieldIn.classList.remove('hidden');
+        } else if (t === 'double') {
+            gymIn.classList.remove('hidden');
+            fieldIn.classList.remove('hidden');
+        }
     },
 
     toggleSuppInputs: function() {
@@ -931,6 +949,7 @@ const UI = {
         });
     }
 };
+
 
 
 
