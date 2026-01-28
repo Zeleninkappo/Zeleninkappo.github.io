@@ -535,7 +535,6 @@ const UI = {
     },
 
     // --- EXERCISE EDITOR ---
-    // --- EXERCISE EDITOR ---
     renderExerciseEditor: function() {
         const w = document.getElementById('edit-ex-week').value;
         const d = document.getElementById('edit-ex-day').value;
@@ -984,6 +983,7 @@ const UI = {
         });
     }
 };
+
 
 
 
