@@ -27,6 +27,7 @@ const Logic = {
         UI.toggleForceRestBtn(this.forceRest);
         this.calculateWeekType();
         this.startLoop();
+        setTimeout(() => this.checkBackupFreshness(), 2000); 
     },
 
     startLoop: function() {
@@ -446,6 +447,27 @@ const Logic = {
         }
     },
 
+   checkBackupFreshness: function() {
+    if (!Data.state.lastBackupDate) return;
+
+    const last = new Date(Data.state.lastBackupDate);
+    const now = new Date();
+
+    // Rozdíl v čase (milisekundy)
+    const diffTime = Math.abs(now - last);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+
+    // Limit: 7 dní
+    if (diffDays > 7) {
+        UI.openConfirmModal(
+            "Bezpečnostní Upozornění",
+            `Tvá data nebyla zálohována již <span class="text-primary font-bold">${diffDays} dní</span>.<br><br>Chceš stáhnout zálohu nyní?`,
+            () => { Data.exportData(); }, // ANO -> Export
+            () => {} // NE -> Nic
+        );
+    }
+},
+
     saveEntryEdit: function() {
         if (this.activeEditSessionIdx === null) return;
         const kg = parseFloat(document.getElementById('mgr-kg').value) || 0;
@@ -491,6 +513,7 @@ const Logic = {
         this.update();
     }
 };
+
 
 
 
