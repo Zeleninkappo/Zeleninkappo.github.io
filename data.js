@@ -33,7 +33,7 @@ const Data = {
         bodyweight_history: [],
         userNoWeight: [],
         user: { name: 'Sportovec', sport: 'Sport', goal: 'hypertrophy' }, 
-        settings: { theme: 'dark', days: {} }, 
+        settings: { theme: 'auto', days: {} }, 
         stack: [], 
         supplements: { enabled: true }, 
         completed_tasks: {}, 
@@ -302,6 +302,7 @@ const Data = {
     }
 };
  
+
 
 
 
