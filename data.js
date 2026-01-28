@@ -274,7 +274,35 @@ const Data = {
         });
 
         return exercises;
+    },
+
+   regenerateDay: function(week, day, type) {
+        const goal = this.state.user.goal || 'hypertrophy';
+        const strat = this.strategies[goal] || this.strategies['hypertrophy'];
+        
+        // 1. Zjistíme variantu (A nebo B) podle týdne
+        // Týden A = variant 'A', Týden B = variant 'B'
+        const variant = week; 
+
+        // 2. Vygenerujeme cviky
+        const newExercises = this.buildSession(type, variant, strat);
+        
+        // 3. Uložíme do DB
+        if (!this.state.customWorkouts[week]) this.state.customWorkouts[week] = {};
+        if (!this.state.customWorkouts[week][day]) this.state.customWorkouts[week][day] = {};
+        
+        this.state.customWorkouts[week][day].exercises = newExercises;
+        
+        // Nastavíme i titulek, pokud chybí
+        if (!this.state.customWorkouts[week][day].title) {
+            this.state.customWorkouts[week][day].title = `${type} (${variant})`;
+        }
+
+        this.saveDB();
     }
 };
+   
+};
  
+
 
