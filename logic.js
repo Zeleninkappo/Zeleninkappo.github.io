@@ -74,6 +74,7 @@ const Logic = {
                     evs.push({ time: '09:00', title: `${s.name} (${s.dose})`, type: 'supp' })
                 );
             }
+            evs.push({ time: mt.breakfast, title: 'Snídaně', type: 'food' });
             evs.push({ time: mt.lunch, title: 'Oběd', type: 'food' });
             evs.push({ time: mt.dinner, title: 'Večeře', type: 'food' });
         } 
@@ -490,6 +491,7 @@ const Logic = {
         this.update();
     }
 };
+
 
 
 
