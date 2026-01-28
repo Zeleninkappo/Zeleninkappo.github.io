@@ -65,7 +65,44 @@ Zelix funguje jako automatický dávkovač. Nemusíš myslet na to, co si vzít 
 
 ---
 
-### 5. Editor Tréninků (TUNING) ⚙️
+### 4b. Průběh Tréninku (Detail) 📝
+Jakmile jsi v režimu **GYM**, aplikace se stará o matematiku. Ty jen zvedáš.
+
+* **Chytré předvyplnění:** Aplikace si pamatuje, co jsi zvedal minule u daného cviku.
+* **1RM Kalkulačka:** Když zadáš váhu a počet opakování, v rohu kartičky se ihned ukáže *Est. 1RM* (Odhadované maximální zvednutí). Ideální pro kontrolu progresu v reálném čase.
+* **RPE Tlačítka (Autoregulace):** Po sérii klikni na jedno z tlačítek. Tím říkáš algoritmu, jak naložit příště:
+    * 🟢 **EASY:** Váha byla lehká (RPE < 7). Algoritmus příště automaticky přidá váhu (+2.5 kg).
+    * 🟡 **OK:** Váha byla akorát (RPE 7-8.5). Váha zůstává stejná.
+    * 🔴 **HARD:** Selhání nebo technický limit (RPE 9-10). Váha zůstává, nutná regenerace.
+* **Poznámka:** Dole můžeš zapsat pocity (např. "Bolí rameno", "Nový pre-workout"). Poznámka se uloží k celému tréninku a uvidíš ji v historii.
+
+### 5. Log & Editace Historie 📖
+Udělal jsi chybu při zadávání? Nebo chceš vidět historii konkrétního cviku?
+
+1.  Klikni na tlačítko **LOG** v hlavičce aplikace.
+2.  **Seznam cviků:** Kliknutím na název cviku rozbalíš kompletní historii všech sérií.
+3.  **Editace (Entry Manager):** Klikni na **konkrétní řádek** (sérii) v historii.
+    * Otevře se okno úprav.
+    * Můžeš přepsat váhu, opakování, série i RPE.
+    * **Smazat cvik:** Odstraní jen tento jeden záznam z tréninku.
+    * **Smazat trénink:** Smaže kompletně celý tréninkový den z historie.
+
+### 6. Analýza & Grafy 📊
+Sekce **Analýza Výkonu** se nachází na hlavní obrazovce pod checklistem.
+
+* **Přepínač:** V roletce si vyber, co chceš vidět (Tělesná váha nebo konkrétní cvik).
+* **Jak číst graf:**
+    * 🟥 **Červená čára (Váha):** Ukazuje maximální zvednutou váhu v daný den. Sleduj trend.
+    * ⬜ **Šedé sloupce (Objem):** Ukazují *Volume Load* (Série × Opakování). Pokud čára stagnuje, ale sloupce rostou, stále děláš progres (pracovní kapacita).
+
+### 7. Sledování Váhy ⚖️
+Klikni na tlačítko **⚖️ VÁHA** v hlavičce.
+
+* Zadej svou aktuální ranní hmotnost na lačno.
+* Data se ukládají do historie a vykreslují v grafu *Analýza Výkonu -> Tělesná váha*.
+* *Tip:* Važ se pravidelně (např. každé pondělí ráno) pro konzistentní data.
+
+### 8. Editor Tréninků (TUNING) ⚙️
 *Nastavení -> Cviky*
 
 Zde máš plnou kontrolu nad tréninkovým plánem.
@@ -92,7 +129,7 @@ Tlačítko nahoře *"Změna Režimu"*.
 
 ---
 
-### 6. Data & Bezpečnost 💾
+### 9. Data & Bezpečnost 💾
 * **Export:** *Nastavení -> Systém -> Export*. Stáhne JSON soubor.
 * **Watchdog:** Pokud systém zjistí, že záloha je starší než 7 dní, při startu tě vyzve k uložení.
 * **Import:** Pro přenos na nový telefon.
