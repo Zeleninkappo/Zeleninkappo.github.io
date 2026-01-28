@@ -672,6 +672,32 @@ const UI = {
     openWipeModal: function() { document.getElementById('wipe-modal').classList.add('active'); },
     closeWipeModal: function() { document.getElementById('wipe-modal').classList.remove('active'); },
 
+	// --- GENERIC SUCCESS MODAL ---
+    openSuccessModal: function(title, msg) {
+        document.getElementById('success-title').innerText = title;
+        document.getElementById('success-msg').innerHTML = msg; // InnerHTML, abychom mohli zalamovat řádky
+        
+        const modal = document.getElementById('success-modal');
+        const content = document.getElementById('success-modal-content');
+        
+        modal.classList.add('active');
+        // Malá animace zvětšení pro efekt
+        setTimeout(() => content.classList.remove('scale-95'), 50);
+        content.classList.add('scale-100');
+        
+        this.vibrate([50, 50]); // Dvojité potvrzení
+    },
+
+    closeSuccessModal: function() {
+        const modal = document.getElementById('success-modal');
+        const content = document.getElementById('success-modal-content');
+        
+        content.classList.remove('scale-100');
+        content.classList.add('scale-95');
+        
+        setTimeout(() => modal.classList.remove('active'), 150);
+    },
+
     // --- CHART ---
     populateChartSelect: function() {
         const s = document.getElementById('chart-select');
@@ -750,3 +776,4 @@ const UI = {
         });
     }
 };
+
