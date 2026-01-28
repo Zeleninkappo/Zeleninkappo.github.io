@@ -432,9 +432,34 @@ const UI = {
         if (!c) return;
         const dN = ["Neděle", "Pondělí", "Úterý", "Středa", "Čtvrtek", "Pátek", "Sobota"];
         let ex = (Data.state.settings && Data.state.settings.days) ? Data.state.settings.days : {};
+        
         c.innerHTML = dN.map((n, i) => {
             const d = ex[i] || { type: 'rest', gymTime: '14:30', fieldTime: '19:30' };
-            return `<div class="grid grid-cols-12 gap-2 items-center bg-stone-100 dark:bg-stone-900/50 p-2 rounded border border-stone-200 dark:border-stone-800"><div class="col-span-3 text-[10px] font-black opacity-60 uppercase dark:text-stone-400">${n}</div><div class="col-span-4"><select id="s-type-${i}" class="z-select" onchange="UI.toggleTimeInputs(${i})"><option value="rest" ${d.type==='rest'?'selected':''}>Volno</option><option value="gym" ${d.type==='gym'?'selected':''}>Gym</option><option value="training" ${d.type==='training'?'selected':''}>Sport</option><option value="double" ${d.type==='double'?'selected':''}>Double</option></select></div><div class="col-span-5 flex gap-1"><input type="time" id="s-gym-${i}" value="${d.gymTime}" class="z-input ${d.type==='rest'||d.type==='training'?'opacity-20':''}" title="Gym"><input type="time" id="s-field-${i}" value="${d.fieldTime}" class="z-input ${d.type!=='double'&&d.type!=='training'?'opacity-20':''}" title="Sport"></div></div>`;
+            
+            // Logika viditelnosti při startu
+            const showGym = (d.type === 'gym' || d.type === 'double');
+            const showField = (d.type === 'training' || d.type === 'double');
+            const isRest = (d.type === 'rest');
+
+            return `
+            <div class="grid grid-cols-12 gap-1 items-center bg-stone-100 dark:bg-stone-900/50 p-2 rounded border border-stone-200 dark:border-stone-800">
+                <div class="col-span-3 text-[10px] font-black opacity-60 uppercase dark:text-stone-400 truncate pr-1">${n}</div>
+                
+                <div class="col-span-5">
+                    <select id="s-type-${i}" class="z-select !py-1 text-[10px] font-bold" onchange="UI.toggleTimeInputs(${i})">
+                        <option value="rest" ${d.type==='rest'?'selected':''}>Volno</option>
+                        <option value="gym" ${d.type==='gym'?'selected':''}>Gym</option>
+                        <option value="training" ${d.type==='training'?'selected':''}>Sport</option>
+                        <option value="double" ${d.type==='double'?'selected':''}>Double</option>
+                    </select>
+                </div>
+                
+                <div class="col-span-4 flex flex-col gap-1 justify-center h-full min-h-[24px]">
+                    <input type="time" id="s-gym-${i}" value="${d.gymTime}" class="z-input !py-0.5 !px-1 text-[10px] text-center h-6 ${!showGym ? 'hidden' : ''}" title="Gym">
+                    <input type="time" id="s-field-${i}" value="${d.fieldTime}" class="z-input !py-0.5 !px-1 text-[10px] text-center h-6 ${!showField ? 'hidden' : ''}" title="Sport">
+                    <div id="s-rest-${i}" class="text-center text-stone-300 dark:text-stone-700 text-[10px] ${!isRest ? 'hidden' : ''}">—</div>
+                </div>
+            </div>`;
         }).join('');
     },
 
@@ -906,6 +931,7 @@ const UI = {
         });
     }
 };
+
 
 
 
