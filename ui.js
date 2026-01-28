@@ -14,14 +14,23 @@ const UI = {
         this.populateChartSelect();
         this.updateUserGreeting();
 		this.checkNotificationStatus();
+        
+        // --- NOVÉ: Spuštění Onboardingu pro nové uživatele ---
+        setTimeout(() => this.checkFirstRun(), 500);
+    },
+
+    // --- NOVÁ FUNKCE: Kontrola prvního spuštění ---
+    checkFirstRun: function() {
+        // Pokud data nejsou načtená nebo je jméno defaultní, spustíme průvodce
+        if (!Data.state.user || !Data.state.user.name || Data.state.user.name === 'Sportovec') {
+            const modal = document.getElementById('onboarding-modal');
+            if (modal) modal.classList.add('active');
+        }
     },
 
 	vibrate: function(pattern) {
-        // Ochrana proti chybám a podpora prohlížeče
         if ("vibrate" in navigator) {
-            try {
-                navigator.vibrate(pattern);
-            } catch(e) { console.log("Vibrace blokována systémem"); }
+            try { navigator.vibrate(pattern); } catch(e) { console.log("Vibrace blokována"); }
         }
     },
 
@@ -43,8 +52,7 @@ const UI = {
                 const btn = document.getElementById('btn-notify-req');
                 if(btn) { btn.innerText = "AKTIVNÍ ✓"; btn.disabled = true; btn.classList.add('text-green-500'); }
                 
-                // --- OPRAVA PRO ANDROID: Volání přes Service Worker ---
-                if (navigator.serviceWorker) {
+                if (navigator.serviceWorker && navigator.serviceWorker.controller) {
                     navigator.serviceWorker.ready.then(function(registration) {
                         registration.showNotification("Zelix: Notifikace aktivní!", {
                             body: "Teď už nic nezmeškáš.",
@@ -53,14 +61,13 @@ const UI = {
                         });
                     });
                 } else {
-                    // Fallback pro PC bez SW
                     new Notification("Zelix: Notifikace aktivní!", { body: "Teď už nic nezmeškáš.", icon: "icon-192.png" });
                 }
             }
         });
     },
 
-	    checkNotificationStatus: function() {
+    checkNotificationStatus: function() {
         const btn = document.getElementById('btn-notify-req');
         if (!btn || !("Notification" in window)) return;
 
@@ -90,30 +97,25 @@ const UI = {
 
     selectGoal: function(goal, btn) {
         document.getElementById('ob-goal').value = goal;
-        // Reset vizuálu tlačítek
         document.querySelectorAll('.goal-btn').forEach(b => {
             b.classList.remove('border-primary', 'ring-1', 'ring-primary');
             b.classList.add('border-stone-700');
         });
-        // Aktivace vybraného
         btn.classList.remove('border-stone-700');
         btn.classList.add('border-primary', 'ring-1', 'ring-primary');
         UI.vibrate(20);
     },
 
     nextOnboardingStep: function(targetStep) {
-        // Validace kroku 1
         if (targetStep === 2) {
             const name = document.getElementById('ob-name').value.trim();
             if (!name) { UI.vibrate([50,50]); return; }
             Data.state.user.name = name;
         }
 
-        // Posun Progress Baru
         const progress = (targetStep / 4) * 100;
         document.getElementById('ob-progress').style.width = `${progress}%`;
 
-        // Animace přepnutí oken
         const current = document.querySelector('.step-content:not(.hidden)');
         const next = document.getElementById(`ob-step-${targetStep}`);
         
@@ -128,25 +130,19 @@ const UI = {
         UI.vibrate(20);
     },
 
-	    finishOnboarding: function(daysCount) {
-        // 1. Získání dat
+    finishOnboarding: function(daysCount) {
         const goal = document.getElementById('ob-goal').value;
         const prBench = parseFloat(document.getElementById('ob-pr-bench').value) || 0;
         const prSquat = parseFloat(document.getElementById('ob-pr-squat').value) || 0;
         const prDL = parseFloat(document.getElementById('ob-pr-dl').value) || 0;
 
-        // 2. GENERÁTOR SPUTĚN ⚙️
-        // Tato funkce v Data.js vygeneruje kompletní customWorkouts (A i B)
-        // a vrátí nám strukturu dnů (kdy je gym).
+        // 2. GENERÁTOR SPUTĚN
         const scheduleMap = Data.generateProgram(goal, daysCount);
 
-        // 3. Nastavení Settings (Timeline)
+        // 3. Nastavení Settings
         const days = {};
         for(let i=0; i<7; i++) {
-            // Default rest
             days[i] = { type: 'rest', gymTime: '14:30', fieldTime: '19:30' };
-            
-            // Pokud generátor určil, že v tento den (index) se cvičí:
             if (scheduleMap[i]) {
                 days[i].type = 'gym';
                 days[i].gymTime = '17:00';
@@ -157,13 +153,11 @@ const UI = {
         Data.state.settings.days = days;
         Data.state.user.goal = goal;
 
-        // 4. Uložení PRs (Falešná historie pro odznáčky)
+        // 4. Uložení PRs
         if (prBench > 0 || prSquat > 0 || prDL > 0) {
             const prLog = [];
-            // Helper pro přidání PR
             const addPR = (exName, kg) => {
                 prLog.push({ ex: exName, kg: kg, reps: 1, sets: 1, rpe: 'hard' });
-                // Aktualizujeme i staty, aby se to nabídlo jako váha
                 if(!Data.state.exercise_stats[exName]) Data.state.exercise_stats[exName] = {};
                 Data.state.exercise_stats[exName].weight = kg;
             };
@@ -172,7 +166,6 @@ const UI = {
             if (prSquat > 0) addPR("Squat", prSquat);
             if (prDL > 0) addPR("Deadlift", prDL);
             
-            // Pushneme to do historie s datem včera
             const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
             
             Data.state.workout_history.push({
@@ -185,15 +178,13 @@ const UI = {
 
         Data.saveDB();
 
-        // 5. Finále
         document.getElementById('onboarding-modal').classList.remove('active');
         this.updateUserGreeting();
         Logic.update();
         
-        UI.vibrate([100, 50, 100, 50, 200]); // Fanfára
+        UI.vibrate([100, 50, 100, 50, 200]);
         setTimeout(() => alert(`Mise zahájena, ${Data.state.user.name}.\nRežim: ${goal.toUpperCase()}\nPlán vygenerován na míru.`), 500);
     },
-
 
     updateUserGreeting: function() {
         const el = document.getElementById('user-greeting');
@@ -315,12 +306,10 @@ const UI = {
 	openWeightModal: function() {
         document.getElementById('new-bodyweight').value = '';
         document.getElementById('weight-modal').classList.add('active');
-        // Auto-focus na input
         setTimeout(() => document.getElementById('new-bodyweight').focus(), 100);
     },
 	
     closeWeightModal: function() { document.getElementById('weight-modal').classList.remove('active'); },
-
 	
     switchTab: function(t) {
         ['system', 'user', 'supps', 'exercises'].forEach(x => {
@@ -391,11 +380,18 @@ const UI = {
         this.renderStackEditor();
     },
 
-    // --- EXERCISE EDITOR ---
+    // --- EXERCISE EDITOR (OPRAVENO: Bezpečnostní kontrola) ---
     renderExerciseEditor: function() {
         const w = document.getElementById('edit-ex-week').value;
         const d = document.getElementById('edit-ex-day').value;
         const list = document.getElementById('exercises-list');
+        
+        // POJISTKA PROTI PÁDU (Fix chyby "Cannot read properties of undefined")
+        if (!Data.state.customWorkouts || !Data.state.customWorkouts[w] || !Data.state.customWorkouts[w][d]) {
+            list.innerHTML = '<div class="text-xs text-stone-500 text-center p-4 italic">Zatím nebyl vygenerován žádný plán.<br>Spusť průvodce (reload) nebo ulož nastavení.</div>';
+            return;
+        }
+
         const wk = Data.state.customWorkouts[w][d];
         list.innerHTML = '';
         wk.exercises.forEach((ex, i) => {
@@ -404,29 +400,31 @@ const UI = {
     },
 
     addExercise: function() {
-    const w = document.getElementById('edit-ex-week').value;
-    const d = document.getElementById('edit-ex-day').value;
-    const nInput = document.getElementById('new-ex-name');
-    const nwInput = document.getElementById('new-ex-noweight'); // Checkbox
+        const w = document.getElementById('edit-ex-week').value;
+        const d = document.getElementById('edit-ex-day').value;
+        const nInput = document.getElementById('new-ex-name');
+        const nwInput = document.getElementById('new-ex-noweight'); 
 
-    const n = nInput.value.trim();
-    if (n) {
-        // Přidáme cvik do rozvrhu
-        Data.state.customWorkouts[w][d].exercises.push(n);
+        const n = nInput.value.trim();
+        if (n) {
+            // Pokud plán neexistuje, musíme ho vytvořit (pojistka)
+            if (!Data.state.customWorkouts[w][d]) {
+                Data.state.customWorkouts[w][d] = { exercises: [], title: `Custom ${w}-${d}` };
+            }
 
-        // Pokud je zaškrtnuto "Bez váhy", uložíme si to do DB
-        if (nwInput.checked) {
-            if (!Data.state.userNoWeight) Data.state.userNoWeight = [];
-            Data.state.userNoWeight.push(n);
+            Data.state.customWorkouts[w][d].exercises.push(n);
+
+            if (nwInput.checked) {
+                if (!Data.state.userNoWeight) Data.state.userNoWeight = [];
+                Data.state.userNoWeight.push(n);
+            }
+
+            nInput.value = '';
+            nwInput.checked = false; 
+            Data.saveDB(); 
+            this.renderExerciseEditor();
         }
-
-        // Reset formuláře
-        nInput.value = '';
-        nwInput.checked = false; // Odškrtnout pro příště
-        Data.saveDB(); // Uložit změny hned
-        this.renderExerciseEditor();
-    }
-},
+    },
     
     removeExercise: function(w, d, i) { Data.state.customWorkouts[w][d].exercises.splice(i, 1); this.renderExerciseEditor(); },
     moveExercise: function(w, d, i, dir) {
@@ -450,7 +448,6 @@ const UI = {
         w.exercises.forEach((ex, i) => {
             const st = stats[ex] || { weight: 0, reps: 8, sets: 4 };
             
-            // Historie
             const rev = [...history].reverse();
             let ll = null;
             for (let s of rev) {
@@ -459,7 +456,14 @@ const UI = {
             }
             let pl = ll ? (ll.kg > 0 ? `${ll.sets}x${ll.reps}x${ll.kg}kg` : `${ll.sets}x${ll.reps} (Vl.)`) : "První záznam";
 
-            // Rozhodování: Draft vs Historie
+            // PR LOGIC
+            let maxKg = 0;
+            history.forEach(sess => {
+                const l = sess.logs.find(x => x.ex === ex);
+                if (l && l.kg > maxKg) maxKg = l.kg;
+            });
+            const prBadge = maxKg > 0 ? `<span class="text-primary font-black ml-2" title="Tvůj rekord">🏆 ${maxKg}kg</span>` : '';
+
             let valKg = st.weight || '';
             let valReps = st.reps;
             let valSets = st.sets;
@@ -473,15 +477,12 @@ const UI = {
                 if (activeRPE) Logic.tempActiveRPEs[ex] = activeRPE;
             }
 
-            // Předvýpočet 1RM pro zobrazení
             let initialOrm = '';
             if (valKg > 0 && valReps > 1) {
                 const ormCalc = Math.round(valKg * (1 + valReps/30));
                 initialOrm = `Est. 1RM: ${ormCalc}kg`;
             }
 
-            // Generování HTML
-            // ZMĚNA: oninput volá Logic.handleInput(${i})
             let wIn = Data.isNoWeight(ex) ? 
                 `<div class="input-disabled">VLASTNÍ</div><input type="hidden" id="kg-${i}" value="0">` :
                 `<input type="number" id="kg-${i}" class="z-input" placeholder="kg" value="${valKg}" oninput="Logic.handleInput(${i})">`;
@@ -489,7 +490,6 @@ const UI = {
             const searchLink = `https://www.google.com/search?q=${encodeURIComponent(ex + ' cvik technika')}`;
             const rpeClass = (r) => activeRPE === r ? `selected-${r}` : '';
 
-            // ZMĚNA: Přidán div s id="orm-${i}"
             c.innerHTML += `
             <div class="bg-stone-100 dark:bg-stone-900 p-3 rounded border border-stone-200 dark:border-stone-800 shadow-sm relative">
                 <div class="flex justify-between mb-2 items-center">
@@ -497,7 +497,10 @@ const UI = {
                         <span class="font-bold text-primary text-xs uppercase">${ex}</span>
                         <a href="${searchLink}" target="_blank" class="help-btn" title="Technika">?</a>
                     </div>
-                    <span class="text-[9px] opacity-40 uppercase font-mono">Minule: ${pl}</span>
+                    <div class="flex items-center">
+                        <span class="text-[9px] opacity-40 uppercase font-mono">Minule: ${pl}</span>
+                        ${prBadge}
+                    </div>
                 </div>
                 <div class="grid grid-cols-3 gap-2 mb-2">
                     ${wIn}
@@ -515,7 +518,6 @@ const UI = {
             </div>`;
         });
         
-        // Načtení poznámky
         const noteInput = document.getElementById('workout-note');
         if (noteInput) {
             noteInput.value = (draft && draft._note) ? draft._note : '';
@@ -533,11 +535,9 @@ const UI = {
         const content = document.getElementById('help-content');
         modal.classList.add('active');
 
-        // Stáhneme README.md
         fetch('README.md')
             .then(response => response.text())
             .then(text => {
-                // Převedeme Markdown na HTML
                 content.innerHTML = this.parseMarkdown(text);
             })
             .catch(err => {
@@ -549,28 +549,20 @@ const UI = {
         document.getElementById('help-modal').classList.remove('active'); 
     },
 
-    // Jednoduchý "No-BS" Markdown parser
     parseMarkdown: function(text) {
         let html = text
-            // Odstraníme obrázky a badge (aby to nerušilo text)
             .replace(/!\[.*?\]\(.*?\)/g, '')
-            // Nadpisy H1, H2, H3
             .replace(/^# (.*$)/gim, '<h1 class="text-xl font-black text-primary uppercase mb-2 mt-4">$1</h1>')
             .replace(/^## (.*$)/gim, '<h2 class="text-lg font-bold text-stone-900 dark:text-white uppercase mb-2 mt-4 border-b border-stone-200 dark:border-stone-800 pb-1">$1</h2>')
             .replace(/^### (.*$)/gim, '<h3 class="text-md font-bold text-stone-800 dark:text-stone-200 uppercase mb-1 mt-3">$1</h3>')
-            // Tučné písmo
             .replace(/\*\*(.*)\*\*/gim, '<strong class="text-stone-900 dark:text-white">$1</strong>')
-            // Odrážky
             .replace(/^\* (.*$)/gim, '<li class="ml-4 list-disc marker:text-primary">$1</li>')
-            // Citace (Blockquote)
             .replace(/^> (.*$)/gim, '<blockquote class="border-l-4 border-primary pl-4 italic opacity-80 my-2">$1</blockquote>')
-            // Vodorovná čára
             .replace(/^---/gim, '<hr class="my-4 border-stone-200 dark:border-stone-800">')
-            // Zalomení řádků
             .replace(/\n/gim, '<br>');
-
         return html;
     },
+    
     // --- HISTORY MODAL ---
     openHistoryModal: function() {
         const cont = document.getElementById('history-content');
@@ -591,16 +583,13 @@ const UI = {
             exs.forEach(ex => {
                 const h = allLogs.filter(l => l.ex === ex).sort((a, b) => new Date(b.date) - new Date(a.date));
                 
-                // ZDE BYLA CHYBA - logika poznámky musí být uvnitř map()
                 const rows = h.map(r => {
                     const w = r.kg > 0 ? `${r.kg}kg` : '<span class="opacity-50 text-[9px]">VLASTNÍ</span>';
                     const dFormatted = r.date.split('T')[0].split('-').reverse().join('.');
                     
-                    // 1. Zjistíme poznámku (teď už známe 'r')
                     const sessionNote = Data.state.workout_history[r.sIdx].note || '';
                     const noteHtml = sessionNote ? `<div class="col-span-4 text-[9px] text-stone-400 italic mt-1 border-t border-stone-100 dark:border-stone-800 pt-1">📝 ${sessionNote}</div>` : '';
 
-                    // 2. Vrátíme řádek i s poznámkou
                     return `
                     <div onclick="UI.openEntryManager('${ex}',${r.sIdx},${r.lIdx})" class="grid grid-cols-4 gap-2 text-xs py-3 border-b border-stone-200 dark:border-stone-800 last:border-0 text-stone-600 dark:text-stone-400 cursor-pointer hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors">
                         <div class="col-span-1 font-mono opacity-70">${dFormatted}</div>
@@ -661,30 +650,19 @@ const UI = {
     },
 
 	openSessionDeleteModal: function() {
-        // 1. Zavřeme editor
         this.closeEntryManager();
-
-        // 2. Najdeme varovné okno
         const modal = document.getElementById('session-delete-modal');
-        
-        // 3. Vypíšeme datum (bereme ho z Logic, kde je uložený index aktuálně editovaného tréninku)
-        // Používáme Logic.activeEditSessionIdx, který se nastavil při otevření editoru
         const sessionIdx = Logic.activeEditSessionIdx;
         if (sessionIdx !== null && Data.state.workout_history[sessionIdx]) {
             const dateStr = Data.state.workout_history[sessionIdx].date;
-            // Použijeme tvou existující pomocnou funkci formatDateCZ z logic.js (nebo ji přesuň do UI/Data, pokud je nedostupná)
-            // Pro jistotu zde použijeme přímý formát, pokud helper není v UI scope:
             const d = new Date(dateStr);
             const formattedDate = `${d.getDate()}.${d.getMonth()+1}.${d.getFullYear()}`;
-            
             const dateEl = document.getElementById('del-session-date');
             if (dateEl) dateEl.innerText = formattedDate;
         }
-
-        // 4. Zobrazíme okno
         modal.classList.add('active');
     },
-    // --- DELETE CONFIRM ---
+
     confirmDeleteSession: function() {
         this.closeEntryManager();
         document.getElementById('session-delete-modal').classList.add('active');
@@ -703,7 +681,6 @@ const UI = {
         
         s.innerHTML = '';
         
-        // 1. Přidáme možnost Tělesná váha
         const bwOpt = document.createElement('option');
         bwOpt.value = 'Bodyweight';
         bwOpt.text = '⚖️ Tělesná váha';
@@ -716,7 +693,7 @@ const UI = {
 
         if (c === 'Bodyweight') s.value = 'Bodyweight';
         else if (Array.from(ex).includes(c)) s.value = c;
-        else if (ex.size > 0) this.updateChart('Bodyweight'); // Default na váhu nebo první cvik
+        else if (ex.size > 0) this.updateChart('Bodyweight'); 
     },
 
     updateChart: function(exName) {
@@ -726,15 +703,12 @@ const UI = {
         
         let labels = [], d1 = [], d2 = [], label1 = '', label2 = '', showY1 = false;
 
-        // --- MÓD: TĚLESNÁ VÁHA ---
         if (exName === 'Bodyweight') {
             const h = Data.state.bodyweight_history || [];
             labels = h.map(x => x.date.split('T')[0].split('-').reverse().join('.'));
             d1 = h.map(x => x.kg);
             label1 = 'Váha (kg)';
-            // (Volitelně: d2 by mohl být průměr, ale nechme to jednoduché)
         } 
-        // --- MÓD: CVIKY ---
         else {
             const h = Data.state.workout_history.filter(x => x.logs.some(l => l.ex === exName));
             labels = h.map(x => x.date.split('T')[0].split('-').reverse().join('.'));
@@ -776,17 +750,3 @@ const UI = {
         });
     }
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
