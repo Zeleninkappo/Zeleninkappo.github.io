@@ -233,20 +233,73 @@ const Logic = {
 
     // Workout Logic
     checkWorkoutEntry: function() {
-        if (this.forceRest) { alert("Režim volna."); return; }
-        const today = new Date().toISOString().split('T')[0];
-        if (Data.state.workout_history.some(h => h.date === today)) {
-            UI.openDuplicateModal();
-        } else {
-            this.forceOpenWorkout();
+        // 1. Kontrola nuceného volna
+        if (this.forceRest) { 
+            UI.openAlertModal("Režim Volna", "Máš zapnutý nucený odpočinek. Vypni ho tlačítkem 'VOLNO', pokud chceš cvičit."); 
+            return; 
         }
+
+        const todayStr = new Date().toISOString().split('T')[0];
+
+        // 2. Kontrola, zda už dnes není odcvičeno
+        if (Data.state.workout_history.some(h => h.date === todayStr)) {
+            UI.openDuplicateModal();
+            return;
+        }
+
+        // 3. DETEKCE ZAMEŠKANÉHO TRÉNINKU (Smart Catch-up) 🧠
+        const todayIdx = new Date().getDay();
+        const prevIdx = (todayIdx + 6) % 7; // Index včerejška (pro pondělí 1 vrátí neděli 0)
+        
+        // Získání data včerejška (pro kontrolu historie)
+        const d = new Date(); d.setDate(d.getDate() - 1);
+        const prevDateStr = d.toISOString().split('T')[0];
+
+        const prevSettings = Data.state.settings.days[prevIdx];
+
+        // PODMÍNKA: Včera byl Gym/Double A ZÁROVEŇ v historii není záznam s včerejším datem
+        if (prevSettings && (prevSettings.type === 'gym' || prevSettings.type === 'double') && 
+            !Data.state.workout_history.some(h => h.date === prevDateStr)) {
+            
+            // Zjistíme název včerejšího tréninku
+            const missedWorkout = Data.state.customWorkouts[this.currentWeekType][prevIdx];
+            const missedTitle = missedWorkout ? missedWorkout.title : "Včerejší trénink";
+
+            UI.openConfirmModal(
+                "Zameškaný trénink",
+                `Včera (${prevDateStr.split('-').reverse().join('.')}) jsi měl v plánu <strong>${missedTitle}</strong>, ale záznam chybí.<br><br>Chceš to dohnat dnes?`,
+                () => { 
+                    // ANO -> Otevřeme včerejší den (prevIdx)
+                    this.forceOpenWorkout(prevIdx); 
+                },
+                () => { 
+                    // NE -> Otevřeme normálně dnešek (bez parametru)
+                    this.forceOpenWorkout(); 
+                }
+            );
+            return; // Čekáme na volbu uživatele
+        }
+
+        // Pokud není co dohánět, jdeme rovnou na dnešek
+        this.forceOpenWorkout();
     },
 
-    forceOpenWorkout: function() {
+    forceOpenWorkout: function(overrideDayIdx = null) { // <--- Možnost vnutit jiný den
         UI.closeDuplicateModal();
         if (!this.currentWeekType) this.calculateWeekType();
-        const d = new Date().getDay();
+        
+        // Pokud máme override (doháníme včerejšek), použijeme ho. Jinak bereme dnešek.
+        const d = overrideDayIdx !== null ? overrideDayIdx : new Date().getDay();
+        
+        // Načtení tréninku
         const w = Data.state.customWorkouts[this.currentWeekType][d];
+        
+        // Pokud trénink neexistuje (např. včera bylo volno a nějak se to sem dostalo), pojistka:
+        if (!w) {
+            UI.openAlertModal("Chyba", "Pro tento den není definován žádný trénink.");
+            return;
+        }
+
         this.tempActiveRPEs = {};
         UI.openWorkoutModal(w, Data.state.exercise_stats, Data.state.workout_history);
     },
@@ -400,5 +453,6 @@ const Logic = {
         this.update();
     }
 };
+
 
 
