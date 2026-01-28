@@ -217,17 +217,22 @@ const UI = {
         }
     },
 
-    // --- QUICK GENERATOR (Jeden den) ---
+   // --- QUICK GENERATOR (Jeden den) ---
     quickGenerateDay: function() {
         const w = document.getElementById('edit-ex-week').value;
         const d = document.getElementById('edit-ex-day').value;
         const type = document.getElementById('quick-gen-type').value;
 
-        if (confirm(`Opravdu chceš přepsat cviky pro tento den šablonou ${type}?`)) {
-            Data.regenerateDay(w, d, type);
-            this.renderExerciseEditor();
-            UI.vibrate([50, 50]);
-        }
+        // NOVÉ: Použití vlastního modálu místo window.confirm
+        this.openConfirmModal(
+            "Přepsat trénink?",
+            `Tato akce nenávratně smaže aktuální cviky pro tento den a nahradí je šablonou <span class="text-primary font-bold">${type}</span>.`,
+            () => {
+                Data.regenerateDay(w, d, type);
+                this.renderExerciseEditor();
+                UI.vibrate([50, 50]);
+            }
+        );
     },
 
     updateUserGreeting: function() {
@@ -890,6 +895,7 @@ const UI = {
         });
     }
 };
+
 
 
 
