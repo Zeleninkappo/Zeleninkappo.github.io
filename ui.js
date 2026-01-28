@@ -360,27 +360,38 @@ const UI = {
 	
     closeWeightModal: function() { document.getElementById('weight-modal').classList.remove('active'); },
 
-    openConfirmModal: function(title, msg, callback) {
+    openConfirmModal: function(title, msg, onConfirm, onCancel) {
         document.getElementById('confirm-title').innerText = title;
         document.getElementById('confirm-msg').innerHTML = msg;
         
+        // 1. Nastavení tlačítka ANO
         const btnYes = document.getElementById('confirm-btn-yes');
-        // Odstraníme staré listenery (klonováním) a přidáme nový
-        const newBtn = btnYes.cloneNode(true);
-        btnYes.parentNode.replaceChild(newBtn, btnYes);
+        const newBtnYes = btnYes.cloneNode(true); // Reset listenerů
+        btnYes.parentNode.replaceChild(newBtnYes, btnYes);
         
-        newBtn.onclick = () => {
-            callback();
+        newBtnYes.onclick = () => {
+            if (onConfirm) onConfirm();
             this.closeConfirmModal();
         };
 
+        // 2. Nastavení tlačítka NE (Zrušit)
+        const btnNo = newBtnYes.previousElementSibling; // Tlačítko vlevo
+        const newBtnNo = btnNo.cloneNode(true); // Reset listenerů
+        btnNo.parentNode.replaceChild(newBtnNo, btnNo);
+
+        newBtnNo.onclick = () => {
+            if (onCancel) onCancel(); // <--- Pokud existuje akce pro NE, proveď ji
+            this.closeConfirmModal();
+        };
+
+        // Zobrazení
         const modal = document.getElementById('confirm-modal');
         const content = document.getElementById('confirm-modal-content');
         modal.classList.add('active');
         setTimeout(() => content.classList.remove('scale-95'), 10);
         content.classList.add('scale-100');
         this.vibrate(20);
-    },
+    }, 
 
     closeConfirmModal: function() {
         const modal = document.getElementById('confirm-modal');
@@ -895,6 +906,7 @@ const UI = {
         });
     }
 };
+
 
 
 
