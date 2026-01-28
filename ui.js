@@ -192,6 +192,44 @@ const UI = {
         }, 500);
     },
 
+	// --- REGEN WIZARD (Změna plánu bez ztráty dat) ---
+    openRegenWizard: function() {
+        UI.closeSetupModal();
+        const modal = document.getElementById('onboarding-modal');
+        
+        // Resetujeme UI onboardingu
+        document.querySelectorAll('.step-content').forEach(el => el.classList.add('hidden'));
+        
+        // Skočíme rovnou na KROK 2 (Cíl), jméno už máme
+        const step2 = document.getElementById('ob-step-2');
+        step2.classList.remove('hidden', 'opacity-0', 'translate-x-10');
+        
+        // Nastavíme progress bar
+        document.getElementById('ob-progress').style.width = '50%';
+        
+        // Zobrazíme modál
+        modal.classList.add('active');
+        
+        // Předvyplníme aktuální cíl, pokud existuje
+        if (Data.state.user.goal) {
+            // Najdeme tlačítko s tímto cílem a označíme ho
+             // (To by vyžadovalo složitější logiku, necháme uživatele vybrat znovu, to je jistější)
+        }
+    },
+
+    // --- QUICK GENERATOR (Jeden den) ---
+    quickGenerateDay: function() {
+        const w = document.getElementById('edit-ex-week').value;
+        const d = document.getElementById('edit-ex-day').value;
+        const type = document.getElementById('quick-gen-type').value;
+
+        if (confirm(`Opravdu chceš přepsat cviky pro tento den šablonou ${type}?`)) {
+            Data.regenerateDay(w, d, type);
+            this.renderExerciseEditor();
+            UI.vibrate([50, 50]);
+        }
+    },
+
     updateUserGreeting: function() {
         const el = document.getElementById('user-greeting');
         if(el && Data.state.user) el.innerText = `Čau, ${Data.state.user.name}`;
@@ -386,23 +424,46 @@ const UI = {
         this.renderStackEditor();
     },
 
-    // --- EXERCISE EDITOR (OPRAVENO: Bezpečnostní kontrola) ---
+    // --- EXERCISE EDITOR ---
     renderExerciseEditor: function() {
         const w = document.getElementById('edit-ex-week').value;
         const d = document.getElementById('edit-ex-day').value;
         const list = document.getElementById('exercises-list');
         
-        // POJISTKA PROTI PÁDU (Fix chyby "Cannot read properties of undefined")
-        if (!Data.state.customWorkouts || !Data.state.customWorkouts[w] || !Data.state.customWorkouts[w][d]) {
-            list.innerHTML = '<div class="text-xs text-stone-500 text-center p-4 italic">Zatím nebyl vygenerován žádný plán.<br>Spusť průvodce (reload) nebo ulož nastavení.</div>';
-            return;
-        }
+        // Vytvoření struktury, pokud neexistuje
+        if (!Data.state.customWorkouts) Data.state.customWorkouts = { A: {}, B: {} };
+        if (!Data.state.customWorkouts[w]) Data.state.customWorkouts[w] = {};
+        if (!Data.state.customWorkouts[w][d]) Data.state.customWorkouts[w][d] = { exercises: [], title: `Custom ${w}-${d}` };
 
         const wk = Data.state.customWorkouts[w][d];
         list.innerHTML = '';
-        wk.exercises.forEach((ex, i) => {
-            list.innerHTML += `<div class="ex-item"><span class="text-xs font-bold text-stone-700 dark:text-stone-300 w-full">${i+1}. ${ex}</span><div class="flex gap-1"><button onclick="UI.moveExercise('${w}','${d}',${i},-1)" class="text-stone-400 hover:text-white px-1">▲</button><button onclick="UI.moveExercise('${w}','${d}',${i},1)" class="text-stone-400 hover:text-white px-1">▼</button><button onclick="UI.removeExercise('${w}','${d}',${i})" class="text-red-500 hover:text-red-300 px-1 ml-2">✖</button></div></div>`;
-        });
+
+        if (wk.exercises.length === 0) {
+            list.innerHTML = '<div class="text-xs text-stone-500 text-center p-4 italic opacity-60">Žádné cviky. Přidej ručně nebo vygeneruj.</div>';
+        } else {
+            wk.exercises.forEach((ex, i) => {
+                list.innerHTML += `<div class="ex-item"><span class="text-xs font-bold text-stone-700 dark:text-stone-300 w-full">${i+1}. ${ex}</span><div class="flex gap-1"><button onclick="UI.moveExercise('${w}','${d}',${i},-1)" class="text-stone-400 hover:text-white px-1">▲</button><button onclick="UI.moveExercise('${w}','${d}',${i},1)" class="text-stone-400 hover:text-white px-1">▼</button><button onclick="UI.removeExercise('${w}','${d}',${i})" class="text-red-500 hover:text-red-300 px-1 ml-2">✖</button></div></div>`;
+            });
+        }
+
+        // --- NOVÉ: GENERAČNÍ LIŠTA (vždy na konci seznamu) ---
+        // Přidáme ji pod seznam cviků, ale nad "Přidat nový cvik"
+        const genBar = document.createElement('div');
+        genBar.className = "mt-4 pt-4 border-t border-stone-200 dark:border-stone-800 flex gap-2 items-center";
+        genBar.innerHTML = `
+            <select id="quick-gen-type" class="z-select text-[10px] font-bold uppercase !py-2">
+                <option value="FB_A">Full Body A</option>
+                <option value="FB_B">Full Body B</option>
+                <option value="UPPER_A">Upper (Vršek)</option>
+                <option value="LOWER_A">Lower (Spodek)</option>
+                <option value="PUSH">Push (Tlaky)</option>
+                <option value="PULL">Pull (Tahy)</option>
+                <option value="LEGS">Legs (Nohy)</option>
+                <option value="explosive">Výbušnost</option>
+            </select>
+            <button onclick="UI.quickGenerateDay()" class="bg-stone-200 dark:bg-stone-800 hover:bg-primary hover:text-white text-stone-600 dark:text-stone-400 font-bold text-[10px] py-2 px-3 rounded uppercase transition-colors whitespace-nowrap">🎲 Generovat</button>
+        `;
+        list.appendChild(genBar);
     },
 
     addExercise: function() {
@@ -782,6 +843,7 @@ const UI = {
         });
     }
 };
+
 
 
 
