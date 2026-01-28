@@ -17,7 +17,13 @@ const Logic = {
     lastCheckDate: null,
 
     init: function() {
-        this.forceRest = Data.state.forceRest || false;
+        const today = new Date().toISOString().split('T')[0];
+        this.forceRest = (Data.state.forceRest === today);
+        if (!this.forceRest && Data.state.forceRest !== null) {
+            Data.state.forceRest = null;
+            Data.saveDB();
+        }
+
         UI.toggleForceRestBtn(this.forceRest);
         this.calculateWeekType();
         this.startLoop();
@@ -197,8 +203,16 @@ const Logic = {
     },
 
     toggleForceRest: function() {
-        this.forceRest = !this.forceRest;
-        Data.state.forceRest = this.forceRest;
+        const today = new Date().toISOString().split('T')[0];
+
+        if (this.forceRest) {
+            this.forceRest = false;
+            Data.state.forceRest = null;
+        } else {
+            this.forceRest = true;
+            Data.state.forceRest = today;
+        }
+        
         Data.saveDB();
         UI.toggleForceRestBtn(this.forceRest);
         this.update();
@@ -457,6 +471,7 @@ const Logic = {
         this.update();
     }
 };
+
 
 
 
