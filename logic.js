@@ -132,11 +132,15 @@ const Logic = {
         for (let i = 0; i < this.currentSchedule.length; i++) {
             const ev = this.currentSchedule[i];
             if (ev.time === '--:--') continue;
+            
+            // GENEROVÁNÍ ID
+            const taskId = `${ev.time}|${ev.title}`; 
+            
             const [h, m] = ev.time.split(':').map(Number);
             const evMins = h * 60 + m;
             
-            // Logika pro "Následuje": Zobrazujeme to, co je v budoucnu, nebo co probíhá max 60 min
-            if (((evMins > mins) || (evMins <= mins && mins - evMins < 60)) && !done.includes(i)) {
+            // Kontrola: Je čas A ZÁROVEŇ není ID v seznamu hotových?
+            if (((evMins > mins) || (evMins <= mins && mins - evMins < 60)) && !done.includes(taskId)) {
                 f = i;
                 break;
             }
@@ -222,18 +226,33 @@ const Logic = {
         UI.vibrate(80);
         const t = new Date().toISOString().split('T')[0];
         if (!Data.state.completed_tasks[t]) Data.state.completed_tasks[t] = [];
-        Data.state.completed_tasks[t].push(this.nextIdx);
-        Data.saveDB();
-        this.update();
+        
+        const ev = this.currentSchedule[this.nextIdx];
+        if (ev) {
+            const taskId = `${ev.time}|${ev.title}`;
+            // Pojistka proti duplicitám
+            if (!Data.state.completed_tasks[t].includes(taskId)) {
+                Data.state.completed_tasks[t].push(taskId);
+            }
+            Data.saveDB();
+            this.update();
+        }
     },
 
     toggleTask: function(i) {
         UI.vibrate(20);
         const t = new Date().toISOString().split('T')[0];
         if (!Data.state.completed_tasks[t]) Data.state.completed_tasks[t] = [];
-        const idx = Data.state.completed_tasks[t].indexOf(i);
-        if (idx === -1) Data.state.completed_tasks[t].push(i);
+        
+        const ev = this.currentSchedule[i];
+        if (!ev) return;
+        
+        const taskId = `${ev.time}|${ev.title}`;
+        const idx = Data.state.completed_tasks[t].indexOf(taskId);
+        
+        if (idx === -1) Data.state.completed_tasks[t].push(taskId);
         else Data.state.completed_tasks[t].splice(idx, 1);
+        
         Data.saveDB();
         this.update();
     },
@@ -471,6 +490,7 @@ const Logic = {
         this.update();
     }
 };
+
 
 
 
