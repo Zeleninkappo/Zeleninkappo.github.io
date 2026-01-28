@@ -260,6 +260,13 @@ const Data = {
             exercises.push("Leg Press");
             exercises.push(pick('legs_iso', 1));
         }
+       else if (type === "explosive") {
+            exercises.push("Power Clean");
+            exercises.push("Box Jumps");
+            exercises.push("Kettlebell Swing");
+            exercises.push("MedBall Slam");
+            exercises.push("Broad Jumps");
+        }
 
         // Aplikujeme statistiky (reps/sets) podle cíle hned teď
         exercises.forEach(ex => {
@@ -302,6 +309,7 @@ const Data = {
     }
 };
  
+
 
 
 
