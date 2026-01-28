@@ -191,7 +191,6 @@ const UI = {
             );
         }, 500);
     },
-    },
 
     updateUserGreeting: function() {
         const el = document.getElementById('user-greeting');
@@ -783,5 +782,6 @@ const UI = {
         });
     }
 };
+
 
 
