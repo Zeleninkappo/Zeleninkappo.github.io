@@ -35,7 +35,7 @@ const Data = {
         user: { name: 'Sportovec', sport: 'Sport', goal: 'hypertrophy' }, 
         settings: { theme: 'auto', days: {} }, 
         stack: [], 
-        forceRest: false,
+        forceRest: null,
         supplements: { enabled: true }, 
         completed_tasks: {}, 
         workout_history: [], 
@@ -308,6 +308,7 @@ const Data = {
     }
 };
  
+
 
 
 
