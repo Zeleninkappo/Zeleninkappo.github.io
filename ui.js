@@ -36,7 +36,7 @@ const UI = {
 
     applyTheme: function() {
         const html = document.documentElement;
-        const theme = (Data.state.settings && Data.state.settings.theme) ? Data.state.settings.theme : 'dark';
+        const theme = (Data.state.settings && Data.state.settings.theme) ? Data.state.settings.theme : 'auto';
         const isDark = theme === 'dark' || (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
         if (isDark) html.classList.add('dark'); else html.classList.remove('dark');
         this.updateThemeButtons();
@@ -843,6 +843,7 @@ const UI = {
         });
     }
 };
+
 
 
 
