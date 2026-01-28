@@ -535,6 +535,7 @@ const UI = {
     },
 
     // --- EXERCISE EDITOR ---
+    // --- EXERCISE EDITOR ---
     renderExerciseEditor: function() {
         const w = document.getElementById('edit-ex-week').value;
         const d = document.getElementById('edit-ex-day').value;
@@ -548,16 +549,32 @@ const UI = {
         const wk = Data.state.customWorkouts[w][d];
         list.innerHTML = '';
 
+        // 1. EDITACE NÁZVU TRÉNINKU (NOVÉ)
+        // Používáme onchange (uloží se až po odkliknutí/enteru), aby se nepřekreslovalo při psaní
+        const currentTitle = wk.title || '';
+        list.innerHTML += `
+            <div class="mb-4 bg-white dark:bg-stone-800/50 p-2 rounded border border-stone-200 dark:border-stone-700 shadow-sm">
+                <label class="text-[9px] font-bold text-stone-400 uppercase ml-1 block mb-1">Název dne</label>
+                <div class="relative">
+                    <input type="text" value="${currentTitle}" 
+                        class="z-input font-black text-stone-800 dark:text-white border-transparent bg-transparent focus:bg-white dark:focus:bg-stone-900 focus:border-primary !p-1 text-lg" 
+                        onchange="UI.updateWorkoutTitle('${w}', '${d}', this.value)"
+                        placeholder="Pojmenuj svůj trénink...">
+                    <span class="absolute right-2 top-2 text-stone-400 text-xs">✎</span>
+                </div>
+            </div>
+        `;
+
+        // 2. SEZNAM CVIKŮ
         if (wk.exercises.length === 0) {
-            list.innerHTML = '<div class="text-xs text-stone-500 text-center p-4 italic opacity-60">Žádné cviky. Přidej ručně nebo vygeneruj.</div>';
+            list.innerHTML += '<div class="text-xs text-stone-500 text-center p-4 italic opacity-60">Žádné cviky. Přidej ručně nebo vygeneruj.</div>';
         } else {
             wk.exercises.forEach((ex, i) => {
                 list.innerHTML += `<div class="ex-item"><span class="text-xs font-bold text-stone-700 dark:text-stone-300 w-full">${i+1}. ${ex}</span><div class="flex gap-1"><button onclick="UI.moveExercise('${w}','${d}',${i},-1)" class="text-stone-400 hover:text-white px-1">▲</button><button onclick="UI.moveExercise('${w}','${d}',${i},1)" class="text-stone-400 hover:text-white px-1">▼</button><button onclick="UI.removeExercise('${w}','${d}',${i})" class="text-red-500 hover:text-red-300 px-1 ml-2">✖</button></div></div>`;
             });
         }
 
-        // --- NOVÉ: GENERAČNÍ LIŠTA (vždy na konci seznamu) ---
-        // Přidáme ji pod seznam cviků, ale nad "Přidat nový cvik"
+        // 3. GENERAČNÍ LIŠTA
         const genBar = document.createElement('div');
         genBar.className = "mt-4 pt-4 border-t border-stone-200 dark:border-stone-800 flex gap-2 items-center";
         genBar.innerHTML = `
@@ -574,6 +591,20 @@ const UI = {
             <button onclick="UI.quickGenerateDay()" class="bg-stone-200 dark:bg-stone-800 hover:bg-primary hover:text-white text-stone-600 dark:text-stone-400 font-bold text-[10px] py-2 px-3 rounded uppercase transition-colors whitespace-nowrap">🎲 Generovat</button>
         `;
         list.appendChild(genBar);
+    },
+
+	updateWorkoutTitle: function(w, d, val) {
+        if (!Data.state.customWorkouts[w] || !Data.state.customWorkouts[w][d]) return;
+        
+        // Uložení nového názvu
+        Data.state.customWorkouts[w][d].title = val.trim() || `Custom ${w}-${d}`;
+        Data.saveDB();
+        
+        // Malá vibrace pro potvrzení uložení
+        this.vibrate(20);
+        
+        // Pokud je tento den zrovna aktivní v UI (je dnes), aktualizujeme ho rovnou
+        Logic.update(); 
     },
 
     addExercise: function() {
@@ -953,6 +984,7 @@ const UI = {
         });
     }
 };
+
 
 
 
