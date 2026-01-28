@@ -196,6 +196,13 @@
                 </div>
                 <!-- Exercises -->
                 <div id="tab-content-exercises" class="hidden space-y-4">
+                    <div class="bg-stone-50 dark:bg-stone-900 p-3 rounded border border-stone-200 dark:border-stone-800 mb-4 flex justify-between items-center">
+        <div>
+            <h4 class="text-[10px] font-bold uppercase opacity-60">Změna Režimu</h4>
+            <p class="text-[9px] text-stone-500">Změnil se ti rozvrh? (3x -> 4x týdně)</p>
+        </div>
+        <button onclick="UI.openRegenWizard()" class="bg-stone-200 dark:bg-stone-800 hover:bg-primary hover:text-white text-stone-800 dark:text-stone-300 font-bold text-[10px] py-2 px-3 rounded uppercase transition-colors border border-stone-300 dark:border-stone-700">⚡ Nový Plán</button>
+    </div>
                     <div class="flex gap-2 mb-4"><select id="edit-ex-week" class="z-select" onchange="UI.renderExerciseEditor()"><option value="A">Týden A</option><option value="B">Týden B</option></select><select id="edit-ex-day" class="z-select" onchange="UI.renderExerciseEditor()"><option value="1">Pondělí</option><option value="2">Úterý</option><option value="3">Středa</option><option value="4">Čtvrtek</option><option value="5">Pátek</option><option value="6">Sobota</option><option value="0">Neděle</option></select></div>
                     <div id="exercises-list" class="space-y-2 bg-stone-50 dark:bg-stone-900 p-2 rounded border border-stone-200 dark:border-stone-800 max-h-[300px] overflow-y-auto"></div>
                     <div class="flex flex-col gap-2 pt-2">
@@ -425,6 +432,7 @@
     </script>
 </body>
 </html>
+
 
 
 
