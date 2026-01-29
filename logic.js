@@ -66,59 +66,73 @@ const Logic = {
 
         let evs = [];
         const supps = Data.state.supplements || { enabled: false };
-        const sport = Data.state.user.sport || 'Sport';
+        const stack = (supps.enabled && Data.state.stack) ? Data.state.stack : [];
+        const sportName = Data.state.user.sport || 'Sport';
 
-        // --- REST DAYS ---
-        if (type === 'rest') {
-            if (supps.enabled && Data.state.stack) {
-                Data.state.stack.filter(s => s.timing === 'morning').forEach(s => 
-                    evs.push({ time: '09:00', title: `${s.name} (${s.dose})`, type: 'supp' })
-                );
-            }
-            evs.push({ time: mt.breakfast, title: 'Snídaně', type: 'food' });
-            evs.push({ time: mt.lunch, title: 'Oběd', type: 'food' });
-            evs.push({ time: mt.dinner, title: 'Večeře', type: 'food' });
-        } 
-        // --- TRAINING DAYS ---
-        else {
-            const gT = conf.gymTime;
-            const fT = conf.fieldTime;
+        // Pomocná funkce: Má se suplement zobrazit dnes?
+        const isRestDay = (type === 'rest');
+        const shouldShow = (s) => {
+            if (s.freq === 'all') return true;
+            if (s.freq === 'rest' && isRestDay) return true;
+            if (s.freq === 'training' && !isRestDay) return true;
+            return false;
+        };
 
-            if (supps.enabled && Data.state.stack) {
-                Data.state.stack.filter(s => s.timing === 'morning').forEach(s => 
-                    evs.push({ time: '06:00', title: `${s.name} (${s.dose})`, type: 'supp' })
-                );
-            }
-            evs.push({ time: mt.breakfast, title: 'Snídaně', type: 'food' });
-            evs.push({ time: mt.lunch, title: 'Oběd', type: 'food' });
-            evs.push({ time: mt.dinner, title: 'Večeře', type: 'food' });
+        // 1. RANNÍ SUPLEMENTY (Vždy, pokud freq sedí)
+        stack.filter(s => s.timing === 'morning' && shouldShow(s)).forEach(s => 
+            evs.push({ time: '06:00', title: `${s.name} (${s.dose})`, type: 'supp' })
+        );
 
+        // 2. JÍDLO (Snídaně, Oběd, Večeře) - Vždy
+        // Poznámka: Pokud chceš skrývat snídani v tréninkové dny (IF), přidej podmínku sem. Zatím necháváme vždy.
+        evs.push({ time: mt.breakfast, title: 'Snídaně', type: 'food' });
+        evs.push({ time: mt.lunch, title: 'Oběd', type: 'food' });
+        evs.push({ time: mt.dinner, title: 'Večeře', type: 'food' });
+
+        // 3. SESSION LOOP (Smyčka relací - Gym, Sport, Double)
+        if (!isRestDay) {
+            const sessions = [];
+
+            // Definice aktivních sessions pro dnešní den
             if (type === 'gym' || type === 'double') {
-                if (supps.enabled && Data.state.stack) {
-                    Data.state.stack.filter(s => s.timing === 'pre').forEach(s => 
-                        evs.push({ time: this.addMin(gT, -30), title: `${s.name} (${s.dose})`, type: 'urgent' })
-                    );
-                }
-                evs.push({ time: gT, title: 'GYM TRÉNINK', type: 'activity' });
-                if (supps.enabled && Data.state.stack) {
-                    Data.state.stack.filter(s => s.timing === 'post').forEach(s => 
-                        evs.push({ time: this.addMin(gT, 90), title: `${s.name} (${s.dose})`, type: 'supp' })
-                    );
-                }
+                sessions.push({ time: conf.gymTime, title: 'GYM TRÉNINK', type: 'activity' });
             }
-
             if (type === 'training' || type === 'double') {
-                evs.push({ time: fT, title: sport.toUpperCase(), type: 'activity-high' });
+                 sessions.push({ time: conf.fieldTime, title: sportName.toUpperCase(), type: 'activity-high' });
             }
 
-            if (supps.enabled && Data.state.stack) {
-                Data.state.stack.filter(s => s.timing === 'evening').forEach(s => 
-                    evs.push({ time: '22:00', title: `${s.name} (${s.dose})`, type: 'rest' })
+            // Projdeme každou aktivitu a "obalíme" ji suplementy
+            sessions.forEach(sess => {
+                const t = sess.time;
+                
+                // A) PRE-WORKOUT (-30 min)
+                stack.filter(s => s.timing === 'pre' && shouldShow(s)).forEach(s => 
+                    evs.push({ time: this.addMin(t, -30), title: `${s.name} (${s.dose})`, type: 'urgent' })
                 );
-            }
-        }
 
+                // B) SAMOTNÁ AKTIVITA
+                evs.push(sess);
+                
+                // C) INTRA-WORKOUT (+0 min, stejný čas jako start)
+                stack.filter(s => s.timing === 'intra' && shouldShow(s)).forEach(s => 
+                     evs.push({ time: t, title: `${s.name} (${s.dose})`, type: 'supp' })
+                );
+
+                // D) POST-WORKOUT (+90 min od začátku)
+                stack.filter(s => s.timing === 'post' && shouldShow(s)).forEach(s => 
+                    evs.push({ time: this.addMin(t, 90), title: `${s.name} (${s.dose})`, type: 'supp' })
+                );
+            });
+        }
+        
+        // 4. VEČERNÍ SUPLEMENTY
+        stack.filter(s => s.timing === 'evening' && shouldShow(s)).forEach(s => 
+            evs.push({ time: '22:00', title: `${s.name} (${s.dose})`, type: 'rest' })
+        );
+
+        // Seřadíme chronologicky
         evs.sort((a, b) => a.time === '--:--' ? 0 : a.time.localeCompare(b.time));
+        
         this.currentSchedule = evs;
         UI.renderTimeline(evs);
     },
@@ -204,8 +218,12 @@ const Logic = {
     addMin: function(t, m) {
         if(!t) return "--:--";
         const [hh, mm] = t.split(':').map(Number);
-        const d = new Date(); d.setHours(hh); d.setMinutes(mm + m);
-        return d.toLocaleTimeString('cs-CZ', {hour:'2-digit', minute:'2-digit'});
+        const date = new Date(); 
+        date.setHours(hh); 
+        date.setMinutes(mm + m);
+        const h = date.getHours();
+        const min = date.getMinutes();
+        return `${String(h).padStart(2, '0')}:${String(min).padStart(2, '0')}`;
     },
 
     toggleForceRest: function() {
@@ -513,6 +531,7 @@ const Logic = {
         this.update();
     }
 };
+
 
 
 
