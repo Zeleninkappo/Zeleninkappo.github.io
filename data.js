@@ -164,7 +164,7 @@ const Data = {
    buildSession: function(type, variant, strat, duration = 'medium') {
         const exercises = [];
         const used = new Set();
-        const lib = this.library; // <--- ULOŽÍME SI KNIHOVNU ZDE, ABYCHOM O NI NEPŘIŠLI
+        const lib = Data.library; 
 
         const add = (ex) => {
             if (!used.has(ex)) { exercises.push(ex); used.add(ex); }
@@ -280,3 +280,4 @@ const Data = {
         this.saveDB();
     }
 };
+
