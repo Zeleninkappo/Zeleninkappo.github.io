@@ -1,9 +1,9 @@
 /* =========================================
-   MODULE: DATA & BLUEPRINTS
+   MODULE: DATA & BLUEPRINTS (FIXED v0.7.1)
    ========================================= */
 
 const Data = {
-    DB_KEY: 'ZELIX_DB_V051',
+    DB_KEY: 'ZELIX_DB_V052',
     
     // 1. KNIHOVNA CVIKŮ
     library: {
@@ -19,7 +19,6 @@ const Data = {
         cardio:        ["Angličáky (Burpees)", "Švihadlo", "Lodní lana", "Sprinty", "Veslování"]
     },
 
-    // 2. LOGIKA PRO CÍLE
     strategies: {
         'strength':    { reps: 5,  sets: 5, rest: '3-5 min', focus: ['push_compound', 'pull_compound', 'legs_squat'] },
         'hypertrophy': { reps: 10, sets: 4, rest: '90 sec',  focus: ['push_iso', 'pull_iso', 'legs_iso'] },
@@ -27,7 +26,6 @@ const Data = {
         'explosive':   { reps: 6,  sets: 6, rest: '2 min',   focus: ['explosive'] }
     },
 
-    // Current State
     state: { 
         version: typeof APP_VERSION !== 'undefined' ? APP_VERSION : '0.0.0',
         bodyweight_history: [],
@@ -50,22 +48,15 @@ const Data = {
         UI.init();
     },
     
-    // Detekce cviků bez váhy (Updated CZ names)
     isNoWeight: function(ex) {
-        const sys = [
-            "Plank", "Výskoky", "Angličáky", "Kolečko", "Shyby", 
-            "Kliky", "Sprinty", "Švihadlo", "Lodní lana", "Veslování"
-        ].some(x => ex.includes(x));
-        
+        const sys = ["Plank", "Výskoky", "Angličáky", "Kolečko", "Shyby", "Kliky", "Sprinty", "Švihadlo", "Lodní lana", "Veslování"].some(x => ex.includes(x));
         const usr = this.state.userNoWeight && this.state.userNoWeight.includes(ex);
         return sys || usr;
     },
 
     loadDB: function() {
         let src = localStorage.getItem(this.DB_KEY);
-        // Fallback pro starší verze (pokus o záchranu dat při změně klíče)
-        if(!src) src = localStorage.getItem('ZELIX_DB_V050'); 
-        
+        if(!src) src = localStorage.getItem('ZELIX_DB_V060'); 
         if (src) {
             try {
                 let parsed = JSON.parse(src);
@@ -83,15 +74,12 @@ const Data = {
     exportData: function() {
         this.state.lastBackupDate = new Date().toISOString();
         this.saveDB();
-        
         const d = new Date();
         const dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-
         const a = document.createElement('a');
         a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.state));
         a.download = `zelix_backup_${dateStr}.json`;
         a.click();
-
         if (typeof UI !== 'undefined') UI.vibrate([50,50]);
     },
 
@@ -146,89 +134,62 @@ const Data = {
         UI.vibrate([50,50]);
     }, 
 
-    // --- MEGA GENERATOR 3000  ---
     generateProgram: function(goal, daysCount, duration = 'medium') {
         const strat = this.strategies[goal] || this.strategies['hypertrophy'];
         
         let schedule = {};
         if (daysCount === 3) {
-             schedule = { 1: { title: "Full Body A", type: "FB_A" },
-                          3: { title: "Full Body B", type: "FB_B" },
-                          5: { title: "Full Body A", type: "FB_A" } };
+             schedule = { 1: { title: "Full Body A", type: "FB_A" }, 3: { title: "Full Body B", type: "FB_B" }, 5: { title: "Full Body A", type: "FB_A" } };
         } else if (daysCount === 4) {
-             schedule = { 1: { title: "Upper A", type: "UPPER_A" },
-                          2: { title: "Lower A", type: "LOWER_A" },
-                          4: { title: "Upper B", type: "UPPER_B" },
-                          5: { title: "Lower B", type: "LOWER_B" } };
+             schedule = { 1: { title: "Upper A", type: "UPPER_A" }, 2: { title: "Lower A", type: "LOWER_A" }, 4: { title: "Upper B", type: "UPPER_B" }, 5: { title: "Lower B", type: "LOWER_B" } };
         } else {
-             schedule = { 1: { title: "Push Power", type: "PUSH" },
-                          2: { title: "Pull Power", type: "PULL" },
-                          3: { title: "Legs Power", type: "LEGS" },
-                          4: { title: "Upper Hyper", type: "UPPER_A" },
-                          5: { title: "Lower Hyper", type: "LOWER_B" } };
+             schedule = { 1: { title: "Push Power", type: "PUSH" }, 2: { title: "Pull Power", type: "PULL" }, 3: { title: "Legs Power", type: "LEGS" }, 4: { title: "Upper Hyper", type: "UPPER_A" }, 5: { title: "Lower Hyper", type: "LOWER_B" } };
         }
 
         const templates = { A: {}, B: {} };
-
         Object.keys(schedule).forEach(dayIndex => {
             const session = schedule[dayIndex];
-            
-            templates.A[dayIndex] = {
-                title: session.title,
-                exercises: this.buildSession(session.type, 'A', strat, duration) 
-            };
-            templates.B[dayIndex] = {
-                title: session.title.replace('A', 'B'),
-                exercises: this.buildSession(session.type, 'B', strat, duration)
-            };
+            templates.A[dayIndex] = { title: session.title, exercises: this.buildSession(session.type, 'A', strat, duration) };
+            templates.B[dayIndex] = { title: session.title.replace('A', 'B'), exercises: this.buildSession(session.type, 'B', strat, duration) };
         });
 
         if(!this.state.user) this.state.user = {};
         this.state.user.duration = duration;
-
         this.state.customWorkouts = templates;
         this.saveDB();
         return schedule;
     },
 
+    // --- OPRAVENÁ FUNKCE GENERÁTORU ---
    buildSession: function(type, variant, strat, duration = 'medium') {
         const exercises = [];
-        const used = new Set(); // Paměť pro použité cviky
+        const used = new Set();
 
-        // Pomocná funkce: Přidá cvik, pokud tam ještě není
         const add = (ex) => {
-            if (!used.has(ex)) {
-                exercises.push(ex);
-                used.add(ex);
-            }
+            if (!used.has(ex)) { exercises.push(ex); used.add(ex); }
         };
 
-        // Pomocná funkce: Vybere náhodný UNIKÁTNÍ cvik z kategorie
+        // FIX: Používáme Data.library místo this.library, aby to bylo neprůstřelné
         const pick = (cat) => {
-            const pool = this.library[cat];
-            if (!pool) return "Neznámý cvik";
+            const pool = Data.library[cat]; // <--- ZDE BYLA CHYBA
+            if (!pool) return "Neznámý cvik"; 
             
-            // Filtrujeme jen ty, co jsme ještě nepoužili
             const available = pool.filter(ex => !used.has(ex));
+            if (available.length === 0) return pool[0]; 
             
-            if (available.length === 0) return pool[0]; // Kdyby došly cviky, dáme první (fallback)
-            
-            // Náhodný výběr
             const selected = available[Math.floor(Math.random() * available.length)];
-            used.add(selected); // Označíme jako použitý
+            used.add(selected);
             return selected;
         };
 
-        // --- STAVBA KOSTRY (SKELETON) ---
-        // Vždy stavíme "plnou verzi" a pak ji ořežeme podle času
-        
+        // SKELETONY
         if (type.includes("FB")) { 
             add(pick('legs_squat'));
             add(pick('push_compound'));
             add(pick('pull_compound'));
             add(pick('legs_hinge'));
             add(pick('core'));
-            if (duration === 'long') {
+            if (duration === 'long') { // 90 min -> přidáme další
                 add(pick('push_iso'));
                 add(pick('pull_iso'));
             }
@@ -240,7 +201,7 @@ const Data = {
             add(pick('pull_iso'));
             add(pick('core'));
             if (duration === 'long') {
-                add(pick('push_compound')); // Ještě jeden tlak
+                add(pick('push_compound'));
                 add("Face Pulls");
             }
         }
@@ -250,7 +211,7 @@ const Data = {
             add(pick('legs_iso'));
             add(pick('core'));
             if (duration === 'long') {
-                add("Výpady (Chůze)"); // Extra
+                add("Výpady (Chůze)");
                 add("Lýtka (Výpony)");
             }
         }
@@ -258,12 +219,12 @@ const Data = {
             add(pick('push_compound'));
             add("Tlaky jednoruček (Šikmá)"); 
             add(pick('push_iso'));
-            add(pick('push_iso')); // Dva tricepsy/ramena
+            add(pick('push_iso')); 
             if (duration === 'long') add("Upažování");
         }
         else if (type === "PULL") {
             add("Mrtvý tah (Deadlift)");
-            add(pick('pull_compound')); // Tady už nevybere Deadlift znovu, protože je v 'used'
+            add(pick('pull_compound'));
             add(pick('pull_iso'));
             add("Face Pulls");
             if (duration === 'long') add("Kladivové zdvihy");
@@ -283,37 +244,28 @@ const Data = {
             add("Skoky do dálky");
         }
 
-        // --- FILTRACE PODLE DÉLKY (DURATION) ---
+        // FILTRACE PODLE ČASU
         let finalSelection = exercises;
-
         if (duration === 'short') {
-            // Rychlovka: Necháme jen první 3 cviky (Základy)
-            finalSelection = exercises.slice(0, 3);
-        } 
-        // 'medium' necháváme tak, jak je vygenerováno (cca 4-5 cviků)
-        // 'long' už jsme vyřešili přidáním extra cviků v podmínkách výše
+            finalSelection = exercises.slice(0, 3); // 30 min = jen 3 cviky
+        }
+        // Medium neřešíme (je to základ)
+        // Long už jsme vyřešili pomocí 'if (duration === "long")' výše
 
-        // Inicializace statistik pro nové cviky
         finalSelection.forEach(ex => {
             if (!this.state.exercise_stats[ex]) {
-                this.state.exercise_stats[ex] = { 
-                    weight: 0, 
-                    reps: strat.reps, 
-                    sets: strat.sets, 
-                    rpe: 'medium' 
-                };
+                this.state.exercise_stats[ex] = { weight: 0, reps: strat.reps, sets: strat.sets, rpe: 'medium' };
             }
         });
 
         return finalSelection;
     },
 
-   regenerateDay: function(week, day, type, duration = 'medium') {
+    regenerateDay: function(week, day, type, duration = 'medium') {
         const goal = this.state.user.goal || 'hypertrophy';
         const strat = this.strategies[goal] || this.strategies['hypertrophy'];
         const variant = week; 
 
-        // Posíláme duration do builderu
         const newExercises = this.buildSession(type, variant, strat, duration);
         
         if (!this.state.customWorkouts[week]) this.state.customWorkouts[week] = {};
@@ -321,7 +273,6 @@ const Data = {
         
         this.state.customWorkouts[week][day].exercises = newExercises;
         
-        // Přidáme info o délce do názvu, pokud to není standard
         let suffix = "";
         if (duration === 'short') suffix = " (Express)";
         if (duration === 'long') suffix = " (Volume)";
@@ -331,5 +282,3 @@ const Data = {
         this.saveDB();
     }
 };
-
-
