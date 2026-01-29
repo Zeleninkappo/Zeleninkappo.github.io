@@ -250,6 +250,7 @@ const UI = {
                 Data.regenerateDay(w, d, type, duration); // Posíláme duration dál
                 this.renderExerciseEditor();
                 UI.vibrate([50, 50]);
+				this.closeConfirmModal();
             }
         );
     },
@@ -1009,6 +1010,7 @@ const UI = {
         });
     }
 };
+
 
 
 
