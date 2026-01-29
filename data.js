@@ -146,49 +146,45 @@ const Data = {
         UI.vibrate([50,50]);
     }, 
 
-    // --- MEGA GENERATOR 3000 (Updated for CZ names) ---
-    generateProgram: function(goal, daysCount) {
+    // --- MEGA GENERATOR 3000  ---
+    generateProgram: function(goal, daysCount, duration = 'medium') {
         const strat = this.strategies[goal] || this.strategies['hypertrophy'];
-        const lib = this.library;
         
         let schedule = {};
-
         if (daysCount === 3) {
-            schedule = {
-                1: { title: "Full Body A", type: "FB_A" },
-                3: { title: "Full Body B", type: "FB_B" },
-                5: { title: "Full Body A", type: "FB_A" }
-            };
+             schedule = { 1: { title: "Full Body A", type: "FB_A" },
+                          3: { title: "Full Body B", type: "FB_B" },
+                          5: { title: "Full Body A", type: "FB_A" } };
         } else if (daysCount === 4) {
-            schedule = {
-                1: { title: "Upper A", type: "UPPER_A" },
-                2: { title: "Lower A", type: "LOWER_A" },
-                4: { title: "Upper B", type: "UPPER_B" },
-                5: { title: "Lower B", type: "LOWER_B" }
-            };
+             schedule = { 1: { title: "Upper A", type: "UPPER_A" },
+                          2: { title: "Lower A", type: "LOWER_A" },
+                          4: { title: "Upper B", type: "UPPER_B" },
+                          5: { title: "Lower B", type: "LOWER_B" } };
         } else {
-            schedule = {
-                1: { title: "Push Power", type: "PUSH" },
-                2: { title: "Pull Power", type: "PULL" },
-                3: { title: "Legs Power", type: "LEGS" },
-                4: { title: "Upper Hyper", type: "UPPER_A" },
-                5: { title: "Lower Hyper", type: "LOWER_A" }
-            };
+             schedule = { 1: { title: "Push Power", type: "PUSH" },
+                          2: { title: "Pull Power", type: "PULL" },
+                          3: { title: "Legs Power", type: "LEGS" },
+                          4: { title: "Upper Hyper", type: "UPPER_A" },
+                          5: { title: "Lower Hyper", type: "LOWER_B" } };
         }
 
         const templates = { A: {}, B: {} };
 
         Object.keys(schedule).forEach(dayIndex => {
             const session = schedule[dayIndex];
+            
             templates.A[dayIndex] = {
                 title: session.title,
-                exercises: this.buildSession(session.type, 'A', strat)
+                exercises: this.buildSession(session.type, 'A', strat, duration) 
             };
             templates.B[dayIndex] = {
                 title: session.title.replace('A', 'B'),
-                exercises: this.buildSession(session.type, 'B', strat)
+                exercises: this.buildSession(session.type, 'B', strat, duration)
             };
         });
+
+        if(!this.state.user) this.state.user = {};
+        this.state.user.duration = duration;
 
         this.state.customWorkouts = templates;
         this.saveDB();
@@ -335,4 +331,5 @@ const Data = {
         this.saveDB();
     }
 };
+
 
