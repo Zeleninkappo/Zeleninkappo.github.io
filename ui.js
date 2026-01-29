@@ -198,9 +198,11 @@ const UI = {
         document.getElementById('onboarding-modal').style.pointerEvents = 'none';
 
         // 2. Zobrazíme Úspěch! (TOTO CHYBĚLO)
-        this.openSuccessModal(
-            "Mise Zahájena", 
-            `Tvůj plán (${daysCount}x týdně) je připraven.<br>Ať to roste! 💪`
+        
+
+		this.openSuccessModal(
+                `Vítej v týmu, ${Data.state.user.name}`,
+                `Režim: <span class="text-primary font-black">${goal.toUpperCase()}</span><br><br>Tvůj tréninkový plán byl vygenerován a kalibrován podle zadaných dat.<br><br>Hodně štěstí.`
         );
         
         setTimeout(() => {
@@ -1007,6 +1009,7 @@ const UI = {
         });
     }
 };
+
 
 
 
