@@ -195,62 +195,110 @@ const Data = {
         return schedule;
     },
 
-    buildSession: function(type, variant, strat) {
+   buildSession: function(type, variant, strat, duration = 'medium') {
         const exercises = [];
-        const pick = (cat, n) => {
-            const pool = this.library[cat];
-            const seed = variant === 'A' ? 0 : 1; 
-            return pool[(seed + Math.floor(Math.random()*pool.length)) % pool.length];
+        const used = new Set(); // Paměť pro použité cviky
+
+        // Pomocná funkce: Přidá cvik, pokud tam ještě není
+        const add = (ex) => {
+            if (!used.has(ex)) {
+                exercises.push(ex);
+                used.add(ex);
+            }
         };
 
-        // SKELETONY (Updated CZ Strings)
+        // Pomocná funkce: Vybere náhodný UNIKÁTNÍ cvik z kategorie
+        const pick = (cat) => {
+            const pool = this.library[cat];
+            if (!pool) return "Neznámý cvik";
+            
+            // Filtrujeme jen ty, co jsme ještě nepoužili
+            const available = pool.filter(ex => !used.has(ex));
+            
+            if (available.length === 0) return pool[0]; // Kdyby došly cviky, dáme první (fallback)
+            
+            // Náhodný výběr
+            const selected = available[Math.floor(Math.random() * available.length)];
+            used.add(selected); // Označíme jako použitý
+            return selected;
+        };
+
+        // --- STAVBA KOSTRY (SKELETON) ---
+        // Vždy stavíme "plnou verzi" a pak ji ořežeme podle času
+        
         if (type.includes("FB")) { 
-            exercises.push(pick('legs_squat', 1));
-            exercises.push(pick('push_compound', 1));
-            exercises.push(pick('pull_compound', 1));
-            exercises.push(pick('legs_hinge', 1));
-            exercises.push(pick('core', 1));
+            add(pick('legs_squat'));
+            add(pick('push_compound'));
+            add(pick('pull_compound'));
+            add(pick('legs_hinge'));
+            add(pick('core'));
+            if (duration === 'long') {
+                add(pick('push_iso'));
+                add(pick('pull_iso'));
+            }
         } 
         else if (type.includes("UPPER")) {
-            exercises.push(pick('push_compound', 1));
-            exercises.push(pick('pull_compound', 1));
-            exercises.push(pick('push_iso', 1));
-            exercises.push(pick('pull_iso', 1));
-            exercises.push(pick('core', 1));
+            add(pick('push_compound'));
+            add(pick('pull_compound'));
+            add(pick('push_iso'));
+            add(pick('pull_iso'));
+            add(pick('core'));
+            if (duration === 'long') {
+                add(pick('push_compound')); // Ještě jeden tlak
+                add("Face Pulls");
+            }
         }
         else if (type.includes("LOWER")) {
-            exercises.push(pick('legs_squat', 1));
-            exercises.push(pick('legs_hinge', 1));
-            exercises.push(pick('legs_iso', 1));
-            exercises.push(pick('core', 1));
+            add(pick('legs_squat'));
+            add(pick('legs_hinge'));
+            add(pick('legs_iso'));
+            add(pick('core'));
+            if (duration === 'long') {
+                add("Výpady (Chůze)"); // Extra
+                add("Lýtka (Výpony)");
+            }
         }
         else if (type === "PUSH") {
-            exercises.push(pick('push_compound', 1));
-            exercises.push("Tlaky jednoruček (Šikmá)"); // Popular
-            exercises.push(pick('push_iso', 1));
-            exercises.push(pick('push_iso', 1));
+            add(pick('push_compound'));
+            add("Tlaky jednoruček (Šikmá)"); 
+            add(pick('push_iso'));
+            add(pick('push_iso')); // Dva tricepsy/ramena
+            if (duration === 'long') add("Upažování");
         }
         else if (type === "PULL") {
-            exercises.push("Mrtvý tah (Deadlift)");
-            exercises.push(pick('pull_compound', 1));
-            exercises.push(pick('pull_iso', 1));
-            exercises.push("Face Pulls");
+            add("Mrtvý tah (Deadlift)");
+            add(pick('pull_compound')); // Tady už nevybere Deadlift znovu, protože je v 'used'
+            add(pick('pull_iso'));
+            add("Face Pulls");
+            if (duration === 'long') add("Kladivové zdvihy");
         }
         else if (type === "LEGS") {
-            exercises.push("Dřep (Squat)");
-            exercises.push("Rumunský MT (RDL)");
-            exercises.push("Leg Press");
-            exercises.push(pick('legs_iso', 1));
+            add("Dřep (Squat)");
+            add("Rumunský MT (RDL)");
+            add("Leg Press");
+            add(pick('legs_iso'));
+            if (duration === 'long') add("Předkopávání");
         }
-       else if (type === "explosive") {
-            exercises.push("Přemístění (Power Clean)");
-            exercises.push("Výskoky na bednu");
-            exercises.push("Kettlebell Swing");
-            exercises.push("Odhody medicinbalu");
-            exercises.push("Skoky do dálky");
+        else if (type === "explosive") {
+            add("Přemístění (Power Clean)");
+            add("Výskoky na bednu");
+            add("Kettlebell Swing");
+            add("Odhody medicinbalu");
+            add("Skoky do dálky");
         }
 
-        exercises.forEach(ex => {
+        // --- FILTRACE PODLE DÉLKY (DURATION) ---
+        let finalSelection = exercises;
+
+        if (duration === 'short') {
+            // Rychlovka: Necháme jen první 3 cviky (Základy)
+            finalSelection = exercises.slice(0, 3);
+        } 
+        // 'medium' necháváme tak, jak je vygenerováno (cca 4-5 cviků)
+        // 'long' už jsme vyřešili přidáním extra cviků v podmínkách výše
+
+        // Inicializace statistik pro nové cviky
+        finalSelection.forEach(ex => {
             if (!this.state.exercise_stats[ex]) {
                 this.state.exercise_stats[ex] = { 
                     weight: 0, 
@@ -261,22 +309,30 @@ const Data = {
             }
         });
 
-        return exercises;
+        return finalSelection;
     },
 
-   regenerateDay: function(week, day, type) {
+   regenerateDay: function(week, day, type, duration = 'medium') {
         const goal = this.state.user.goal || 'hypertrophy';
         const strat = this.strategies[goal] || this.strategies['hypertrophy'];
         const variant = week; 
 
-        const newExercises = this.buildSession(type, variant, strat);
+        // Posíláme duration do builderu
+        const newExercises = this.buildSession(type, variant, strat, duration);
         
         if (!this.state.customWorkouts[week]) this.state.customWorkouts[week] = {};
         if (!this.state.customWorkouts[week][day]) this.state.customWorkouts[week][day] = {};
         
         this.state.customWorkouts[week][day].exercises = newExercises;
-       this.state.customWorkouts[week][day].title = `${type.replace('_', ' ')} (${variant})`;
+        
+        // Přidáme info o délce do názvu, pokud to není standard
+        let suffix = "";
+        if (duration === 'short') suffix = " (Express)";
+        if (duration === 'long') suffix = " (Volume)";
+        
+        this.state.customWorkouts[week][day].title = `${type.replace('_', ' ')}${suffix}`;
 
         this.saveDB();
     }
 };
+
