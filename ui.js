@@ -222,13 +222,13 @@ const UI = {
         const w = document.getElementById('edit-ex-week').value;
         const d = document.getElementById('edit-ex-day').value;
         const type = document.getElementById('quick-gen-type').value;
+        const duration = document.getElementById('quick-gen-duration').value; // <--- NOVÉ
 
-        // NOVÉ: Použití vlastního modálu místo window.confirm
         this.openConfirmModal(
             "Přepsat trénink?",
-            `Tato akce nenávratně smaže aktuální cviky pro tento den a nahradí je šablonou <span class="text-primary font-bold">${type}</span>.`,
+            `Tato akce nenávratně smaže aktuální cviky pro tento den a nahradí je šablonou <span class="text-primary font-bold">${type}</span> (${duration}).`,
             () => {
-                Data.regenerateDay(w, d, type);
+                Data.regenerateDay(w, d, type, duration); // Posíláme duration dál
                 this.renderExerciseEditor();
                 UI.vibrate([50, 50]);
             }
@@ -575,19 +575,26 @@ const UI = {
 
         // 3. GENERAČNÍ LIŠTA
         const genBar = document.createElement('div');
-        genBar.className = "mt-4 pt-4 border-t border-stone-200 dark:border-stone-800 flex gap-2 items-center";
+        genBar.className = "mt-4 pt-4 border-t border-stone-200 dark:border-stone-800 flex flex-col gap-2";
         genBar.innerHTML = `
-            <select id="quick-gen-type" class="z-select text-[10px] font-bold uppercase !py-2">
-                <option value="FB_A">Full Body A</option>
-                <option value="FB_B">Full Body B</option>
-                <option value="UPPER_A">Upper (Vršek)</option>
-                <option value="LOWER_A">Lower (Spodek)</option>
-                <option value="PUSH">Push (Tlaky)</option>
-                <option value="PULL">Pull (Tahy)</option>
-                <option value="LEGS">Legs (Nohy)</option>
-                <option value="explosive">Výbušnost</option>
-            </select>
-            <button onclick="UI.quickGenerateDay()" class="bg-stone-200 dark:bg-stone-800 hover:bg-primary hover:text-white text-stone-600 dark:text-stone-400 font-bold text-[10px] py-2 px-3 rounded uppercase transition-colors whitespace-nowrap">🎲 Generovat</button>
+            <div class="flex gap-2">
+                <select id="quick-gen-type" class="z-select text-[10px] font-bold uppercase !py-2 flex-grow">
+                    <option value="FB_A">Full Body A</option>
+                    <option value="FB_B">Full Body B</option>
+                    <option value="UPPER_A">Upper (Vršek)</option>
+                    <option value="LOWER_A">Lower (Spodek)</option>
+                    <option value="PUSH">Push (Tlaky)</option>
+                    <option value="PULL">Pull (Tahy)</option>
+                    <option value="LEGS">Legs (Nohy)</option>
+                    <option value="explosive">Výbušnost</option>
+                </select>
+                <select id="quick-gen-duration" class="z-select text-[10px] font-bold uppercase !py-2 w-1/3">
+                    <option value="short">⏱️ 30m</option>
+                    <option value="medium" selected>⏱️ 60m</option>
+                    <option value="long">⏱️ 90m</option>
+                </select>
+            </div>
+            <button onclick="UI.quickGenerateDay()" class="w-full bg-stone-200 dark:bg-stone-800 hover:bg-primary hover:text-white text-stone-600 dark:text-stone-400 font-bold text-[10px] py-3 px-3 rounded uppercase transition-colors whitespace-nowrap">🎲 PŘEGENEROVAT TRÉNINK</button>
         `;
         list.appendChild(genBar);
     },
@@ -983,6 +990,7 @@ const UI = {
         });
     }
 };
+
 
 
 
