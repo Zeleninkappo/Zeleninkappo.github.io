@@ -120,7 +120,7 @@ const UI = {
         if (step === 2) currentId = 'ob-step-2';
         if (step === 3) currentId = 'ob-step-duration'; // <--- NOVÝ KROK
         if (step === 4) currentId = 'ob-step-3'; // Původní step 3 (PRs)
-        if (step === 5) currentId = 'ob-step-4'; // Původní step 4 (Schedule)
+        if (step === 5) currentId = 'ob-step-5'; // Původní step 4 (Schedule)
 
         const currentEl = document.getElementById(currentId);
         if (currentEl) {
@@ -1003,6 +1003,7 @@ const UI = {
         });
     }
 };
+
 
 
 
