@@ -114,23 +114,26 @@ const UI = {
             el.classList.remove('block', 'opacity-100', 'translate-x-0');
         });
 
-        // Zobrazení aktuálního kroku
+        // Mapování kroků (Step Logic)
         let currentId = '';
-        if (step === 1) currentId = 'ob-step-1';
-        if (step === 2) currentId = 'ob-step-2';
-        if (step === 3) currentId = 'ob-step-duration'; // <--- NOVÝ KROK
-        if (step === 4) currentId = 'ob-step-3'; // Původní step 3 (PRs)
-        if (step === 5) currentId = 'ob-step-5'; // Původní step 4 (Schedule)
+        if (step === 1) currentId = 'ob-step-1';           // Jméno
+        if (step === 2) currentId = 'ob-step-2';           // Cíl
+        if (step === 3) currentId = 'ob-step-duration';    // Čas (NOVÉ)
+        if (step === 4) currentId = 'ob-step-3';           // Maxima (Původní ID 3)
+        if (step === 5) currentId = 'ob-step-5';           // Rozvrh (Finále)
 
         const currentEl = document.getElementById(currentId);
         if (currentEl) {
             currentEl.classList.remove('hidden');
+            // Malé zpoždění pro animaci příletu
             setTimeout(() => {
                 currentEl.classList.remove('opacity-0', 'translate-x-10');
             }, 50);
+        } else {
+            console.error(`Onboarding Error: Step ${step} (ID: ${currentId}) not found!`);
         }
 
-        // Aktualizace Progress Baru (teď máme 5 kroků, takže po 20%)
+        // Aktualizace Progress Baru
         const progress = step * 20; 
         document.getElementById('ob-progress').style.width = `${progress}%`;
     },
@@ -1003,6 +1006,7 @@ const UI = {
         });
     }
 };
+
 
 
 
