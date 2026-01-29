@@ -1,35 +1,30 @@
 /* =========================================
-   MODULE: DATA & BLUEPRINTS (FINAL FIX)
+   MODULE: DATA & BLUEPRINTS (FIXED v0.7.1)
    ========================================= */
 
-// 1. DEFINICE KNIHOVNY (GLOBÁLNÍ - ABY BYLA VŽDY VIDĚT)
-const LIBRARY = {
-    push_compound: ["Bench Press", "Military Press", "Kliky na bradlech (Se zátěží)", "Tlaky jednoruček (Šikmá)", "Landmine Press"],
-    push_iso:      ["Stahování kladky (Triceps)", "Upažování", "Francouzské tlaky", "Rozpažování (Flyes)", "Předpažování"],
-    pull_compound: ["Mrtvý tah (Deadlift)", "Shyby (Nadhmat)", "Přítahy v předklonu", "Shyby (Podhmat)", "Přítahy T-osy"],
-    pull_iso:      ["Bicepsové zdvihy", "Face Pulls", "Kladivové zdvihy", "Stahování horní kladky", "Zapažování (Zadní ramena)"],
-    legs_squat:    ["Dřep (Squat)", "Čelní dřep", "Leg Press", "Goblet dřep", "Bulharské dřepy"],
-    legs_hinge:    ["Rumunský MT (RDL)", "Zakopávání", "Hip Thrust", "GHR (Glute Ham Raise)", "Good Mornings"],
-    legs_iso:      ["Předkopávání", "Výpony (Stoj)", "Výpony (Sed)"],
-    core:          ["Plank", "Kolečko (Ab Wheel)", "Zvedání nohou ve visu", "Ruské twisty", "Rotace s kladkou"],
-    explosive:     ["Přemístění (Power Clean)", "Výskoky na bednu", "Kettlebell Swing", "Odhody medicinbalu", "Skoky do dálky"],
-    cardio:        ["Angličáky (Burpees)", "Švihadlo", "Lodní lana", "Sprinty", "Veslování"]
-};
-
-// 2. STRATEGIE
-const STRATEGIES = {
-    'strength':    { reps: 5,  sets: 5, rest: '3-5 min', focus: ['push_compound', 'pull_compound', 'legs_squat'] },
-    'hypertrophy': { reps: 10, sets: 4, rest: '90 sec',  focus: ['push_iso', 'pull_iso', 'legs_iso'] },
-    'endurance':   { reps: 15, sets: 3, rest: '45 sec',  focus: ['core', 'cardio'] },
-    'explosive':   { reps: 6,  sets: 6, rest: '2 min',   focus: ['explosive'] }
-};
-
 const Data = {
-    DB_KEY: 'ZELIX_DB_V0531', // Bump DB Key
+    DB_KEY: 'ZELIX_DB_V052',
     
-    // Odkazujeme na globální konstanty
-    library: LIBRARY,
-    strategies: STRATEGIES,
+    // 1. KNIHOVNA CVIKŮ
+    library: {
+        push_compound: ["Bench Press", "Military Press", "Kliky na bradlech (Se zátěží)", "Tlaky jednoruček (Šikmá)", "Landmine Press"],
+        push_iso:      ["Stahování kladky (Triceps)", "Upažování", "Francouzské tlaky", "Rozpažování (Flyes)", "Předpažování"],
+        pull_compound: ["Mrtvý tah (Deadlift)", "Shyby (Nadhmat)", "Přítahy v předklonu", "Shyby (Podhmat)", "Přítahy T-osy"],
+        pull_iso:      ["Bicepsové zdvihy", "Face Pulls", "Kladivové zdvihy", "Stahování horní kladky", "Zapažování (Zadní ramena)"],
+        legs_squat:    ["Dřep (Squat)", "Čelní dřep", "Leg Press", "Goblet dřep", "Bulharské dřepy"],
+        legs_hinge:    ["Rumunský MT (RDL)", "Zakopávání", "Hip Thrust", "GHR (Glute Ham Raise)", "Good Mornings"],
+        legs_iso:      ["Předkopávání", "Výpony (Stoj)", "Výpony (Sed)"],
+        core:          ["Plank", "Kolečko (Ab Wheel)", "Zvedání nohou ve visu", "Ruské twisty", "Rotace s kladkou"],
+        explosive:     ["Přemístění (Power Clean)", "Výskoky na bednu", "Kettlebell Swing", "Odhody medicinbalu", "Skoky do dálky"],
+        cardio:        ["Angličáky (Burpees)", "Švihadlo", "Lodní lana", "Sprinty", "Veslování"]
+    },
+
+    strategies: {
+        'strength':    { reps: 5,  sets: 5, rest: '3-5 min', focus: ['push_compound', 'pull_compound', 'legs_squat'] },
+        'hypertrophy': { reps: 10, sets: 4, rest: '90 sec',  focus: ['push_iso', 'pull_iso', 'legs_iso'] },
+        'endurance':   { reps: 15, sets: 3, rest: '45 sec',  focus: ['core', 'cardio'] },
+        'explosive':   { reps: 6,  sets: 6, rest: '2 min',   focus: ['explosive'] }
+    },
 
     state: { 
         version: typeof APP_VERSION !== 'undefined' ? APP_VERSION : '0.0.0',
@@ -61,7 +56,7 @@ const Data = {
 
     loadDB: function() {
         let src = localStorage.getItem(this.DB_KEY);
-        if(!src) src = localStorage.getItem('ZELIX_DB_V072'); 
+        if(!src) src = localStorage.getItem('ZELIX_DB_V060'); 
         if (src) {
             try {
                 let parsed = JSON.parse(src);
@@ -140,7 +135,7 @@ const Data = {
     }, 
 
     generateProgram: function(goal, daysCount, duration = 'medium') {
-        const strat = STRATEGIES[goal] || STRATEGIES['hypertrophy'];
+        const strat = this.strategies[goal] || this.strategies['hypertrophy'];
         
         let schedule = {};
         if (daysCount === 3) {
@@ -165,28 +160,22 @@ const Data = {
         return schedule;
     },
 
-    // --- NEPRŮSTŘELNÝ GENERÁTOR ---
+    // --- OPRAVENÁ FUNKCE GENERÁTORU ---
    buildSession: function(type, variant, strat, duration = 'medium') {
         const exercises = [];
         const used = new Set();
-        
-        // POUŽÍVÁME GLOBÁLNÍ KNIHOVNU (Už žádné "this" ani "Data")
-        const lib = LIBRARY; 
 
         const add = (ex) => {
             if (!used.has(ex)) { exercises.push(ex); used.add(ex); }
         };
 
+        // FIX: Používáme Data.library místo this.library, aby to bylo neprůstřelné
         const pick = (cat) => {
-            const pool = lib[cat]; 
-            if (!pool) {
-                console.warn("Kategorie nenalezena:", cat); // Debug
-                return "Basic Cvik"; 
-            }
+            const pool = Data.library[cat]; // <--- ZDE BYLA CHYBA
+            if (!pool) return "Neznámý cvik"; 
             
             const available = pool.filter(ex => !used.has(ex));
-            // Fallback: Pokud dojdou cviky, vezmeme náhodný i použitý
-            if (available.length === 0) return pool[Math.floor(Math.random() * pool.length)];
+            if (available.length === 0) return pool[0]; 
             
             const selected = available[Math.floor(Math.random() * available.length)];
             used.add(selected);
@@ -200,7 +189,7 @@ const Data = {
             add(pick('pull_compound'));
             add(pick('legs_hinge'));
             add(pick('core'));
-            if (duration === 'long') { 
+            if (duration === 'long') { // 90 min -> přidáme další
                 add(pick('push_iso'));
                 add(pick('pull_iso'));
             }
@@ -258,8 +247,10 @@ const Data = {
         // FILTRACE PODLE ČASU
         let finalSelection = exercises;
         if (duration === 'short') {
-            finalSelection = exercises.slice(0, 3);
+            finalSelection = exercises.slice(0, 3); // 30 min = jen 3 cviky
         }
+        // Medium neřešíme (je to základ)
+        // Long už jsme vyřešili pomocí 'if (duration === "long")' výše
 
         finalSelection.forEach(ex => {
             if (!this.state.exercise_stats[ex]) {
@@ -272,7 +263,7 @@ const Data = {
 
     regenerateDay: function(week, day, type, duration = 'medium') {
         const goal = this.state.user.goal || 'hypertrophy';
-        const strat = STRATEGIES[goal] || STRATEGIES['hypertrophy'];
+        const strat = this.strategies[goal] || this.strategies['hypertrophy'];
         const variant = week; 
 
         const newExercises = this.buildSession(type, variant, strat, duration);

@@ -114,26 +114,23 @@ const UI = {
             el.classList.remove('block', 'opacity-100', 'translate-x-0');
         });
 
-        // Mapování kroků (Step Logic)
+        // Zobrazení aktuálního kroku
         let currentId = '';
-        if (step === 1) currentId = 'ob-step-1';           // Jméno
-        if (step === 2) currentId = 'ob-step-2';           // Cíl
-        if (step === 3) currentId = 'ob-step-duration';    // Čas (NOVÉ)
-        if (step === 4) currentId = 'ob-step-3';           // Maxima (Původní ID 3)
-        if (step === 5) currentId = 'ob-step-5';           // Rozvrh (Finále)
+        if (step === 1) currentId = 'ob-step-1';
+        if (step === 2) currentId = 'ob-step-2';
+        if (step === 3) currentId = 'ob-step-duration'; // <--- NOVÝ KROK
+        if (step === 4) currentId = 'ob-step-3'; // Původní step 3 (PRs)
+        if (step === 5) currentId = 'ob-step-5'; // Původní step 4 (Schedule)
 
         const currentEl = document.getElementById(currentId);
         if (currentEl) {
             currentEl.classList.remove('hidden');
-            // Malé zpoždění pro animaci příletu
             setTimeout(() => {
                 currentEl.classList.remove('opacity-0', 'translate-x-10');
             }, 50);
-        } else {
-            console.error(`Onboarding Error: Step ${step} (ID: ${currentId}) not found!`);
         }
 
-        // Aktualizace Progress Baru
+        // Aktualizace Progress Baru (teď máme 5 kroků, takže po 20%)
         const progress = step * 20; 
         document.getElementById('ob-progress').style.width = `${progress}%`;
     },
@@ -159,14 +156,14 @@ const UI = {
     finishOnboarding: function(daysCount) {
         const name = document.getElementById('ob-name').value || "Borec";
         const goal = document.getElementById('ob-goal').value;
-        const duration = document.getElementById('ob-duration').value; 
+        const duration = document.getElementById('ob-duration').value; // <--- NOVÉ
 
-        // Uložení dat
+        // Uložení jména a cíle
         Data.state.user.name = name;
         Data.state.user.goal = goal;
-        Data.state.user.duration = duration;
+        Data.state.user.duration = duration; // Uložíme si to i do profilu
 
-        // Uložení PRs
+        // Uložení PRs (pokud byly zadány)
         const bench = document.getElementById('ob-pr-bench').value;
         const squat = document.getElementById('ob-pr-squat').value;
         const dl = document.getElementById('ob-pr-dl').value;
@@ -175,35 +172,32 @@ const UI = {
         if(squat) Data.state.exercise_stats["Dřep (Squat)"] = { weight: parseFloat(squat), est1rm: parseFloat(squat) };
         if(dl) Data.state.exercise_stats["Mrtvý tah (Deadlift)"] = { weight: parseFloat(dl), est1rm: parseFloat(dl) };
 
-        // GENERACE PROGRAMU
+        // GENERACE PROGRAMU (Posíláme duration!)
         const schedule = Data.generateProgram(goal, daysCount, duration);
         
-        // Generování rozvrhu
+        // Generování defaultního rozvrhu dní
+        const dayKeys = Object.keys(schedule).map(Number);
         const newSettingsDays = {};
-        for(let i=1; i<=7; i++) { 
+        
+        for(let i=1; i<=7; i++) { // Pondělí(1) až Neděle(7)
+             // ... logika rozdělení dní (zůstává stejná, jen zkopíruj ze staré funkce nebo nech jak je, pokud ji máš) ...
+             // ZDE JE ZJEDNODUŠENÝ PŘÍKLAD LOGIKY (Doplň dle své původní funkce):
              let type = 'rest';
+             // Simple mapping pro 3,4,5 dní...
              if (daysCount === 3 && [1,3,5].includes(i)) type = 'gym';
              if (daysCount === 4 && [1,2,4,5].includes(i)) type = 'gym';
              if (daysCount === 5 && [1,2,3,4,5].includes(i)) type = 'gym';
              
+             // Převedení indexu (1=Po na Zelix formát 0=Ne, 1=Po...)
              let zelixDayIdx = (i === 7) ? 0 : i; 
              newSettingsDays[zelixDayIdx] = { type: type, gymTime: '16:00', fieldTime: '18:00' };
         }
+        
         Data.state.settings.days = newSettingsDays;
         
         Data.saveDB();
-        
-        // 1. Skryjeme Onboarding
         document.getElementById('onboarding-modal').classList.remove('active');
         document.getElementById('onboarding-modal').style.pointerEvents = 'none';
-
-        // 2. Zobrazíme Úspěch! (TOTO CHYBĚLO)
-        
-
-		this.openSuccessModal(
-                `Vítej v týmu, ${Data.state.user.name}`,
-                `Režim: <span class="text-primary font-black">${goal.toUpperCase()}</span><br><br>Tvůj tréninkový plán byl vygenerován a kalibrován podle zadaných dat.<br><br>Hodně štěstí.`
-        );
         
         setTimeout(() => {
             Logic.init();
@@ -250,7 +244,6 @@ const UI = {
                 Data.regenerateDay(w, d, type, duration); // Posíláme duration dál
                 this.renderExerciseEditor();
                 UI.vibrate([50, 50]);
-				this.closeConfirmModal();
             }
         );
     },
@@ -1010,10 +1003,6 @@ const UI = {
         });
     }
 };
-
-
-
-
 
 
 
