@@ -1,9 +1,9 @@
 /* =========================================
-   MODULE: DATA & BLUEPRINTS (FIXED v0.7.1)
+   MODULE: DATA & BLUEPRINTS (FIXED v0.7.2)
    ========================================= */
 
 const Data = {
-    DB_KEY: 'ZELIX_DB_V052',
+    DB_KEY: 'ZELIX_DB_V0522',
     
     // 1. KNIHOVNA CVIKŮ
     library: {
@@ -160,18 +160,18 @@ const Data = {
         return schedule;
     },
 
-    // --- OPRAVENÁ FUNKCE GENERÁTORU ---
+    // --- GENERÁTOR (NEPRŮSTŘELNÁ LOGIKA) ---
    buildSession: function(type, variant, strat, duration = 'medium') {
         const exercises = [];
         const used = new Set();
+        const lib = this.library; // <--- ULOŽÍME SI KNIHOVNU ZDE, ABYCHOM O NI NEPŘIŠLI
 
         const add = (ex) => {
             if (!used.has(ex)) { exercises.push(ex); used.add(ex); }
         };
 
-        // FIX: Používáme Data.library místo this.library, aby to bylo neprůstřelné
         const pick = (cat) => {
-            const pool = Data.library[cat]; // <--- ZDE BYLA CHYBA
+            const pool = lib[cat]; // <--- TEĎ SAHÁME DO PROMĚNNÉ 'lib', KTERÁ URČITĚ EXISTUJE
             if (!pool) return "Neznámý cvik"; 
             
             const available = pool.filter(ex => !used.has(ex));
@@ -189,7 +189,7 @@ const Data = {
             add(pick('pull_compound'));
             add(pick('legs_hinge'));
             add(pick('core'));
-            if (duration === 'long') { // 90 min -> přidáme další
+            if (duration === 'long') { 
                 add(pick('push_iso'));
                 add(pick('pull_iso'));
             }
@@ -247,10 +247,8 @@ const Data = {
         // FILTRACE PODLE ČASU
         let finalSelection = exercises;
         if (duration === 'short') {
-            finalSelection = exercises.slice(0, 3); // 30 min = jen 3 cviky
+            finalSelection = exercises.slice(0, 3);
         }
-        // Medium neřešíme (je to základ)
-        // Long už jsme vyřešili pomocí 'if (duration === "long")' výše
 
         finalSelection.forEach(ex => {
             if (!this.state.exercise_stats[ex]) {
