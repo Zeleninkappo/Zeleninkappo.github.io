@@ -2,7 +2,7 @@
    MODULE: DATA & BLUEPRINTS (FINAL FIX)
    ========================================= */
 
-// 1. DEFINICE KNIHOVNY (Mimo objekt Data = Vždy viditelná)
+// 1. DEFINICE KNIHOVNY (GLOBÁLNÍ - ABY BYLA VŽDY VIDĚT)
 const LIBRARY = {
     push_compound: ["Bench Press", "Military Press", "Kliky na bradlech (Se zátěží)", "Tlaky jednoruček (Šikmá)", "Landmine Press"],
     push_iso:      ["Stahování kladky (Triceps)", "Upažování", "Francouzské tlaky", "Rozpažování (Flyes)", "Předpažování"],
@@ -25,9 +25,9 @@ const STRATEGIES = {
 };
 
 const Data = {
-    DB_KEY: 'ZELIX_DB_V053',
+    DB_KEY: 'ZELIX_DB_V0531', // Bump DB Key
     
-    // Odkazujeme na konstanty (pro zpětnou kompatibilitu, kdyby to někdo hledal)
+    // Odkazujeme na globální konstanty
     library: LIBRARY,
     strategies: STRATEGIES,
 
@@ -170,7 +170,7 @@ const Data = {
         const exercises = [];
         const used = new Set();
         
-        // TEĎ SAHÁME PŘÍMO NA KONSTANTU 'LIBRARY' (Nemůže být undefined)
+        // POUŽÍVÁME GLOBÁLNÍ KNIHOVNU (Už žádné "this" ani "Data")
         const lib = LIBRARY; 
 
         const add = (ex) => {
@@ -180,8 +180,8 @@ const Data = {
         const pick = (cat) => {
             const pool = lib[cat]; 
             if (!pool) {
-                console.error("Zelix Error: Kategorie nenalezena:", cat);
-                return "Neznámý cvik"; 
+                console.warn("Kategorie nenalezena:", cat); // Debug
+                return "Basic Cvik"; 
             }
             
             const available = pool.filter(ex => !used.has(ex));
