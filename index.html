@@ -350,34 +350,6 @@
                     <button onclick="UI.nextOnboardingStep(3)" class="w-full bg-stone-200 hover:bg-stone-300 dark:bg-stone-100 dark:hover:bg-white text-stone-900 font-bold py-3 rounded-xl uppercase tracking-widest mt-4">Další</button>
                 </div>
 
-                <div id="ob-step-duration" class="step-content space-y-4 hidden opacity-0 translate-x-10">
-                    <h2 class="text-xl font-black text-stone-900 dark:text-white uppercase">Časové možnosti?</h2>
-                    <p class="text-stone-500 dark:text-stone-400 text-sm">Kolik času máš na jeden trénink?</p>
-                    
-                    <div class="grid grid-cols-1 gap-3">
-                        <button onclick="UI.selectDuration('short', this)" class="duration-btn p-4 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl hover:border-stone-400 dark:hover:border-white transition-all group flex items-center justify-between">
-                            <div class="text-left">
-                                <div class="font-bold text-stone-800 dark:text-white text-sm group-hover:text-primary">⚡ RYCHLOVKA (30 min)</div>
-                                <div class="text-[9px] text-stone-500 mt-1">Pouze základy. Rychlé tempo.</div>
-                            </div>
-                        </button>
-                        <button onclick="UI.selectDuration('medium', this)" class="duration-btn p-4 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl hover:border-stone-400 dark:hover:border-white transition-all group flex items-center justify-between border-primary ring-1 ring-primary"> 
-                            <div class="text-left">
-                                <div class="font-bold text-stone-800 dark:text-white text-sm group-hover:text-primary">⏱️ KLASIKA (60 min)</div>
-                                <div class="text-[9px] text-stone-500 mt-1">Standardní objem práce.</div>
-                            </div>
-                        </button>
-                        <button onclick="UI.selectDuration('long', this)" class="duration-btn p-4 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl hover:border-stone-400 dark:hover:border-white transition-all group flex items-center justify-between">
-                            <div class="text-left">
-                                <div class="font-bold text-stone-800 dark:text-white text-sm group-hover:text-primary">🦍 MARATON (90 min)</div>
-                                <div class="text-[9px] text-stone-500 mt-1">Extra série a doplňky.</div>
-                            </div>
-                        </button>
-                    </div>
-                    <input type="hidden" id="ob-duration" value="medium">
-                    <button onclick="UI.nextOnboardingStep(4)" class="w-full bg-stone-200 hover:bg-stone-300 dark:bg-stone-100 dark:hover:bg-white text-stone-900 font-bold py-3 rounded-xl uppercase tracking-widest mt-4">Další</button>
-                </div>
-
                 <div id="ob-step-3" class="step-content space-y-4 hidden opacity-0 translate-x-10">
                     <h2 class="text-xl font-black text-stone-900 dark:text-white uppercase">Kalibrace (Volitelné)</h2>
                     <p class="text-stone-500 dark:text-stone-400 text-sm">Znáš svá maxima (1RM)? Zadej je, ať můžu počítat rekordy.</p>
@@ -399,11 +371,11 @@
                             <span class="absolute right-2 top-5 text-stone-400 text-xs">kg</span>
                         </div>
                     </div>
-                    <button onclick="UI.nextOnboardingStep(5)" class="w-full bg-stone-200 hover:bg-stone-300 dark:bg-stone-100 dark:hover:bg-white text-stone-900 font-bold py-3 rounded-xl uppercase tracking-widest mt-4">Uložit & Další</button>
-                    <button onclick="UI.nextOnboardingStep(5)" class="w-full text-stone-400 hover:text-stone-600 dark:hover:text-white font-bold text-xs uppercase py-2 transition-colors">Nevím / Přeskočit</button>
+                    <button onclick="UI.nextOnboardingStep(4)" class="w-full bg-stone-200 hover:bg-stone-300 dark:bg-stone-100 dark:hover:bg-white text-stone-900 font-bold py-3 rounded-xl uppercase tracking-widest mt-4">Uložit & Další</button>
+                    <button onclick="UI.nextOnboardingStep(4)" class="w-full text-stone-400 hover:text-stone-600 dark:hover:text-white font-bold text-xs uppercase py-2 transition-colors">Nevím / Přeskočit</button>
                 </div>
 
-                <div id="ob-step-5" class="step-content space-y-6 hidden opacity-0 translate-x-10">
+                <div id="ob-step-4" class="step-content space-y-6 hidden opacity-0 translate-x-10">
                     <h2 class="text-xl font-black text-stone-900 dark:text-white uppercase">Finále: Rozvrh</h2>
                     <p class="text-stone-500 dark:text-stone-400 text-sm">Kdy chceš makat?</p>
                     
@@ -484,7 +456,6 @@
     </script>
 </body>
 </html>
-
 
 
 

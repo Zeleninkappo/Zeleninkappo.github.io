@@ -106,102 +106,89 @@ const UI = {
         UI.vibrate(20);
     },
 
-    // --- ONBOARDING NAVIGATION ---
-    nextOnboardingStep: function(step) {
-        // Skrytí všech kroků
-        document.querySelectorAll('.step-content').forEach(el => {
-            el.classList.add('hidden', 'opacity-0', 'translate-x-10');
-            el.classList.remove('block', 'opacity-100', 'translate-x-0');
-        });
-
-        // Zobrazení aktuálního kroku
-        let currentId = '';
-        if (step === 1) currentId = 'ob-step-1';
-        if (step === 2) currentId = 'ob-step-2';
-        if (step === 3) currentId = 'ob-step-duration'; // <--- NOVÝ KROK
-        if (step === 4) currentId = 'ob-step-3'; // Původní step 3 (PRs)
-        if (step === 5) currentId = 'ob-step-5'; // Původní step 4 (Schedule)
-
-        const currentEl = document.getElementById(currentId);
-        if (currentEl) {
-            currentEl.classList.remove('hidden');
-            setTimeout(() => {
-                currentEl.classList.remove('opacity-0', 'translate-x-10');
-            }, 50);
+    nextOnboardingStep: function(targetStep) {
+        if (targetStep === 2) {
+            const name = document.getElementById('ob-name').value.trim();
+            if (!name) { UI.vibrate([50,50]); return; }
+            Data.state.user.name = name;
         }
 
-        // Aktualizace Progress Baru (teď máme 5 kroků, takže po 20%)
-        const progress = step * 20; 
+        const progress = (targetStep / 4) * 100;
         document.getElementById('ob-progress').style.width = `${progress}%`;
+
+        const current = document.querySelector('.step-content:not(.hidden)');
+        const next = document.getElementById(`ob-step-${targetStep}`);
+        
+        if(current) {
+            current.classList.add('opacity-0', '-translate-x-10');
+            setTimeout(() => {
+                current.classList.add('hidden');
+                next.classList.remove('hidden');
+                setTimeout(() => next.classList.remove('opacity-0', 'translate-x-10'), 50);
+            }, 300);
+        }
+        UI.vibrate(20);
     },
 
-    // --- NOVÁ FUNKCE PRO VÝBĚR DÉLKY ---
-    selectDuration: function(dur, btn) {
-        document.getElementById('ob-duration').value = dur;
-        
-        // Visual feedback (reset ostatních)
-        document.querySelectorAll('.duration-btn').forEach(b => {
-            b.classList.remove('border-primary', 'ring-1', 'ring-primary');
-            b.classList.add('border-stone-200', 'dark:border-stone-700');
-        });
-
-        // Highlight vybraného
-        btn.classList.remove('border-stone-200', 'dark:border-stone-700');
-        btn.classList.add('border-primary', 'ring-1', 'ring-primary');
-        
-        this.vibrate(20);
-    },
-
-    // Upravená finální funkce (musí načíst duration)
     finishOnboarding: function(daysCount) {
-        const name = document.getElementById('ob-name').value || "Borec";
         const goal = document.getElementById('ob-goal').value;
-        const duration = document.getElementById('ob-duration').value; // <--- NOVÉ
+        const prBench = parseFloat(document.getElementById('ob-pr-bench').value) || 0;
+        const prSquat = parseFloat(document.getElementById('ob-pr-squat').value) || 0;
+        const prDL = parseFloat(document.getElementById('ob-pr-dl').value) || 0;
 
-        // Uložení jména a cíle
-        Data.state.user.name = name;
-        Data.state.user.goal = goal;
-        Data.state.user.duration = duration; // Uložíme si to i do profilu
+        // 2. GENERÁTOR SPUTĚN
+        const scheduleMap = Data.generateProgram(goal, daysCount);
 
-        // Uložení PRs (pokud byly zadány)
-        const bench = document.getElementById('ob-pr-bench').value;
-        const squat = document.getElementById('ob-pr-squat').value;
-        const dl = document.getElementById('ob-pr-dl').value;
-
-        if(bench) Data.state.exercise_stats["Bench Press"] = { weight: parseFloat(bench), est1rm: parseFloat(bench) };
-        if(squat) Data.state.exercise_stats["Dřep (Squat)"] = { weight: parseFloat(squat), est1rm: parseFloat(squat) };
-        if(dl) Data.state.exercise_stats["Mrtvý tah (Deadlift)"] = { weight: parseFloat(dl), est1rm: parseFloat(dl) };
-
-        // GENERACE PROGRAMU (Posíláme duration!)
-        const schedule = Data.generateProgram(goal, daysCount, duration);
-        
-        // Generování defaultního rozvrhu dní
-        const dayKeys = Object.keys(schedule).map(Number);
-        const newSettingsDays = {};
-        
-        for(let i=1; i<=7; i++) { // Pondělí(1) až Neděle(7)
-             // ... logika rozdělení dní (zůstává stejná, jen zkopíruj ze staré funkce nebo nech jak je, pokud ji máš) ...
-             // ZDE JE ZJEDNODUŠENÝ PŘÍKLAD LOGIKY (Doplň dle své původní funkce):
-             let type = 'rest';
-             // Simple mapping pro 3,4,5 dní...
-             if (daysCount === 3 && [1,3,5].includes(i)) type = 'gym';
-             if (daysCount === 4 && [1,2,4,5].includes(i)) type = 'gym';
-             if (daysCount === 5 && [1,2,3,4,5].includes(i)) type = 'gym';
-             
-             // Převedení indexu (1=Po na Zelix formát 0=Ne, 1=Po...)
-             let zelixDayIdx = (i === 7) ? 0 : i; 
-             newSettingsDays[zelixDayIdx] = { type: type, gymTime: '16:00', fieldTime: '18:00' };
+        // 3. Nastavení Settings
+        const days = {};
+        for(let i=0; i<7; i++) {
+            days[i] = { type: 'rest', gymTime: '14:30', fieldTime: '19:30' };
+            if (scheduleMap[i]) {
+                days[i].type = 'gym';
+                days[i].gymTime = '17:00';
+            }
         }
         
-        Data.state.settings.days = newSettingsDays;
-        
+        if(!Data.state.settings) Data.state.settings = {};
+        Data.state.settings.days = days;
+        Data.state.user.goal = goal;
+
+        // 4. Uložení PRs
+        if (prBench > 0 || prSquat > 0 || prDL > 0) {
+            const prLog = [];
+            const addPR = (exName, kg) => {
+                prLog.push({ ex: exName, kg: kg, reps: 1, sets: 1, rpe: 'hard' });
+                if(!Data.state.exercise_stats[exName]) Data.state.exercise_stats[exName] = {};
+                Data.state.exercise_stats[exName].weight = kg;
+            };
+
+            if (prBench > 0) addPR("Bench Press", prBench);
+            if (prSquat > 0) addPR("Squat", prSquat);
+            if (prDL > 0) addPR("Deadlift", prDL);
+            
+            const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
+            
+            Data.state.workout_history.push({
+                date: yesterday.toISOString().split('T')[0],
+                title: "Kalibrace (Import)",
+                logs: prLog,
+                note: "Automatický import maximálek."
+            });
+        }
+
         Data.saveDB();
+
         document.getElementById('onboarding-modal').classList.remove('active');
-        document.getElementById('onboarding-modal').style.pointerEvents = 'none';
+        this.updateUserGreeting();
+        Logic.update();
+        
+        UI.vibrate([100, 50, 100, 50, 200]); // Fanfára
         
         setTimeout(() => {
-            Logic.init();
-            UI.updateUserGreeting();
+            this.openSuccessModal(
+                `Vítej v týmu, ${Data.state.user.name}`,
+                `Režim: <span class="text-primary font-black">${goal.toUpperCase()}</span><br><br>Tvůj tréninkový plán byl vygenerován a kalibrován podle zadaných dat.<br><br>Hodně štěstí.`
+            );
         }, 500);
     },
 
@@ -235,13 +222,13 @@ const UI = {
         const w = document.getElementById('edit-ex-week').value;
         const d = document.getElementById('edit-ex-day').value;
         const type = document.getElementById('quick-gen-type').value;
-        const duration = document.getElementById('quick-gen-duration').value; // <--- NOVÉ
 
+        // NOVÉ: Použití vlastního modálu místo window.confirm
         this.openConfirmModal(
             "Přepsat trénink?",
-            `Tato akce nenávratně smaže aktuální cviky pro tento den a nahradí je šablonou <span class="text-primary font-bold">${type}</span> (${duration}).`,
+            `Tato akce nenávratně smaže aktuální cviky pro tento den a nahradí je šablonou <span class="text-primary font-bold">${type}</span>.`,
             () => {
-                Data.regenerateDay(w, d, type, duration); // Posíláme duration dál
+                Data.regenerateDay(w, d, type);
                 this.renderExerciseEditor();
                 UI.vibrate([50, 50]);
             }
@@ -588,26 +575,19 @@ const UI = {
 
         // 3. GENERAČNÍ LIŠTA
         const genBar = document.createElement('div');
-        genBar.className = "mt-4 pt-4 border-t border-stone-200 dark:border-stone-800 flex flex-col gap-2";
+        genBar.className = "mt-4 pt-4 border-t border-stone-200 dark:border-stone-800 flex gap-2 items-center";
         genBar.innerHTML = `
-            <div class="flex gap-2">
-                <select id="quick-gen-type" class="z-select text-[10px] font-bold uppercase !py-2 flex-grow">
-                    <option value="FB_A">Full Body A</option>
-                    <option value="FB_B">Full Body B</option>
-                    <option value="UPPER_A">Upper (Vršek)</option>
-                    <option value="LOWER_A">Lower (Spodek)</option>
-                    <option value="PUSH">Push (Tlaky)</option>
-                    <option value="PULL">Pull (Tahy)</option>
-                    <option value="LEGS">Legs (Nohy)</option>
-                    <option value="explosive">Výbušnost</option>
-                </select>
-                <select id="quick-gen-duration" class="z-select text-[10px] font-bold uppercase !py-2 w-1/3">
-                    <option value="short">⏱️ 30m</option>
-                    <option value="medium" selected>⏱️ 60m</option>
-                    <option value="long">⏱️ 90m</option>
-                </select>
-            </div>
-            <button onclick="UI.quickGenerateDay()" class="w-full bg-stone-200 dark:bg-stone-800 hover:bg-primary hover:text-white text-stone-600 dark:text-stone-400 font-bold text-[10px] py-3 px-3 rounded uppercase transition-colors whitespace-nowrap">🎲 PŘEGENEROVAT TRÉNINK</button>
+            <select id="quick-gen-type" class="z-select text-[10px] font-bold uppercase !py-2">
+                <option value="FB_A">Full Body A</option>
+                <option value="FB_B">Full Body B</option>
+                <option value="UPPER_A">Upper (Vršek)</option>
+                <option value="LOWER_A">Lower (Spodek)</option>
+                <option value="PUSH">Push (Tlaky)</option>
+                <option value="PULL">Pull (Tahy)</option>
+                <option value="LEGS">Legs (Nohy)</option>
+                <option value="explosive">Výbušnost</option>
+            </select>
+            <button onclick="UI.quickGenerateDay()" class="bg-stone-200 dark:bg-stone-800 hover:bg-primary hover:text-white text-stone-600 dark:text-stone-400 font-bold text-[10px] py-2 px-3 rounded uppercase transition-colors whitespace-nowrap">🎲 Generovat</button>
         `;
         list.appendChild(genBar);
     },
@@ -1003,9 +983,6 @@ const UI = {
         });
     }
 };
-
-
-
 
 
 
