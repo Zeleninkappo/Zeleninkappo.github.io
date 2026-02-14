@@ -363,29 +363,30 @@ const Logic = {
         return (weekNumber % 2 === 0) ? 'B' : 'A';
     },
 
-    // --- POMOCNÁ FUNKCE: Spuštění tréninku (Přechod na GYM obrazovku) ---
+    // --- POMOCNÁ FUNKCE: Spuštění tréninku (Clean UI Fix) ---
     startWorkout: function() {
         UI.vibrate(50);
         
-        // 1. Nastavíme UI na tréninkový režim
-        document.getElementById('dashboard-screen').classList.add('hidden');
-        document.getElementById('gym-screen').classList.remove('hidden');
-        
-        // 2. Inicializujeme tréninková data
+        // 1. Získáme data pro dnešní trénink
         const d = new Date();
         const dayIdx = (d.getDay() + 6) % 7;
         const w = this.getWeekParity();
         
-        // Pokud máme custom trénink pro dnešek, načteme ho
         let workoutData = null;
         if (Data.state.customWorkouts && Data.state.customWorkouts[w] && Data.state.customWorkouts[w][dayIdx]) {
             workoutData = Data.state.customWorkouts[w][dayIdx];
         }
 
-        // 3. Vykreslíme tréninkovou kartu (zavoláme UI)
-        UI.renderGymSession(workoutData);
+        // 2. Otevřeme modal přes správnou UI funkci
+        // (Tato funkce už sama řeší skrytí dashboardu a zobrazení okna)
+        if (typeof UI.openWorkoutModal === 'function') {
+            UI.openWorkoutModal(workoutData);
+        } else {
+            // Fallback jen pro jistotu, kdyby se UI.js nenačetlo správně
+            console.error("Critical Error: UI.openWorkoutModal neexistuje!");
+            alert("Chyba: UI není připraveno. Zkus restartovat aplikaci.");
+        }
     },
-
     forceOpenWorkout: function(overrideDayIdx = null) { // <--- Možnost vnutit jiný den
         UI.closeDuplicateModal();
         if (!this.currentWeekType) this.calculateWeekType();
@@ -576,6 +577,7 @@ const Logic = {
         this.update();
     }
 };
+
 
 
 
