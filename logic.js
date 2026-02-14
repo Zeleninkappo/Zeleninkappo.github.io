@@ -353,6 +353,39 @@ const Logic = {
         }
     },
 
+   // --- POMOCNÁ FUNKCE: Zjištění sudý/lichý týden (A/B) ---
+    getWeekParity: function() {
+        const d = new Date();
+        const start = new Date(d.getFullYear(), 0, 1);
+        const days = Math.floor((d - start) / (24 * 60 * 60 * 1000));
+        const weekNumber = Math.ceil((days + 1) / 7);
+        // Pokud je týden sudý -> B, jinak A (nebo naopak, záleží jak to chceš)
+        return (weekNumber % 2 === 0) ? 'B' : 'A';
+    },
+
+    // --- POMOCNÁ FUNKCE: Spuštění tréninku (Přechod na GYM obrazovku) ---
+    startWorkout: function() {
+        UI.vibrate(50);
+        
+        // 1. Nastavíme UI na tréninkový režim
+        document.getElementById('dashboard-screen').classList.add('hidden');
+        document.getElementById('gym-screen').classList.remove('hidden');
+        
+        // 2. Inicializujeme tréninková data
+        const d = new Date();
+        const dayIdx = (d.getDay() + 6) % 7;
+        const w = this.getWeekParity();
+        
+        // Pokud máme custom trénink pro dnešek, načteme ho
+        let workoutData = null;
+        if (Data.state.customWorkouts && Data.state.customWorkouts[w] && Data.state.customWorkouts[w][dayIdx]) {
+            workoutData = Data.state.customWorkouts[w][dayIdx];
+        }
+
+        // 3. Vykreslíme tréninkovou kartu (zavoláme UI)
+        UI.renderGymSession(workoutData);
+    },
+
     forceOpenWorkout: function(overrideDayIdx = null) { // <--- Možnost vnutit jiný den
         UI.closeDuplicateModal();
         if (!this.currentWeekType) this.calculateWeekType();
@@ -543,6 +576,7 @@ const Logic = {
         this.update();
     }
 };
+
 
 
 
