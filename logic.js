@@ -27,9 +27,7 @@ const Logic = {
         UI.toggleForceRestBtn(this.forceRest);
         this.calculateWeekType();
         this.startLoop();
-        setTimeout(() => this.checkMissedWorkout(), 1500); // 1.5s zpoždění, ať se načte UI
-        setTimeout(() => this.checkBackupFreshness(), 2000);
-        
+        setTimeout(() => this.checkBackupFreshness(), 2000); 
     },
 
     startLoop: function() {
@@ -273,84 +271,56 @@ const Logic = {
     },
 
     // Workout Logic
-   checkWorkoutEntry: function() {
-        const d = new Date();
-        const dayIdx = (d.getDay() + 6) % 7;
-        const sett = Data.state.settings.days[dayIdx];
-        
-        if (sett.type === 'rest' && this.forceRest !== 'CATCH_UP' && this.forceRest !== d.toISOString().split('T')[0]) {
-             // Pokud chce uživatel trénovat ve volný den, pustíme ho, 
-             // ale bereme to jako Extra trénink (ne Catch-up včerejška)
-             this.startWorkout(); 
-             return;
+    checkWorkoutEntry: function() {
+        // 1. Kontrola nuceného volna
+        if (this.forceRest) { 
+            UI.openAlertModal("Režim Volna", "Máš zapnutý nucený odpočinek. Vypni ho tlačítkem 'VOLNO', pokud chceš cvičit."); 
+            return; 
         }
-        
-        // Standardní start
-        this.startWorkout();
-    },
 
-   // --- SMART CATCH-UP (Opravená verze s kopírováním dat) ---
-    checkMissedWorkout: function() {
-        const d = new Date();
-        const todayStr = d.toISOString().split('T')[0];
-        
-        // Pokud už je dnes vyřešeno, končíme
-        if (this.forceRest === todayStr || this.forceRest === 'CATCH_UP') return;
+        const todayStr = new Date().toISOString().split('T')[0];
 
-        // Včerejšek
-        const yesterday = new Date(d);
-        yesterday.setDate(d.getDate() - 1);
-        const yStr = yesterday.toISOString().split('T')[0];
-        const yDayIdx = (yesterday.getDay() + 6) % 7; 
-
-        // Co mělo být včera?
-        const sett = Data.state.settings.days;
-        if (!sett[yDayIdx]) return;
-        const type = sett[yDayIdx].type;
-
-        // Pokud včera nebyl Gym/Double, nic nedoháníme
-        if (type !== 'gym' && type !== 'double') return;
-
-        // Byl včerejšek splněn?
-        const tasks = Data.state.completed_tasks[yStr] || [];
-        const gymTime = sett[yDayIdx].gymTime;
-        // Hledáme splněný úkol podle času tréninku
-        const isDone = tasks.some(t => t.startsWith(gymTime));
-
-        if (!isDone) {
-             // Včera jsi chyběl!
-             UI.openConfirmModal(
-                 "Zmeškaný Trénink",
-                 "Vypadá to, že jsi včera vynechal trénink. Chceš ho dohnat dnes?",
-                 () => { 
-                     // ANO -> Nastavíme režim
-                     this.forceRest = 'CATCH_UP'; 
-                     
-                     // === KOPÍROVÁNÍ CVIKŮ (ABY SE TO ULOŽILO DO GRAFŮ) ===
-                     const w = this.getWeekParity(); // A nebo B
-                     const todayIdx = (d.getDay() + 6) % 7; // 0-6
-
-                     // Ujistíme se, že existuje struktura
-                     if (!Data.state.customWorkouts[w]) Data.state.customWorkouts[w] = {};
-                     
-                     // Vezmeme včerejší plán
-                     const yWorkout = Data.state.customWorkouts[w][yDayIdx];
-                     
-                     if (yWorkout) {
-                         // Zkopírujeme ho na dnešek!
-                         Data.state.customWorkouts[w][todayIdx] = JSON.parse(JSON.stringify(yWorkout));
-                         Data.state.customWorkouts[w][todayIdx].title += " (Dohnáno)";
-                         Data.saveDB(); // Uložíme změnu do DB
-                     }
-                     // ====================================================
-
-                     this.update(); // Překreslíme dashboard
-                 }, 
-                 () => { 
-                     // NE -> Necháme to být
-                 }
-             );
+        // 2. Kontrola, zda už dnes není odcvičeno
+        if (Data.state.workout_history.some(h => h.date === todayStr)) {
+            UI.openDuplicateModal();
+            return;
         }
+
+        // 3. DETEKCE ZAMEŠKANÉHO TRÉNINKU (Smart Catch-up) 🧠
+        const todayIdx = new Date().getDay();
+        const prevIdx = (todayIdx + 6) % 7; // Index včerejška (pro pondělí 1 vrátí neděli 0)
+        
+        // Získání data včerejška (pro kontrolu historie)
+        const d = new Date(); d.setDate(d.getDate() - 1);
+        const prevDateStr = d.toISOString().split('T')[0];
+
+        const prevSettings = Data.state.settings.days[prevIdx];
+
+        // PODMÍNKA: Včera byl Gym/Double A ZÁROVEŇ v historii není záznam s včerejším datem
+        if (prevSettings && (prevSettings.type === 'gym' || prevSettings.type === 'double') && 
+            !Data.state.workout_history.some(h => h.date === prevDateStr)) {
+            
+            // Zjistíme název včerejšího tréninku
+            const missedWorkout = Data.state.customWorkouts[this.currentWeekType][prevIdx];
+            const missedTitle = missedWorkout ? missedWorkout.title : "Včerejší trénink";
+
+            UI.openConfirmModal(
+                "Zameškaný trénink",
+                `Včera (${prevDateStr.split('-').reverse().join('.')}) jsi měl v plánu <strong>${missedTitle}</strong>, ale záznam chybí.<br><br>Chceš to dohnat dnes?`,
+                () => { 
+                    // ANO -> Otevřeme včerejší den (prevIdx)
+                    this.forceOpenWorkout(prevIdx); 
+                },
+                () => { 
+                    // NE -> Otevřeme normálně dnešek (bez parametru)
+                    this.forceOpenWorkout(); 
+                }
+            );
+            return; // Čekáme na volbu uživatele
+        }
+
+        // Pokud není co dohánět, jdeme rovnou na dnešek
+        this.forceOpenWorkout();
     },
 
     forceOpenWorkout: function(overrideDayIdx = null) { // <--- Možnost vnutit jiný den
@@ -543,7 +513,6 @@ const Logic = {
         this.update();
     }
 };
-
 
 
 
