@@ -353,40 +353,6 @@ const Logic = {
         }
     },
 
-   // --- POMOCNÁ FUNKCE: Zjištění sudý/lichý týden (A/B) ---
-    getWeekParity: function() {
-        const d = new Date();
-        const start = new Date(d.getFullYear(), 0, 1);
-        const days = Math.floor((d - start) / (24 * 60 * 60 * 1000));
-        const weekNumber = Math.ceil((days + 1) / 7);
-        // Pokud je týden sudý -> B, jinak A (nebo naopak, záleží jak to chceš)
-        return (weekNumber % 2 === 0) ? 'B' : 'A';
-    },
-
-    // --- POMOCNÁ FUNKCE: Spuštění tréninku (Clean UI Fix) ---
-    startWorkout: function() {
-        UI.vibrate(50);
-        
-        // 1. Získáme data pro dnešní trénink
-        const d = new Date();
-        const dayIdx = (d.getDay() + 6) % 7;
-        const w = this.getWeekParity();
-        
-        let workoutData = null;
-        if (Data.state.customWorkouts && Data.state.customWorkouts[w] && Data.state.customWorkouts[w][dayIdx]) {
-            workoutData = Data.state.customWorkouts[w][dayIdx];
-        }
-
-        // 2. Otevřeme modal přes správnou UI funkci
-        // (Tato funkce už sama řeší skrytí dashboardu a zobrazení okna)
-        if (typeof UI.openWorkoutModal === 'function') {
-            UI.openWorkoutModal(workoutData);
-        } else {
-            // Fallback jen pro jistotu, kdyby se UI.js nenačetlo správně
-            console.error("Critical Error: UI.openWorkoutModal neexistuje!");
-            alert("Chyba: UI není připraveno. Zkus restartovat aplikaci.");
-        }
-    },
     forceOpenWorkout: function(overrideDayIdx = null) { // <--- Možnost vnutit jiný den
         UI.closeDuplicateModal();
         if (!this.currentWeekType) this.calculateWeekType();
@@ -577,9 +543,6 @@ const Logic = {
         this.update();
     }
 };
-
-
-
 
 
 
