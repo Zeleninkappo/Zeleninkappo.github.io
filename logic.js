@@ -6,6 +6,7 @@ const Logic = {
     currentWeekType: 'A',
     currentSessionExercises: [],
     currentSchedule: [],
+    activeWorkoutDayIdx: null,
     forceRest: false,
     nextIdx: 0,
     tempActiveRPEs: {},
@@ -327,12 +328,11 @@ const Logic = {
         UI.closeDuplicateModal();
         if (!this.currentWeekType) this.calculateWeekType();
         
-        // Pokud máme override (doháníme včerejšek), použijeme ho. Jinak bereme dnešek.
-        const d = overrideDayIdx !== null ? overrideDayIdx : new Date().getDay();
+        this.activeWorkoutDayIdx = overrideDayIdx !== null ? overrideDayIdx : new Date().getDay();
         
-        // Načtení tréninku
-        const w = Data.state.customWorkouts[this.currentWeekType][d];
-        
+        // Načtení tréninku podle uloženého indexu
+        const w = Data.state.customWorkouts[this.currentWeekType][this.activeWorkoutDayIdx];
+       
         // Pokud trénink neexistuje (např. včera bylo volno a nějak se to sem dostalo), pojistka:
         if (!w) {
             UI.openAlertModal("Chyba", "Pro tento den není definován žádný trénink.");
@@ -408,7 +408,7 @@ const Logic = {
     },
 
     finishWorkout: function() {
-        const d = new Date().getDay();
+        const d = this.activeWorkoutDayIdx !== null ? this.activeWorkoutDayIdx : new Date().getDay();
         const w = Data.state.customWorkouts[this.currentWeekType][d];
         const t = new Date().toISOString().split('T')[0];
         const l = [];
@@ -513,6 +513,7 @@ const Logic = {
         this.update();
     }
 };
+
 
 
 
