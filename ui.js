@@ -756,6 +756,223 @@ const UI = {
         document.getElementById('help-modal').classList.remove('active'); 
     },
 
+	// --- REPORT MODAL ---
+    openReportModal: function() {
+        this.renderReport();
+        document.getElementById('report-modal').classList.add('active');
+        this.vibrate(30);
+    },
+
+    closeReportModal: function() {
+        document.getElementById('report-modal').classList.remove('active');
+    },
+
+    renderReport: function() {
+        // 1. ZÁKLADY
+        const uName = document.getElementById('report-user-name');
+        const uSport = document.getElementById('report-user-sport');
+        const uGoal = document.getElementById('report-user-goal');
+        const uWorkouts = document.getElementById('report-total-workouts');
+
+        if(uName) uName.innerText = Data.state.user.name || '--';
+        if(uSport) uSport.innerText = Data.state.user.sport || '--';
+        if(uGoal) uGoal.innerText = Data.state.user.goal || '--';
+        if(uWorkouts) uWorkouts.innerText = Data.state.workout_history ? Data.state.workout_history.length : 0;
+
+        // 2. VÁHA
+        const weights = Data.state.bodyweight_history || [];
+        if (weights.length > 0) {
+            const latest = weights[weights.length - 1];
+            document.getElementById('report-current-weight').innerHTML = `${latest.kg}<span class="text-sm text-stone-400 ml-1">kg</span>`;
+            if (weights.length > 1) {
+                const first = weights[0].kg;
+                const diff = (latest.kg - first).toFixed(1);
+                const el = document.getElementById('report-weight-delta');
+                if (diff > 0) { 
+                    el.innerText = `+${diff} kg`; 
+                    el.className = 'text-[10px] font-bold px-2 py-1 rounded bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/50'; 
+                } else { 
+                    el.innerText = `${diff} kg`; 
+                    el.className = 'text-[10px] font-bold px-2 py-1 rounded bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 border border-green-200 dark:border-green-900/50'; 
+                }
+            }
+
+            if(this.reportWeightChartInst) this.reportWeightChartInst.destroy();
+            const ctxW = document.getElementById('reportWeightChart').getContext('2d');
+            this.reportWeightChartInst = new Chart(ctxW, {
+                type: 'line',
+                data: {
+                    labels: weights.map(w => w.date.split('T')[0].split('-').reverse().slice(0,2).join('.')),
+                    datasets: [{ 
+                        data: weights.map(w => w.kg), 
+                        borderColor: '#DC2626', 
+                        backgroundColor: 'rgba(220, 38, 38, 0.1)', 
+                        borderWidth: 2, fill: true, tension: 0.3, pointRadius: 0 
+                    }]
+                },
+                options: { 
+                    responsive: true, maintainAspectRatio: false, 
+                    plugins: { legend: { display: false }, tooltip: { enabled: false } }, 
+                    scales: { x: { display: false }, y: { display: false, min: Math.min(...weights.map(w => w.kg)) - 2 } }, 
+                    layout: { padding: 0 } 
+                }
+            });
+        }
+
+        // 3. TOP CVIKY (Arzenál)
+        const stats = Data.state.exercise_stats || {};
+        const topLifts = Object.entries(stats)
+            .map(([name, data]) => ({ name, weight: data.weight }))
+            .filter(ex => ex.weight > 0 && !Data.isNoWeight(ex.name))
+            .sort((a, b) => b.weight - a.weight).slice(0, 6);
+
+        const liftsContainer = document.getElementById('report-top-lifts');
+        if(topLifts.length > 0) {
+            liftsContainer.innerHTML = topLifts.map((lift, i) => `
+                <div class="flex justify-between items-center p-2.5 bg-stone-50 dark:bg-stone-900/50 rounded border border-stone-200 dark:border-stone-800">
+                    <div class="flex items-center gap-3">
+                        <span class="text-stone-400 font-mono text-[9px]">#0${i+1}</span>
+                        <span class="font-bold text-stone-700 dark:text-stone-200 uppercase text-[11px] truncate max-w-[120px]">${lift.name}</span>
+                    </div>
+                    <span class="font-black text-primary text-sm whitespace-nowrap">${lift.weight} kg</span>
+                </div>
+            `).join('');
+        } else {
+            liftsContainer.innerHTML = `<div class="text-xs text-stone-500 text-center p-4">Zatím žádná data o váhách.</div>`;
+        }
+
+        // 4. DETAILY PROGRESE (Start vs Max)
+        const progressionMap = {};
+        const history = Data.state.workout_history || [];
+        
+        // Jdeme od nejstaršího po nejnovější
+        history.forEach(w => {
+            w.logs.forEach(l => {
+                if (l.kg <= 0 || Data.isNoWeight(l.ex)) return;
+                if (!progressionMap[l.ex]) {
+                    progressionMap[l.ex] = { start: l.kg, currentMax: l.kg, count: 1 };
+                } else {
+                    progressionMap[l.ex].count++;
+                    if (l.kg > progressionMap[l.ex].currentMax) {
+                        progressionMap[l.ex].currentMax = l.kg;
+                    }
+                }
+            });
+        });
+
+        const progressionRows = Object.entries(progressionMap)
+            .filter(([ex, data]) => data.count > 1)
+            .sort((a, b) => (b[1].currentMax - b[1].start) - (a[1].currentMax - a[1].start));
+
+        const tableContainer = document.getElementById('report-progression-table');
+        if (progressionRows.length > 0) {
+            tableContainer.innerHTML = progressionRows.map(([ex, data]) => {
+                const diff = data.currentMax - data.start;
+                const diffStr = diff > 0 ? `+${diff} kg` : (diff < 0 ? `${diff} kg` : '0 kg');
+                const diffClass = diff > 0 
+                    ? 'text-green-600 dark:text-green-500 bg-green-100 dark:bg-green-500/10 border-green-200 dark:border-green-500/30' 
+                    : 'text-stone-500 bg-stone-100 dark:bg-stone-800 border-stone-200 dark:border-stone-700';
+                
+                return `
+                <tr class="hover:bg-stone-50 dark:hover:bg-stone-800/50 transition-colors">
+                    <td class="px-4 py-2 font-bold text-stone-800 dark:text-stone-200 truncate max-w-[100px]">${ex}</td>
+                    <td class="px-4 py-2 text-center text-stone-500 dark:text-stone-400 font-mono">${data.start}</td>
+                    <td class="px-4 py-2 text-center text-stone-900 dark:text-white font-black">${data.currentMax}</td>
+                    <td class="px-4 py-2 text-right">
+                        <span class="px-1.5 py-0.5 rounded border text-[9px] font-bold uppercase ${diffClass}">${diffStr}</span>
+                    </td>
+                </tr>`;
+            }).join('');
+        } else {
+            tableContainer.innerHTML = `<tr><td colspan="4" class="text-center p-4 text-xs text-stone-500">Málo dat pro výpočet progrese. Zaznamenej cvik vícekrát.</td></tr>`;
+        }
+
+        // 5. RADAR GRAF (FIFA STYLE)
+        const benchmarks = {
+            'Hrudník': { exercises: ['Bench Press', 'Bench', 'Incline DB Press'], max100: 130 },
+            'Ramena': { exercises: ['Military Press', 'Landmine Press'], max100: 80 },
+            'Nohy (Dřep)': { exercises: ['Squat', 'Hack Squat', 'Front Squat', 'Leg Press'], max100: 160 },
+            'Záda': { exercises: ['T-Bar Row', 'Lat Pulldown', 'Barbell Row'], max100: 110 },
+            'Zadní Řet.': { exercises: ['RDL (Romanian DL)', 'Deadlift'], max100: 180 },
+            'Paže': { exercises: ['Biceps Curls', 'Skullcrushers'], max100: 60 }
+        };
+
+        const radarLabels = Object.keys(benchmarks);
+        const radarData = [];
+        let totalScore = 0;
+        let catsWithData = 0;
+
+        radarLabels.forEach(cat => {
+            const b = benchmarks[cat];
+            let highestScore = 0;
+            
+            b.exercises.forEach(exName => {
+                const userMax = stats[exName] ? stats[exName].weight : 0;
+                if (userMax > 0) {
+                    let adjustedMax100 = b.max100;
+                    if (exName === 'Leg Press') adjustedMax100 = 300; 
+                    if (exName === 'Lat Pulldown') adjustedMax100 = 100;
+
+                    const rawScore = (userMax / adjustedMax100) * 100;
+                    if (rawScore > highestScore) highestScore = rawScore;
+                }
+            });
+            
+            const finalCatScore = Math.min(99, Math.round(highestScore));
+            radarData.push(finalCatScore);
+            if (finalCatScore > 0) catsWithData++;
+            totalScore += finalCatScore;
+        });
+
+        const overallEl = document.getElementById('report-overall-score');
+        if (catsWithData > 0) {
+            const overall = Math.round(totalScore / radarLabels.length); // Průměr přes všechny osy (trestá nezacvičené partie)
+            overallEl.innerText = overall;
+        } else {
+            overallEl.innerText = '--';
+        }
+
+        if(this.reportRadarChartInst) this.reportRadarChartInst.destroy();
+        const ctxRadar = document.getElementById('reportRadarChart').getContext('2d');
+        
+        const isDark = document.documentElement.classList.contains('dark');
+        const gridColor = isDark ? '#292524' : '#e5e7eb';
+        const labelColor = isDark ? '#a8a29e' : '#57534e';
+
+        this.reportRadarChartInst = new Chart(ctxRadar, {
+            type: 'radar',
+            data: {
+                labels: radarLabels,
+                datasets: [{
+                    label: 'Silový Index',
+                    data: radarData,
+                    backgroundColor: 'rgba(220, 38, 38, 0.25)',
+                    borderColor: '#DC2626',
+                    pointBackgroundColor: '#DC2626',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: '#DC2626',
+                    borderWidth: 2,
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                scales: {
+                    r: {
+                        angleLines: { color: gridColor },
+                        grid: { color: gridColor },
+                        pointLabels: { color: labelColor, font: { size: 9, family: 'Inter', weight: 'bold' } },
+                        ticks: { display: false, min: 0, max: 100, stepSize: 20 }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: (ctx) => ` Skóre: ${ctx.raw} / 100` } }
+                }
+            }
+        });
+    },
+
     parseMarkdown: function(text) {
         let html = text
             .replace(/!\[.*?\]\(.*?\)/g, '')
@@ -983,6 +1200,7 @@ const UI = {
         });
     }
 };
+
 
 
 
