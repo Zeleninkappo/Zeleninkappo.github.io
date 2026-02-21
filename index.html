@@ -62,6 +62,7 @@
                     <button onclick="UI.openHistoryModal()" class="text-[10px] font-bold bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 border border-stone-300 dark:border-stone-700 px-3 py-1 rounded hover:text-white hover:bg-stone-700 transition-colors">📖 LOG</button>
                     <button onclick="Logic.checkWorkoutEntry()" class="text-[10px] font-bold bg-primary text-white px-3 py-1 rounded hover:bg-red-700 shadow-md flex items-center gap-1 transition-transform active:scale-95">🏋️ GYM</button>
                     <button onclick="UI.openWeightModal()" class="text-[10px] font-bold bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 border border-stone-300 dark:border-stone-700 px-3 py-1 rounded hover:text-white hover:bg-stone-700 transition-colors">⚖️ VÁHA</button>
+                    <button onclick="UI.openReportModal()" class="text-[10px] font-bold bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 border border-stone-300 dark:border-stone-700 px-3 py-1 rounded hover:text-white hover:bg-stone-700 transition-colors">📊 REPORT</button>
                 </div>
             </div>
 
@@ -300,6 +301,103 @@
             </div>
         </div>
     </div>
+
+     <!-- Report Modal -->
+    <div id="report-modal" class="modal fixed w-full h-full top-0 left-0 flex items-center justify-center z-[350] bg-black/95 backdrop-blur-sm opacity-0 pointer-events-none">
+        <div class="w-11/12 max-w-4xl bg-stone-100 dark:bg-dark border border-stone-300 dark:border-stone-800 rounded-xl shadow-2xl h-[90vh] flex flex-col overflow-hidden relative">
+            <!-- Hlavička modálu -->
+            <div class="p-4 border-b border-stone-300 dark:border-stone-800 flex justify-between items-center bg-white dark:bg-panel sticky top-0 z-10 shadow-sm">
+                <div>
+                    <h2 class="text-lg font-black text-primary uppercase leading-tight tracking-tighter">ZELIX // ANALYTIKA 2.0</h2>
+                    <p class="text-[9px] font-bold text-stone-500 uppercase tracking-widest mt-0.5">Operační status & Progrese</p>
+                </div>
+                <button onclick="UI.closeReportModal()" class="text-stone-400 hover:text-white text-3xl px-2 transition-colors">&times;</button>
+            </div>
+            
+            <!-- Obsah reportu -->
+            <div class="p-4 overflow-y-auto space-y-4 flex-grow w-full">
+                <!-- ROW 1: Rychlá data a Váha -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-white dark:bg-panel rounded-xl p-4 border border-stone-200 dark:border-stone-800 shadow-sm flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-[10px] text-stone-500 font-bold uppercase tracking-widest mb-1">Subjekt</h3>
+                            <div id="report-user-name" class="text-xl font-black text-stone-900 dark:text-white uppercase truncate">--</div>
+                            <div id="report-user-sport" class="text-xs text-primary font-bold mt-1">--</div>
+                        </div>
+                        <div class="mt-3 pt-3 border-t border-stone-200 dark:border-stone-800 grid grid-cols-2 gap-2">
+                            <div>
+                                <div class="text-[9px] text-stone-500 uppercase">Režim</div>
+                                <div id="report-user-goal" class="text-xs font-bold text-stone-700 dark:text-stone-300 uppercase">--</div>
+                            </div>
+                            <div>
+                                <div class="text-[9px] text-stone-500 uppercase">Tréninků celkem</div>
+                                <div id="report-total-workouts" class="text-xs font-bold text-stone-700 dark:text-stone-300">--</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white dark:bg-panel rounded-xl p-4 border border-stone-200 dark:border-stone-800 shadow-sm flex flex-col justify-between md:col-span-2">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="text-[10px] text-stone-500 font-bold uppercase tracking-widest">Tělesná Tonáž (Trend)</h3>
+                            <span id="report-weight-delta" class="text-[10px] font-bold px-2 py-1 rounded bg-stone-100 dark:bg-stone-900 border border-stone-200 dark:border-stone-800">--</span>
+                        </div>
+                        <div class="flex items-end gap-4 h-full">
+                            <div id="report-current-weight" class="text-3xl font-black text-stone-900 dark:text-white">--.-<span class="text-sm text-stone-400">kg</span></div>
+                            <div class="flex-grow chart-container !h-[70px] mt-2">
+                                <canvas id="reportWeightChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ROW 2: FIFA Radar & Top Cviky -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Silová Typologie (Radar) -->
+                    <div class="bg-white dark:bg-panel rounded-xl p-4 border border-stone-200 dark:border-stone-800 shadow-sm flex flex-col relative overflow-hidden">
+                        <div class="flex justify-between items-center mb-2 z-10 relative">
+                            <h3 class="text-[10px] text-stone-500 font-bold uppercase tracking-widest">Silová Typologie</h3>
+                            <span class="text-[8px] text-stone-500 bg-stone-100 dark:bg-stone-900 px-1.5 py-0.5 rounded border border-stone-200 dark:border-stone-800">Index 100 = Profi</span>
+                        </div>
+                        <div class="chart-container flex-grow min-h-[220px] relative mt-2 z-10">
+                            <!-- Overlay skóre doprostřed grafu -->
+                            <div id="report-overall-score" class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-10 dark:opacity-20 text-7xl font-black text-stone-900 dark:text-white -z-10">--</div>
+                            <canvas id="reportRadarChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Silový Arzenál (Top Cviky) -->
+                    <div class="bg-white dark:bg-panel rounded-xl p-4 border border-stone-200 dark:border-stone-800 shadow-sm flex flex-col h-full">
+                        <h3 class="text-[10px] text-stone-500 font-bold uppercase tracking-widest mb-3">Nejtěžší Lifty (Absolutní)</h3>
+                        <div id="report-top-lifts" class="space-y-2 flex-grow overflow-y-auto max-h-[220px] pr-1 hide-scrollbar">
+                            <!-- Zde se vykreslí lifty -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ROW 3: Detailní Progrese -->
+                <div class="bg-white dark:bg-panel rounded-xl border border-stone-200 dark:border-stone-800 shadow-sm flex flex-col overflow-hidden mb-4">
+                    <div class="p-4 border-b border-stone-200 dark:border-stone-800">
+                        <h3 class="text-[10px] text-stone-500 font-bold uppercase tracking-widest">Detailní Progrese (Start vs Maximum)</h3>
+                    </div>
+                    <div class="overflow-x-auto hide-scrollbar">
+                        <table class="w-full text-left text-xs whitespace-nowrap">
+                            <thead class="bg-stone-50 dark:bg-stone-900/50 text-stone-500 font-mono text-[9px] uppercase">
+                                <tr>
+                                    <th class="px-4 py-2 font-bold">Cvik</th>
+                                    <th class="px-4 py-2 font-bold text-center">Start</th>
+                                    <th class="px-4 py-2 font-bold text-center text-primary">Maximum</th>
+                                    <th class="px-4 py-2 font-bold text-right">Čistý Nárůst</th>
+                                </tr>
+                            </thead>
+                            <tbody id="report-progression-table" class="divide-y divide-stone-200 dark:divide-stone-800">
+                                <!-- Zde se vykreslí tabulka -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     
     <!-- Onboarding Modal -->
     <div id="onboarding-modal" class="modal fixed w-full h-full top-0 left-0 flex items-center justify-center z-[400] bg-white/95 dark:bg-stone-950/95 opacity-0 pointer-events-none transition-opacity duration-500 backdrop-blur-sm">
@@ -456,6 +554,7 @@
     </script>
 </body>
 </html>
+
 
 
 
