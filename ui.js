@@ -586,6 +586,7 @@ const UI = {
                 <option value="PULL">Pull (Tahy)</option>
                 <option value="LEGS">Legs (Nohy)</option>
                 <option value="explosive">Výbušnost</option>
+				<option value="PR_TEST">🏆 PR Test (SBD)</option>
             </select>
             <button onclick="UI.quickGenerateDay()" class="bg-stone-200 dark:bg-stone-800 hover:bg-primary hover:text-white text-stone-600 dark:text-stone-400 font-bold text-[10px] py-2 px-3 rounded uppercase transition-colors whitespace-nowrap">🎲 Generovat</button>
         `;
@@ -1200,6 +1201,7 @@ const UI = {
         });
     }
 };
+
 
 
 
