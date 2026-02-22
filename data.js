@@ -278,6 +278,11 @@ const Data = {
             exercises.push("MedBall Slam");
             exercises.push("Broad Jumps");
         }
+       else if (type === "PR_TEST") {
+            exercises.push("Squat");
+            exercises.push("Bench Press");
+            exercises.push("Deadlift");
+        }
 
         // Aplikujeme statistiky (reps/sets) podle cíle hned teď
         exercises.forEach(ex => {
@@ -318,6 +323,7 @@ const Data = {
     }
 };
  
+
 
 
 
