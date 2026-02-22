@@ -428,7 +428,11 @@ const Logic = {
                     else if (rpe === 'medium') nKg += 1.25;
                 }
                 l.push({ ex: ex, kg: kg, reps: r, sets: s, rpe: rpe });
-                Data.state.exercise_stats[ex] = { weight: Math.round(nKg * 2) / 2, reps: r, sets: s, rpe: rpe };
+                const isPR = r <= 2 || (w.title && w.title.toUpperCase().includes("PR"));
+                
+                if (!isPR) {
+                    Data.state.exercise_stats[ex] = { weight: Math.round(nKg * 2) / 2, reps: r, sets: s, rpe: rpe };
+                }
             }
         });
 
@@ -513,6 +517,7 @@ const Logic = {
         this.update();
     }
 };
+
 
 
 
