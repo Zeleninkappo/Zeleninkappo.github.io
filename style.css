@@ -29,13 +29,29 @@
 .dot { top: -2px; left: -2px; transition: all 0.3s ease-in-out; }
 input:checked ~ .dot { transform: translateX(100%); background-color: #10B981; }
 
-.input-disabled { 
-    opacity: 0.3; pointer-events: none; background-color: transparent !important; border: none !important; 
-    text-align: center; color: #78716c !important; font-size: 0.7rem; font-weight: bold; letter-spacing: 1px; padding-top: 12px; 
-}
-
+/* Utils pro čistší vzhled UI (Tabulky v reportu atd.) */
 .hide-scrollbar::-webkit-scrollbar { display: none; }
 .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* FIX: Ochrana proti přetečení grafů na mobilu (Flexbox vs Chart.js) */
+.chart-container { 
+    position: relative; 
+    width: 100%; 
+    max-width: 100%;
+    min-width: 0 !important; /* Dovolí kontejneru zmenšit se pod šířku obsahu */
+}
+
+.chart-container canvas {
+    max-width: 100% !important;
+    width: 100% !important;
+}
+
+@media (max-width: 640px) {
+    /* U Radar grafu stáhneme na mobilu výšku, aby nenarazil na limit šířky displeje */
+    #reportRadarChart {
+        max-height: 200px !important;
+    }
+}
         
         body { font-family: 'Inter', sans-serif; transition: background-color 0.2s, color 0.2s; }
         .dark body { background-color: #0c0a09; color: #e7e5e4; }
@@ -103,3 +119,4 @@ input:checked ~ .dot { transform: translateX(100%); background-color: #10B981; }
         .dark .help-btn { background-color: #292524; color: #a8a29e; border: 1px solid #44403c; }
 
         .help-btn:hover { background-color: #DC2626; color: white; border-color: #DC2626; }
+
