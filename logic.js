@@ -421,17 +421,57 @@ const Logic = {
             const isNoWeight = Data.isNoWeight(ex); 
 
             if (r > 0) {
-                let nKg = kg;
+                // 1. ZÍSKÁNÍ CÍLE (Target Reps z data.js)
+                const currentGoal = Data.state.user.goal || 'hypertrophy';
+                const strategy = Data.strategies[currentGoal] || { reps: 10 };
+                const targetReps = strategy.reps; 
+
+                // 2. DYNAMICKÝ PRÁH (+20 % rezervy pro tvůj cíl)
+                // U síly to bude +1, u objemu +2, u kondice +3
+                const extraRepsNeeded = Math.max(1, Math.round(targetReps * 0.2)); 
+                const progressionThreshold = targetReps + extraRepsNeeded;
+
+                // 3. NAČTENÍ VSTUPŮ
+                let nextKg = kg;
+                let nextReps = r;
                 const rpe = this.tempActiveRPEs[ex] || 'medium';
+
                 if (!isNoWeight) {
-                    if (rpe === 'easy') nKg += 2.5;
-                    else if (rpe === 'medium') nKg += 1.25;
+                    if (rpe === 'easy') {
+                        // Přetečení zásobníku -> Máš na novou váhu
+                        if (r >= progressionThreshold) {
+                            nextKg += 2.5;       // Přidáme tvůj nejmenší kotouč/skok
+                            nextReps = targetReps; // Reset na základ pro daný cíl
+                        } else {
+                            // Ještě nemáš splněno, přidáme jen opakování do zásobníku
+                            nextKg = kg;         
+                            nextReps = r + 1;    
+                        }
+                    } 
+                    else if (rpe === 'medium') {
+                        // Akorát, držet pozici
+                        nextKg = kg;
+                        nextReps = r;
+                    }
+                    else if (rpe === 'hard') {
+                         // Ústup pro regeneraci CNS, ale ne pod spodní hranici
+                         nextKg = kg;
+                         nextReps = Math.max(r - 1, targetReps - extraRepsNeeded); 
+                    }
+
+                    // 4. HARDWARE ROUNDING
+                    // Zabezpečení, že nikdy nevznikne hodnota mimo tvé vybavení (2.5, 5, 7.5, 10, 12.5...)
+                    nextKg = Math.ceil(nextKg / 2.5) * 2.5;
                 }
+
+                // Zápis do LOGu tréninku
                 l.push({ ex: ex, kg: kg, reps: r, sets: s, rpe: rpe });
+
+                // SMART PR GUARD (Ochrana maximálek)
                 const isPR = r <= 2 || (w.title && w.title.toUpperCase().includes("PR"));
                 
                 if (!isPR) {
-                    Data.state.exercise_stats[ex] = { weight: Math.round(nKg * 2) / 2, reps: r, sets: s, rpe: rpe };
+                    Data.state.exercise_stats[ex] = { weight: nextKg, reps: nextReps, sets: s, rpe: rpe };
                 }
             }
         });
@@ -517,6 +557,7 @@ const Logic = {
         this.update();
     }
 };
+
 
 
 
