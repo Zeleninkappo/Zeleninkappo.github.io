@@ -977,7 +977,7 @@ const UI = {
                         angleLines: { color: gridColor },
                         grid: { color: gridColor },
                         pointLabels: { color: labelColor, font: { size: 9, family: 'Inter', weight: 'bold' } },
-                        ticks: { display: false, min: 0, max: 100, stepSize: 20 }
+                        ticks: { display: false, min: 0, max: 100, stepSize: 25 }
                     }
                 },
                 plugins: {
@@ -1215,6 +1215,7 @@ const UI = {
         });
     }
 };
+
 
 
 
