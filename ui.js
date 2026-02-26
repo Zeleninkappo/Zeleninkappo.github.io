@@ -888,14 +888,15 @@ const UI = {
             tableContainer.innerHTML = `<tr><td colspan="4" class="text-center p-4 text-xs text-stone-500">Málo dat pro výpočet progrese. Zaznamenej cvik vícekrát.</td></tr>`;
         }
 
-        // 5. RADAR GRAF (FIFA STYLE)
+                // 5. RADAR GRAF (FIFA STYLE) - ROZŠÍŘENÁ VERZE (7 OS)
         const benchmarks = {
-            'Hrudník': { exercises: ['Bench Press', 'Bench', 'Incline DB Press'], max100: 130 },
-            'Ramena': { exercises: ['Military Press', 'Landmine Press'], max100: 80 },
-            'Nohy (Dřep)': { exercises: ['Squat', 'Hack Squat', 'Front Squat', 'Leg Press'], max100: 160 },
-            'Záda': { exercises: ['T-Bar Row', 'Lat Pulldown', 'Barbell Row'], max100: 110 },
-            'Zadní Řet.': { exercises: ['RDL (Romanian DL)', 'Deadlift'], max100: 180 },
-            'Paže': { exercises: ['Biceps Curls', 'Skullcrushers'], max100: 60 }
+            'Hrudník': { exercises: ['Bench Press', 'Bench', 'Incline DB Press', 'Flyes'], max100: 130 },
+            'Ramena': { exercises: ['Military Press', 'Landmine Press', 'Front Raises'], max100: 80 },
+            'Nohy (Dřep)': { exercises: ['Squat', 'Hack Squat', 'Front Squat', 'Leg Press', 'Leg Extension', 'Calf Raise'], max100: 160 },
+            'Záda': { exercises: ['T-Bar Row', 'Lat Pulldown', 'Barbell Row', 'Face Pulls', 'Chin Ups'], max100: 110 },
+            'Zadní Řet.': { exercises: ['RDL (Romanian DL)', 'Deadlift', 'Leg Curl'], max100: 180 },
+            'Paže': { exercises: ['Biceps Curls', 'Skullcrushers'], max100: 60 },
+            'Střed Těla': { exercises: ['Russian Twists', 'Ab Wheel', 'Woodchoppers'], max100: 30 }
         };
 
         const radarLabels = Object.keys(benchmarks);
@@ -909,10 +910,22 @@ const UI = {
             
             b.exercises.forEach(exName => {
                 const userMax = stats[exName] ? stats[exName].weight : 0;
+                
+                // Započítáme cvik, pokud má zapsanou váhu 
+                // (Cviky s vlastní vahou jako Ab Wheel tu budou mít 0, což je pro radar založený na váze záměrné - nezkreslí graf)
                 if (userMax > 0) {
                     let adjustedMax100 = b.max100;
+                    
+                    // Modifikátory pro tvé stroje a izolace (Profi limity pro daný cvik)
                     if (exName === 'Leg Press') adjustedMax100 = 300; 
                     if (exName === 'Lat Pulldown') adjustedMax100 = 100;
+                    if (exName === 'Flyes') adjustedMax100 = 100;
+                    if (exName === 'Front Raises') adjustedMax100 = 30;
+                    if (exName === 'Leg Extension') adjustedMax100 = 120;
+                    if (exName === 'Leg Curl') adjustedMax100 = 100;
+                    if (exName === 'Calf Raise') adjustedMax100 = 160;
+                    if (exName === 'Face Pulls') adjustedMax100 = 60;
+                    if (exName === 'Russian Twists') adjustedMax100 = 25; // Skóre 100 = 25 kg na twisteh
 
                     const rawScore = (userMax / adjustedMax100) * 100;
                     if (rawScore > highestScore) highestScore = rawScore;
@@ -926,6 +939,7 @@ const UI = {
         });
 
         const overallEl = document.getElementById('report-overall-score');
+
         if (catsWithData > 0) {
             const overall = Math.round(totalScore / radarLabels.length); // Průměr přes všechny osy (trestá nezacvičené partie)
             overallEl.innerText = overall;
@@ -1201,6 +1215,7 @@ const UI = {
         });
     }
 };
+
 
 
 
