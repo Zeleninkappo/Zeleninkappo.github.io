@@ -820,11 +820,29 @@ const UI = {
             });
         }
 
-        // 3. TOP CVIKY (Arzenál)
         const stats = Data.state.exercise_stats || {};
-        const topLifts = Object.entries(stats)
-            .map(([name, data]) => ({ name, weight: data.weight }))
-            .filter(ex => ex.weight > 0 && !Data.isNoWeight(ex.name))
+        const trueMaxes = {};
+        
+        // Základ ze stávajících statistik (pokud něco chybí v historii)
+        Object.keys(stats).forEach(ex => {
+            if (!Data.isNoWeight(ex)) trueMaxes[ex] = stats[ex].weight || 0;
+        });
+
+        // Přepis reálnými rekordy z historie (TADY SE NAJDE TVÉ PR)
+        const history = Data.state.workout_history || [];
+        history.forEach(w => {
+            w.logs.forEach(l => {
+                if (l.kg > 0 && !Data.isNoWeight(l.ex)) {
+                    if (!trueMaxes[l.ex] || l.kg > trueMaxes[l.ex]) {
+                        trueMaxes[l.ex] = l.kg;
+                    }
+                }
+            });
+        });
+
+        // 3. TOP CVIKY (Arzenál) - Nyní používá trueMaxes
+        const topLifts = Object.entries(trueMaxes)
+            .map(([name, weight]) => ({ name, weight }))
             .sort((a, b) => b.weight - a.weight).slice(0, 6);
 
         const liftsContainer = document.getElementById('report-top-lifts');
@@ -1215,6 +1233,7 @@ const UI = {
         });
     }
 };
+
 
 
 
