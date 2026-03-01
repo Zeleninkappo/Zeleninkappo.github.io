@@ -905,53 +905,78 @@ const UI = {
             tableContainer.innerHTML = `<tr><td colspan="4" class="text-center p-4 text-xs text-stone-500">Málo dat pro výpočet progrese. Zaznamenej cvik vícekrát.</td></tr>`;
         }
 
-                // 5. RADAR GRAF (FIFA STYLE) - ROZŠÍŘENÁ VERZE (7 OS)
-        const benchmarks = {
-            'Hrudník': { exercises: ['Bench Press', 'Bench', 'Incline DB Press', 'Flyes'], max100: 130 },
-            'Ramena': { exercises: ['Military Press', 'Landmine Press', 'Front Raises'], max100: 80 },
-            'Nohy (Dřep)': { exercises: ['Squat', 'Hack Squat', 'Front Squat', 'Leg Press', 'Leg Extension', 'Calf Raise'], max100: 160 },
-            'Záda': { exercises: ['T-Bar Row', 'Lat Pulldown', 'Barbell Row', 'Face Pulls', 'Chin Ups'], max100: 110 },
-            'Zadní Řet.': { exercises: ['RDL (Romanian DL)', 'Deadlift', 'Leg Curl'], max100: 180 },
-            'Paže': { exercises: ['Biceps Curls', 'Skullcrushers'], max100: 60 },
-            'Střed Těla': { exercises: ['Russian Twists', 'Ab Wheel', 'Woodchoppers'], max100: 30 }
+        // 5. RADAR GRAF - ZELIX SYMMETRY ENGINE (Váha + Disbalance)
+        
+        // A. Získání aktuální tělesné váhy (Fallback 80 kg, pokud není zadána)
+        let currentBW = 80;
+        const weights = Data.state.bodyweight_history || [];
+        if (weights.length > 0) {
+            currentBW = weights[weights.length - 1].kg;
+        }
+
+        // B. Definice PROFI limitů jako NÁSOBKŮ tělesné váhy (BW)
+        const benchmarksBW = {
+            'Hrudník': { exercises: ['Bench Press', 'Bench', 'Incline DB Press', 'Flyes'], mult100: 1.5 },
+            'Ramena': { exercises: ['Military Press', 'Landmine Press', 'Front Raises'], mult100: 0.8 },
+            'Nohy (Dřep)': { exercises: ['Squat', 'Hack Squat', 'Front Squat', 'Leg Press', 'Leg Extension', 'Calf Raise'], mult100: 2.0 },
+            'Záda': { exercises: ['T-Bar Row', 'Lat Pulldown', 'Barbell Row', 'Face Pulls', 'Chin Ups'], mult100: 1.5 },
+            'Zadní Řet.': { exercises: ['RDL (Romanian DL)', 'Deadlift', 'Leg Curl'], mult100: 2.2 },
+            'Paže': { exercises: ['Biceps Curls', 'Skullcrushers'], mult100: 0.6 },
+            'Střed Těla': { exercises: ['Russian Twists', 'Ab Wheel', 'Woodchoppers'], mult100: 0.3 }
         };
 
-        const radarLabels = Object.keys(benchmarks);
+        const radarLabels = Object.keys(benchmarksBW);
+        let baseScores = {};
+        let alphaScore = 100; // Tvůj "Osobní Standard" (Minimálně 100 %)
+
+        // FÁZE 1: Výpočet hrubé síly vůči tělesné váze
+        radarLabels.forEach(cat => {
+            const b = benchmarksBW[cat];
+            let highestBaseScore = 0;
+            
+            b.exercises.forEach(exName => {
+                const userMax = trueMaxes[exName] || 0;
+
+                if (userMax > 0) {
+                    let adjustedMult = b.mult100;
+                    
+                    // Úprava násobičů pro stroje/izolace (poměrně k BW)
+                    if (exName === 'Leg Press') adjustedMult = 3.5; 
+                    if (exName === 'Lat Pulldown') adjustedMult = 1.2;
+                    if (exName === 'Flyes') adjustedMult = 1.0;
+                    if (exName === 'Front Raises') adjustedMult = 0.3;
+                    if (exName === 'Leg Extension') adjustedMult = 1.3;
+                    if (exName === 'Leg Curl') adjustedMult = 1.1;
+                    if (exName === 'Calf Raise') adjustedMult = 1.8;
+                    if (exName === 'Face Pulls') adjustedMult = 0.6;
+                    if (exName === 'Russian Twists') adjustedMult = 0.25;
+
+                    const targetWeight = currentBW * adjustedMult; // Cílová váha v kg
+                    const rawScore = (userMax / targetWeight) * 100; // % splnění cíle
+                    
+                    if (rawScore > highestBaseScore) highestBaseScore = rawScore;
+                }
+            });
+            
+            baseScores[cat] = highestBaseScore;
+            // Hledání Alpha Liftu (Nejsilnější partie, která posune standard)
+            if (highestBaseScore > alphaScore) alphaScore = highestBaseScore;
+        });
+
+        // FÁZE 2: Aplikace penalizace za disbalanci a vykreslení
         const radarData = [];
         let totalScore = 0;
         let catsWithData = 0;
 
         radarLabels.forEach(cat => {
-            const b = benchmarks[cat];
-            let highestScore = 0;
+            // Tady se děje to kouzlo: Tvé hrubé skóre se dělí tvým Alpha Skóre.
+            // Pokud jsi v nohách na 120 %, ale ruce máš na 80 %, ruce dostanou penalizaci (80 / 1.2) = 66 bodů.
+            let finalScore = (baseScores[cat] / alphaScore) * 100;
             
-            b.exercises.forEach(exName => {
-                const userMax = trueMaxes[exName] || 0;
-
-                // Započítáme cvik, pokud má zapsanou váhu 
-                // (Cviky s vlastní vahou jako Ab Wheel tu budou mít 0, což je pro radar založený na váze záměrné - nezkreslí graf)
-                if (userMax > 0) {
-                    let adjustedMax100 = b.max100;
-                    
-                    // Modifikátory pro tvé stroje a izolace (Profi limity pro daný cvik)
-                    if (exName === 'Leg Press') adjustedMax100 = 300; 
-                    if (exName === 'Lat Pulldown') adjustedMax100 = 100;
-                    if (exName === 'Flyes') adjustedMax100 = 100;
-                    if (exName === 'Front Raises') adjustedMax100 = 30;
-                    if (exName === 'Leg Extension') adjustedMax100 = 120;
-                    if (exName === 'Leg Curl') adjustedMax100 = 100;
-                    if (exName === 'Calf Raise') adjustedMax100 = 160;
-                    if (exName === 'Face Pulls') adjustedMax100 = 60;
-                    if (exName === 'Russian Twists') adjustedMax100 = 25; // Skóre 100 = 25 kg na twisteh
-
-                    const rawScore = (userMax / adjustedMax100) * 100;
-                    if (rawScore > highestScore) highestScore = rawScore;
-                }
-            });
+            const finalCatScore = Math.min(99, Math.round(finalScore)); // Max 99 do grafu
             
-            const finalCatScore = Math.min(99, Math.round(highestScore));
             radarData.push(finalCatScore);
-            if (finalCatScore > 0) catsWithData++;
+            if (baseScores[cat] > 0) catsWithData++;
             totalScore += finalCatScore;
         });
 
@@ -1232,6 +1257,7 @@ const UI = {
         });
     }
 };
+
 
 
 
