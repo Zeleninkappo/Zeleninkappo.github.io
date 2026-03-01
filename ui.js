@@ -927,8 +927,8 @@ const UI = {
             let highestScore = 0;
             
             b.exercises.forEach(exName => {
-                const userMax = stats[exName] ? stats[exName].weight : 0;
-                
+                const userMax = trueMaxes[exName] || 0;
+
                 // Započítáme cvik, pokud má zapsanou váhu 
                 // (Cviky s vlastní vahou jako Ab Wheel tu budou mít 0, což je pro radar založený na váze záměrné - nezkreslí graf)
                 if (userMax > 0) {
@@ -1233,6 +1233,7 @@ const UI = {
         });
     }
 };
+
 
 
 
