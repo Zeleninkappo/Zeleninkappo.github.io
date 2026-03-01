@@ -909,7 +909,6 @@ const UI = {
         
         // A. Získání aktuální tělesné váhy (Fallback 80 kg, pokud není zadána)
         let currentBW = 80;
-        const weights = Data.state.bodyweight_history || [];
         if (weights.length > 0) {
             currentBW = weights[weights.length - 1].kg;
         }
@@ -1257,6 +1256,7 @@ const UI = {
         });
     }
 };
+
 
 
 
