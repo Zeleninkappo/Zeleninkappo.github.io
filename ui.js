@@ -862,7 +862,6 @@ const UI = {
 
         // 4. DETAILY PROGRESE (Start vs Max)
         const progressionMap = {};
-        const history = Data.state.workout_history || [];
         
         // Jdeme od nejstaršího po nejnovější
         history.forEach(w => {
@@ -1233,6 +1232,7 @@ const UI = {
         });
     }
 };
+
 
 
 
