@@ -112,14 +112,15 @@
             position: absolute;
             inset: 0;
             z-index: 0;
-            background-color: rgba(255, 255, 255, .95);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
+            background-color: rgba(255, 255, 255, .97);
+            /* DIAGNOSTICKY VYPNUTO: backdrop-filter zůstává mimo hru, dokud nepotvrdíme/vyvrátíme,
+               že GPU blur compositing je skutečný viník na tomto zařízení. Vizuálně: pevné,
+               téměř neprůhledné pozadí místo blur efektu - o kousek méně "sklovité", ale funkčně stejné. */
             border-bottom: 1px solid #e7e5e4;
             box-shadow: 0 4px 6px -1px rgba(0,0,0,.1), 0 2px 4px -2px rgba(0,0,0,.1);
         }
         .dark .zelix-header-bg {
-            background-color: rgba(12, 10, 9, .95);
+            background-color: rgba(12, 10, 9, .97);
             border-bottom-color: #292524;
         }
         .z-10 { z-index: 10; }
@@ -257,7 +258,7 @@
 
     <!-- MODALS PLACEHOLDERS -->
     <!-- Setup Modal -->
-    <div id="setup-modal" class="modal fixed w-full h-full top-0 left-0 flex items-center justify-center z-[200] bg-black/90 backdrop-blur-sm opacity-0 pointer-events-none" role="dialog" aria-modal="true" aria-label="Nastavení">
+    <div id="setup-modal" class="modal fixed w-full h-full top-0 left-0 flex items-center justify-center z-[200] bg-black/95 opacity-0 pointer-events-none" role="dialog" aria-modal="true" aria-label="Nastavení">
         <div class="w-11/12 max-w-2xl bg-white dark:bg-panel border border-stone-200 dark:border-stone-700 p-0 rounded-xl shadow-2xl max-h-[90vh] flex flex-col overflow-hidden">
             <div class="border-b border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-900/50">
                 <div class="p-4 text-center"><h2 class="text-xl font-black text-primary uppercase tracking-tighter">NASTAVENÍ</h2></div>
@@ -390,7 +391,7 @@
     </div>
 
     <!-- Gym Log Modal -->
-    <div id="workout-modal" class="modal fixed w-full h-full top-0 left-0 flex items-center justify-center z-[100] bg-black/90 backdrop-blur-sm opacity-0 pointer-events-none" role="dialog" aria-modal="true" aria-label="Trénink">
+    <div id="workout-modal" class="modal fixed w-full h-full top-0 left-0 flex items-center justify-center z-[100] bg-black/95 opacity-0 pointer-events-none" role="dialog" aria-modal="true" aria-label="Trénink">
         <div class="modal-container bg-white dark:bg-panel w-full md:w-11/12 md:max-w-lg mx-auto rounded-t-2xl md:rounded-xl shadow-2xl z-50 h-[92vh] md:max-h-[85vh] flex flex-col absolute bottom-0 md:relative border border-stone-200 dark:border-stone-700">
             <div class="p-4 border-b border-stone-200 dark:border-stone-800 flex justify-between items-center bg-stone-50 dark:bg-panel rounded-t-xl sticky top-0 z-20">
                 <h2 id="modal-title" class="text-lg font-black text-primary uppercase">Gym Log</h2>
@@ -405,7 +406,7 @@
     </div>
 
     <!-- History Modal -->
-    <div id="history-modal" class="modal fixed w-full h-full top-0 left-0 flex items-center justify-center z-[150] bg-black/90 backdrop-blur-sm opacity-0 pointer-events-none" role="dialog" aria-modal="true" aria-label="Historie">
+    <div id="history-modal" class="modal fixed w-full h-full top-0 left-0 flex items-center justify-center z-[150] bg-black/95 opacity-0 pointer-events-none" role="dialog" aria-modal="true" aria-label="Historie">
         <div class="w-11/12 max-w-xl bg-white dark:bg-panel border border-stone-200 dark:border-stone-700 rounded-xl shadow-2xl max-h-[85vh] flex flex-col overflow-hidden">
             <div class="p-4 border-b border-stone-200 dark:border-stone-800 flex justify-between items-center bg-white dark:bg-panel sticky top-0">
                 <h2 class="text-lg font-black text-primary uppercase">Historie</h2>
@@ -416,7 +417,7 @@
     </div>
 
     <!-- Confirm Modal -->
-    <div id="confirm-modal" class="modal fixed w-full h-full top-0 left-0 flex items-center justify-center z-[600] bg-black/90 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-200" role="alertdialog" aria-modal="true" aria-label="Potvrzení">
+    <div id="confirm-modal" class="modal fixed w-full h-full top-0 left-0 flex items-center justify-center z-[600] bg-black/95 opacity-0 pointer-events-none transition-opacity duration-200" role="alertdialog" aria-modal="true" aria-label="Potvrzení">
         <div class="w-11/12 max-w-sm bg-white dark:bg-panel p-6 rounded-xl text-center border border-primary/30 shadow-2xl transform transition-all scale-95" id="confirm-modal-content">
             <div class="mb-4 text-primary text-3xl">⚠️</div>
             <h2 id="confirm-title" class="text-xl font-black mb-2 uppercase text-stone-900 dark:text-white tracking-tighter">Potvrzení</h2>
@@ -429,7 +430,7 @@
     </div>
 
     <!-- Alert Modal -->
-    <div id="alert-modal" class="modal fixed w-full h-full top-0 left-0 flex items-center justify-center z-[600] bg-black/90 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-200" role="alertdialog" aria-modal="true" aria-label="Upozornění">
+    <div id="alert-modal" class="modal fixed w-full h-full top-0 left-0 flex items-center justify-center z-[600] bg-black/95 opacity-0 pointer-events-none transition-opacity duration-200" role="alertdialog" aria-modal="true" aria-label="Upozornění">
         <div class="w-11/12 max-w-sm bg-white dark:bg-panel p-6 rounded-xl text-center border border-stone-200 dark:border-stone-700 shadow-2xl transform transition-all scale-95" id="alert-modal-content">
             <h2 id="alert-title" class="text-lg font-black mb-2 uppercase text-stone-900 dark:text-white">Upozornění</h2>
             <p id="alert-msg" class="text-sm text-stone-600 dark:text-stone-300 mb-6 leading-relaxed">...</p>
@@ -438,7 +439,7 @@
     </div>
 
     <!-- Entry Manager Modal -->
-    <div id="entry-manager-modal" class="modal fixed w-full h-full top-0 left-0 flex items-center justify-center z-[270] bg-black/90 backdrop-blur-sm opacity-0 pointer-events-none" role="dialog" aria-modal="true" aria-label="Úprava záznamu">
+    <div id="entry-manager-modal" class="modal fixed w-full h-full top-0 left-0 flex items-center justify-center z-[270] bg-black/95 opacity-0 pointer-events-none" role="dialog" aria-modal="true" aria-label="Úprava záznamu">
         <div class="w-11/12 max-w-sm bg-white dark:bg-panel border border-stone-200 dark:border-stone-700 p-0 rounded-xl shadow-2xl overflow-hidden">
             <div class="p-4 border-b border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-900/50"><h3 id="mgr-title" class="font-black text-stone-800 dark:text-white uppercase text-center">Úprava</h3><p id="mgr-subtitle" class="text-[10px] text-stone-500 text-center uppercase tracking-widest mt-1">...</p></div>
             <div class="p-5 space-y-4">
@@ -451,7 +452,7 @@
     </div>
 
     <!-- Help Modal -->
-    <div id="help-modal" class="modal fixed w-full h-full top-0 left-0 flex items-center justify-center z-[300] bg-black/90 backdrop-blur-sm opacity-0 pointer-events-none" role="dialog" aria-modal="true" aria-label="Manuál">
+    <div id="help-modal" class="modal fixed w-full h-full top-0 left-0 flex items-center justify-center z-[300] bg-black/95 opacity-0 pointer-events-none" role="dialog" aria-modal="true" aria-label="Manuál">
         <div class="w-11/12 max-w-2xl bg-white dark:bg-panel border border-stone-200 dark:border-stone-700 rounded-xl shadow-2xl max-h-[85vh] flex flex-col overflow-hidden">
             <div class="p-4 border-b border-stone-200 dark:border-stone-800 flex justify-between items-center bg-white dark:bg-panel sticky top-0">
                 <h2 class="text-lg font-black text-primary uppercase">Manuál</h2> <button onclick="UI.closeHelpModal()" aria-label="Zavřít" class="text-stone-400 text-2xl px-2">&times;</button>
@@ -463,7 +464,7 @@
     </div>
 
      <!-- Report Modal -->
-    <div id="report-modal" class="modal fixed w-full h-full top-0 left-0 flex items-center justify-center z-[350] bg-black/95 backdrop-blur-sm opacity-0 pointer-events-none" role="dialog" aria-modal="true" aria-label="Analytika">
+    <div id="report-modal" class="modal fixed w-full h-full top-0 left-0 flex items-center justify-center z-[350] bg-black/95 opacity-0 pointer-events-none" role="dialog" aria-modal="true" aria-label="Analytika">
         <div class="w-11/12 max-w-4xl bg-stone-100 dark:bg-dark border border-stone-300 dark:border-stone-800 rounded-xl shadow-2xl h-[90vh] flex flex-col overflow-hidden relative">
             <div class="p-4 border-b border-stone-300 dark:border-stone-800 flex justify-between items-center bg-white dark:bg-panel sticky top-0 z-10 shadow-sm">
                 <div>
@@ -548,7 +549,7 @@
     </div>
 
     <!-- Onboarding Modal -->
-    <div id="onboarding-modal" class="modal fixed w-full h-full top-0 left-0 flex items-center justify-center z-[400] bg-white/95 dark:bg-stone-950/95 opacity-0 pointer-events-none transition-opacity duration-500 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Úvodní nastavení">
+    <div id="onboarding-modal" class="modal fixed w-full h-full top-0 left-0 flex items-center justify-center z-[400] bg-white dark:bg-stone-950 opacity-0 pointer-events-none transition-opacity duration-500" role="dialog" aria-modal="true" aria-label="Úvodní nastavení">
         <div class="w-11/12 max-w-md bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 p-0 rounded-2xl text-center shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh]">
             <div class="w-full h-1 bg-stone-200 dark:bg-stone-800">
                 <div id="ob-progress" class="h-full bg-primary transition-all duration-500" style="width: 25%"></div>
@@ -663,7 +664,7 @@
     </div>
 </div>
 
-    <div id="success-modal" class="modal fixed w-full h-full top-0 left-0 flex items-center justify-center z-[550] bg-black/90 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300" role="dialog" aria-modal="true" aria-label="Úspěch">
+    <div id="success-modal" class="modal fixed w-full h-full top-0 left-0 flex items-center justify-center z-[550] bg-black/95 opacity-0 pointer-events-none transition-opacity duration-300" role="dialog" aria-modal="true" aria-label="Úspěch">
         <div class="w-11/12 max-w-sm bg-white dark:bg-panel p-6 rounded-xl text-center border border-primary/50 shadow-2xl relative overflow-hidden transform transition-all scale-95" id="success-modal-content">
             <div class="absolute top-0 left-0 w-full h-1.5 bg-primary"></div>
 
