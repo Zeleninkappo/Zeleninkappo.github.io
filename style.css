@@ -42,6 +42,11 @@ body.modal-active { overflow: hidden; }
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.2s ease;
+    /* Stejná prevence jako u sticky headeru - fixed+backdrop-filter může
+       na Android Chrome mít nestabilní compositing vrstvu. */
+    isolation: isolate;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
 }
 .modal.active {
     opacity: 1;

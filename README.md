@@ -1,6 +1,6 @@
 # Zelix – Smart Training & Lifestyle Manager
 
-![Status](https://img.shields.io/badge/Status-Stable%20v0.6.1-red)
+![Status](https://img.shields.io/badge/Status-Stable%20v0.6.2-red)
 ![Platform](https://img.shields.io/badge/Platform-PWA%20%7C%20Mobile-blue)
 ![License](https://img.shields.io/badge/License-MIT-lightgrey)
 
@@ -9,6 +9,10 @@
 > **Motto:** Žádné zbytečnosti, jen čistá data, vibrace a progres.
 
 ---
+
+## 🆕 v0.6.2 – opraven skutečný viník: sticky + backdrop-filter na Android Chrome
+
+Uživatelský test ukázal jasný otisk: layout se občas "opravil" po scrollu. To vylučuje Tailwind-JIT teorii z v0.6.1 (ta by scrollem neovlivnila nic) a ukazuje na jiný, samostatný a dobře zdokumentovaný bug Chromia na Androidu: kombinace `position: sticky` + `backdrop-filter` na stejném prvku má nestabilní GPU compositing vrstvu, která se po prvním layoutu občas vykreslí se špatnými rozměry a zůstane takhle "zamrzlá", dokud ji scroll nedonutí přepočítat. Header teď má blur oddělený na samostatném podkladovém prvku (ne přímo na sticky kontejneru) + `isolation: isolate` a `translateZ(0)` pro stabilní vlastní vrstvu od prvního vykreslení. Stejná prevence přidána i do modálů (`fixed` + `backdrop-blur-sm` má mírnější variantu stejného problému).
 
 ## 🆕 v0.6.1 – definitivní fix "rozjetého" layoutu na reálném mobilu
 
