@@ -10,26 +10,55 @@
 
 ---
 
-## ⚡ Hlavní Funkce (v0.5)
+## 🆕 Co je nové v v0.6.0
+
+Tahle verze je kompletní bezpečnostní a spolehlivostní audit + sada nových funkcí nad rámec v0.5.x.
+
+**Opraveno**
+* **Bug s "rozjetým" UI po aktualizaci** (Service Worker teď používá network-first strategii pro HTML, takže se nikdy nezasekne poškozená/napůl vykreslená verze v cache).
+* **Ztráta dat při přesunu/mazání cviku a suplementu** – `moveExercise`, `removeExercise`, `removeStackItem` teď korektně volají `saveDB()`.
+* Kolize z-indexu mezi modálními okny (dřív se mohly dvě okna překrývat ve špatném pořadí).
+
+**Zabezpečeno**
+* Escapování veškerého uživatelského vstupu vkládaného do DOM (`Utils.escapeHtml`) – uzavřena Stored XSS díra (název cviku/suplementu/poznámka mohly dřív obsahovat spustitelný kód).
+* `Content-Security-Policy` hlavička omezující, odkud smí appka načítat a spouštět kód.
+* Validace struktury importovaného zálohovacího JSON souboru – appka odmítne cizí/poškozený soubor.
+* Automatický recovery snapshot těsně před každým importem + tlačítko na obnovu v Nastavení → Systém.
+* `saveDB()` má ošetřenou chybu při zaplněném úložišti (dřív appka tiše neuložila změny).
+
+**Nové funkce**
+* 🔥 **Streak tracker** – sleduje sérii po sobě jdoucích odtrénovaných dnů podle tvého rozvrhu.
+* ⏱ **Rest Timer** – plovoucí lišta s odpočtem, automaticky nastartuje po zaznamenání série (délka podle tvého tréninkového cíle).
+* 🏆 **Detekce nového osobního rekordu** – toast notifikace při dosažení nové maximální váhy u cviku.
+* 📲 **Instalace na plochu** jedním tlačítkem (Nastavení → Systém), pokud to prohlížeč podporuje.
+* 🔄 **Banner nové verze** – appka tě upozorní, když je na pozadí stažená novější verze, a nechá tě rozhodnout, kdy aktualizovat (místo tichého přepsání cache uprostřed zapisování tréninku).
+* Živé přepínání світ/tma podle systému při zapnutém režimu "Auto".
+* Zobrazení využitého úložiště prohlížeče v Nastavení.
+
+---
+
+## ⚡ Hlavní Funkce
 
 * **🧠 Smart Catch-up:** Inteligentní detekce zameškaných tréninků s možností okamžitého dohnání.
 * **💊 Stack Management:** Komplexní správa suplementace s automatickým časováním podle tréninkových dní.
 * **🛌 Smart Rest:** Dynamický režim odpočinku, který se automaticky vypne následující den.
 * **🎲 Generátor 2.0:** Možnost přegenerovat celý plán nebo jen konkrétní den (např. změna z "Nohy" na "Push").
 * **🛡️ Backup Watchdog:** Automatická kontrola stáří zálohy (upozornění po 7 dnech).
+* **🔥 Streak Tracker & ⏱ Rest Timer** (nové v0.6.0)
 
 ---
 
 ## 📖 Manuál Operátora
 
 ### 1. Instalace & Start 🚀
-* **Android/iOS:** Přidat na plochu (Add to Home Screen).
+* **Android/iOS:** Přidat na plochu (Add to Home Screen), nebo použij tlačítko "📲 Nainstalovat na plochu" v Nastavení → Systém.
 * **Baterie:** Na Androidu nutné povolit režim **"Neomezeno"** pro aplikaci (Chrome/Zelix), jinak nebudou chodit notifikace.
 * **Onboarding:** Při prvním spuštění projdeš kalibrací (Jméno, Cíl, Frekvence, Maximálky).
 
 ### 2. Dashboard (Hlavní Panel) 📋
 Tvůj denní rozvrh se generuje dynamicky každé ráno.
 * **Checklist:** Položky (Jídlo, Suplementy, Trénink) mizí/šednou po splnění.
+* **Streak odznak (🔥):** Vedle loga appky se objeví, jakmile máš aktivní sérii alespoň 1 odtrénovaného dne v řadě.
 * **Smart Rest (🛌 VOLNO):**
     * Aktivuje režim regenerace **pouze pro dnešek**.
     * Skryje tréninky a před-tréninkové suplementy.
@@ -42,7 +71,9 @@ Tvůj denní rozvrh se generuje dynamicky každé ráno.
     * 🟢 **EASY:** Váha byla lehká -> Příště systém automaticky přidá (+2.5kg / +1.25kg).
     * 🟡 **OK:** Váha akorát -> Zůstává.
     * 🔴 **HARD:** Limit -> Váha zůstává, nutná regenerace.
+* **Rest Timer:** Po kliknutí na EASY/OK/HARD se automaticky spustí odpočinkový časovač dole na obrazovce (délku lze upravit tlačítky +15s/-15s nebo přeskočit).
 * **1RM Kalkulačka:** Při zadávání váhy/opakování se v rohu ukazuje odhadované maximum.
+* **Nový rekord:** Pokud zvedneš víc než kdy dřív, appka to po uložení tréninku oznámí.
 
 ---
 
@@ -70,7 +101,7 @@ Jakmile jsi v režimu **GYM**, aplikace se stará o matematiku. Ty jen zvedáš.
 
 * **Chytré předvyplnění:** Aplikace si pamatuje, co jsi zvedal minule u daného cviku.
 * **1RM Kalkulačka:** Když zadáš váhu a počet opakování, v rohu kartičky se ihned ukáže *Est. 1RM* (Odhadované maximální zvednutí). Ideální pro kontrolu progresu v reálném čase.
-* **RPE Tlačítka (Autoregulace):** Po sérii klikni na jedno z tlačítek. Tím říkáš algoritmu, jak naložit příště:
+* **RPE Tlačítka (Autoregulace):** Po sérii klikni na jedno z tlačítek. Tím říkáš algoritmu, jak naložit příště, a zároveň si spustíš odpočinkový časovač:
     * 🟢 **EASY:** Váha byla lehká (RPE < 7). Algoritmus příště automaticky přidá váhu (+2.5 kg).
     * 🟡 **OK:** Váha byla akorát (RPE 7-8.5). Váha zůstává stejná.
     * 🔴 **HARD:** Selhání nebo technický limit (RPE 9-10). Váha zůstává, nutná regenerace.
@@ -98,7 +129,7 @@ Sekce **Analýza Výkonu** se nachází na hlavní obrazovce pod checklistem.
 ### 7. Sledování Váhy ⚖️
 Klikni na tlačítko **⚖️ VÁHA** v hlavičce.
 
-* Zadej svou aktuální ranní hmotnost na lačno.
+* Zadej svou aktuální ranní hmotnost na lačno (rozmezí 1–400 kg).
 * Data se ukládají do historie a vykreslují v grafu *Analýza Výkonu -> Tělesná váha*.
 * *Tip:* Važ se pravidelně (např. každé pondělí ráno) pro konzistentní data.
 
@@ -132,8 +163,14 @@ Tlačítko nahoře *"Změna Režimu"*.
 ### 9. Data & Bezpečnost 💾
 * **Export:** *Nastavení -> Systém -> Export*. Stáhne JSON soubor.
 * **Watchdog:** Pokud systém zjistí, že záloha je starší než 7 dní, při startu tě vyzve k uložení.
-* **Import:** Pro přenos na nový telefon.
-* **Wipe:** Smazání všech dat (Hard Reset).
+* **Import:** Pro přenos na nový telefon. Před přepsáním dat appka automaticky uloží zálohu ("Recovery Slot"), kterou lze kdykoliv vzít zpět.
+* **Obnovit zálohu:** Tlačítko v Nastavení → Systém vrátí data do stavu těsně před posledním importem.
+* **Wipe:** Smazání všech dat (Hard Reset) – nevratné, appka na to upozorní.
 
 ---
- 
+
+## 🛠️ Poznámka k nasazení
+
+* Aktuální verze: **v0.6.0** (bump v `config.js` – zajišťuje, že Service Worker stáhne novou verzi místo staré z cache).
+* Soubory `icon-192.png` a `icon-512.png` musí existovat ve stejné složce jako `index.html` (nejsou součástí zdrojového kódu appky, jsou to binární obrázky – nahraď vlastním logem).
+* Appka běží čistě staticky (žádný backend) – stačí nahrát všechny soubory na libovolný HTTPS hosting (Service Worker vyžaduje HTTPS nebo `localhost`).

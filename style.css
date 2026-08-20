@@ -1,18 +1,43 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap');
 
-/* Animations */
+/* =========================================
+   ZÁKLAD
+   ========================================= */
+body { font-family: 'Inter', sans-serif; transition: background-color 0.2s, color 0.2s; }
+.dark body { background-color: #0c0a09; color: #e7e5e4; }
+body:not(.dark) { background-color: #f5f5f4; color: #1c1917; }
+body.modal-active { overflow: hidden; }
+
+/* Viditelný focus ring pro klávesnicovou navigaci (accessibility) - ale ne při kliku myší */
+:focus-visible {
+    outline: 2px solid #DC2626;
+    outline-offset: 2px;
+    border-radius: 2px;
+}
+
+/* =========================================
+   ANIMACE
+   ========================================= */
 @keyframes pulse-red {
     0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4); }
     70% { box-shadow: 0 0 0 6px rgba(220, 38, 38, 0); }
     100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
 }
-#new-ex-noweight:checked + div { background-color: #DC2626; border-color: #DC2626; } #new-ex-noweight:checked ~ .check-icon { display: block; }
+.urgent-pulse { animation: pulse-red 2s infinite; }
 
-.urgent-pulse {
-    animation: pulse-red 2s infinite;
+@keyframes toast-in {
+    from { opacity: 0; transform: translate(-50%, 12px); }
+    to   { opacity: 1; transform: translate(-50%, 0); }
 }
 
-/* Modals */
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+/* =========================================
+   MODALS
+   ========================================= */
 .modal {
     opacity: 0;
     pointer-events: none;
@@ -22,101 +47,152 @@
     opacity: 1;
     pointer-events: auto;
 }
+.modal > div {
+    transition: transform 0.2s ease, opacity 0.2s ease;
+    transform: scale(0.96);
+}
+.modal.active > div {
+    transform: scale(1);
+}
 
-/* Components */
-.chart-container { position: relative; width: 100%; height: 220px; }
+/* =========================================
+   TABS
+   ========================================= */
+.tab-btn {
+    padding: 10px; text-align: center; cursor: pointer; font-size: 0.7rem; font-weight: bold; text-transform: uppercase;
+    border-bottom: 2px solid transparent; color: #78716c; transition: all 0.2s; flex: 1;
+}
+.tab-btn.active { border-bottom-color: #DC2626; color: #DC2626; }
+.dark .tab-btn.active { color: #f87171; border-bottom-color: #f87171; }
+
+/* =========================================
+   FORM ELEMENTS
+   ========================================= */
+.z-input, .z-select {
+    width: 100%; padding: 8px; border-radius: 6px; font-size: 0.85rem;
+    border: 1px solid #d6d3d1; background-color: #ffffff; color: #1c1917; transition: all 0.2s;
+}
+.dark .z-input, .dark .z-select {
+    border-color: #44403c; background-color: #292524; color: #ffffff;
+}
+.z-input:focus, .z-select:focus { outline: none; border-color: #DC2626; box-shadow: 0 0 0 2px rgba(220,38,38,0.15); }
+
+/* Exercise / Supplement editor items */
+.ex-item, .supp-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px; background: rgba(0,0,0,0.05); border-radius: 4px; margin-bottom: 4px;
+    border: 1px solid transparent;
+}
+.dark .ex-item, .dark .supp-item { background: rgba(255,255,255,0.05); }
+
+/* RPE Buttons */
+.rpe-btn {
+    border: 1px solid #d6d3d1; border-radius: 4px; padding: 8px;
+    font-size: 0.75rem; font-weight: bold; background: #e7e5e4; color: #44403c; cursor: pointer;
+    transition: transform 0.1s ease;
+}
+.rpe-btn:active { transform: scale(0.95); }
+.dark .rpe-btn { border-color: #44403c; background: #292524; color: #a8a29e; }
+.rpe-btn.selected-easy { background: #059669 !important; color: #fff !important; border-color: #064e3b !important; }
+.rpe-btn.selected-medium { background: #d97706 !important; color: #fff !important; border-color: #713f12 !important; }
+.rpe-btn.selected-hard { background: #dc2626 !important; color: #fff !important; border-color: #7f1d1d !important; }
 
 .dot { top: -2px; left: -2px; transition: all 0.3s ease-in-out; }
 input:checked ~ .dot { transform: translateX(100%); background-color: #10B981; }
 
-/* Utils pro čistší vzhled UI (Tabulky v reportu atd.) */
+.input-disabled {
+    opacity: 0.3; pointer-events: none; background-color: transparent !important; border: none !important;
+    text-align: center; color: #78716c !important; font-size: 0.7rem; font-weight: bold; letter-spacing: 1px; padding-top: 12px;
+}
+
+.help-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 16px; height: 16px; border-radius: 50%;
+    background-color: #e5e7eb; color: #6b7280; font-size: 9px; font-weight: bold;
+    margin-left: 6px; cursor: pointer; transition: all 0.2s;
+}
+.dark .help-btn { background-color: #292524; color: #a8a29e; border: 1px solid #44403c; }
+.help-btn:hover { background-color: #DC2626; color: white; border-color: #DC2626; }
+
+#new-ex-noweight:checked + div { background-color: #DC2626; border-color: #DC2626; }
+#new-ex-noweight:checked ~ .check-icon { display: block; }
+
+/* =========================================
+   CHARTS / LAYOUT UTILS
+   ========================================= */
+.chart-container {
+    position: relative; width: 100%; height: 220px; max-width: 100%; min-width: 0 !important;
+}
+.chart-container canvas { max-width: 100% !important; width: 100% !important; }
+
 .hide-scrollbar::-webkit-scrollbar { display: none; }
 .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-/* FIX: Ochrana proti přetečení grafů na mobilu (Flexbox vs Chart.js) */
-.chart-container { 
-    position: relative; 
-    width: 100%; 
-    max-width: 100%;
-    min-width: 0 !important; /* Dovolí kontejneru zmenšit se pod šířku obsahu */
-}
-
-.chart-container canvas {
-    max-width: 100% !important;
-    width: 100% !important;
-}
-
 @media (max-width: 640px) {
-    /* U Radar grafu stáhneme na mobilu výšku, aby nenarazil na limit šířky displeje */
-    #reportRadarChart {
-        max-height: 200px !important;
-    }
+    #reportRadarChart { max-height: 200px !important; }
 }
-        
-        body { font-family: 'Inter', sans-serif; transition: background-color 0.2s, color 0.2s; }
-        .dark body { background-color: #0c0a09; color: #e7e5e4; }
-        body:not(.dark) { background-color: #f5f5f4; color: #1c1917; }
 
-        @keyframes pulse-red {
-            0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4); }
-            70% { box-shadow: 0 0 0 6px rgba(220, 38, 38, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
-        }
-        .urgent-pulse { animation: pulse-red 2s infinite; }
-        
-        .chart-container { position: relative; width: 100%; height: 220px; }
-        .modal { transition: opacity 0.2s ease; opacity: 0; pointer-events: none; }
-        .modal.active { opacity: 1; pointer-events: auto; }
-        body.modal-active { overflow: hidden; }
+/* =========================================
+   TOAST (rychlá zpětná vazba dole na obrazovce)
+   ========================================= */
+.zelix-toast {
+    position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+    background: #1c1917; color: #fff; font-size: 0.75rem; font-weight: 700;
+    padding: 10px 18px; border-radius: 999px; box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+    z-index: 800; opacity: 0; pointer-events: none; transition: opacity 0.2s ease;
+    max-width: 90vw; text-align: center; border: 1px solid rgba(255,255,255,0.08);
+}
+.zelix-toast.active { opacity: 1; animation: toast-in 0.25s ease; }
+.zelix-toast.toast-success { background: #059669; }
+.zelix-toast.toast-error { background: #dc2626; }
 
-        /* Tabs */
-        .tab-btn {
-            padding: 10px; text-align: center; cursor: pointer; font-size: 0.7rem; font-weight: bold; text-transform: uppercase;
-            border-bottom: 2px solid transparent; color: #78716c; transition: all 0.2s; flex: 1;
-        }
-        .tab-btn.active { border-bottom-color: #DC2626; color: #DC2626; }
-        .dark .tab-btn.active { color: #f87171; border-bottom-color: #f87171; }
+/* =========================================
+   SW UPDATE BANNER
+   ========================================= */
+.update-toast {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 900;
+    background: #DC2626; color: #fff; font-size: 0.7rem; font-weight: 700;
+    padding: 10px 14px; display: none; align-items: center; justify-content: center; gap: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+}
+.update-toast.active { display: flex; }
+.update-toast button {
+    background: #fff; color: #DC2626; border: none; padding: 6px 12px; border-radius: 6px;
+    font-weight: 800; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.03em; cursor: pointer;
+}
 
-        /* Form Elements */
-        .z-input, .z-select {
-            width: 100%; padding: 8px; border-radius: 6px; font-size: 0.85rem;
-            border: 1px solid #d6d3d1; background-color: #ffffff; color: #1c1917; transition: all 0.2s;
-        }
-        .dark .z-input, .dark .z-select {
-            border-color: #44403c; background-color: #292524; color: #ffffff;
-        }
-        .z-input:focus, .z-select:focus { outline: none; border-color: #DC2626; ring: 1px solid #DC2626; }
+/* =========================================
+   REST TIMER (plovoucí lišta při odpočinku mezi sériemi)
+   ========================================= */
+.rest-timer-bar {
+    position: fixed; left: 50%; bottom: 0; transform: translate(-50%, 100%);
+    width: min(94vw, 420px); background: #1c1917; color: #fff; border-radius: 14px 14px 0 0;
+    box-shadow: 0 -6px 24px rgba(0,0,0,0.35); z-index: 850; overflow: hidden;
+    transition: transform 0.25s ease; border: 1px solid rgba(255,255,255,0.08); border-bottom: none;
+}
+.rest-timer-bar.active { transform: translate(-50%, 0); }
+.rest-timer-fill { height: 3px; background: #DC2626; width: 100%; transition: width 1s linear; }
+.rest-timer-bar.rest-timer-done .rest-timer-fill { background: #10B981; }
+.rest-timer-content {
+    display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+}
+.rest-timer-icon { font-size: 1rem; }
+#rest-timer-label {
+    font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: 1.1rem; flex-grow: 1;
+}
+.rest-timer-actions { display: flex; gap: 6px; }
+.rest-timer-actions button {
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); color: #fff;
+    font-size: 0.6rem; font-weight: 700; padding: 6px 8px; border-radius: 6px; text-transform: uppercase;
+}
+.rest-timer-actions .rest-timer-skip { background: #DC2626; border-color: #DC2626; }
 
-        /* Exercise Editor Item */
-        .ex-item, .supp-item {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 8px; background: rgba(0,0,0,0.05); border-radius: 4px; margin-bottom: 4px;
-            border: 1px solid transparent;
-        }
-        .dark .ex-item, .dark .supp-item { background: rgba(255,255,255,0.05); }
-        
-        /* RPE Buttons */
-        .rpe-btn { 
-            border: 1px solid #d6d3d1; border-radius: 4px; padding: 8px; 
-            font-size: 0.75rem; font-weight: bold; background: #e7e5e4; color: #44403c; cursor: pointer;
-        }
-        .dark .rpe-btn { border-color: #44403c; background: #292524; color: #a8a29e; }
-        .rpe-btn.selected-easy { background: #059669 !important; color: #fff !important; border-color: #064e3b !important; }
-        .rpe-btn.selected-medium { background: #d97706 !important; color: #fff !important; border-color: #713f12 !important; }
-        .rpe-btn.selected-hard { background: #dc2626 !important; color: #fff !important; border-color: #7f1d1d !important; }
-
-        .dot { top: -2px; left: -2px; transition: all 0.3s ease-in-out; }
-        input:checked ~ .dot { transform: translateX(100%); background-color: #10B981; }
-        
-        .input-disabled { opacity: 0.3; pointer-events: none; background-color: transparent !important; border: none !important; text-align: center; color: #78716c !important; font-size: 0.7rem; font-weight: bold; letter-spacing: 1px; padding-top: 12px; }
-        
-        .help-btn {
-            display: inline-flex; align-items: center; justify-content: center;
-            width: 16px; height: 16px; border-radius: 50%;
-            background-color: #e5e7eb; color: #6b7280; font-size: 9px; font-weight: bold;
-            margin-left: 6px; cursor: pointer; transition: all 0.2s;
-        }
-        .dark .help-btn { background-color: #292524; color: #a8a29e; border: 1px solid #44403c; }
-
-        .help-btn:hover { background-color: #DC2626; color: white; border-color: #DC2626; }
-
+/* =========================================
+   SKELETON LOADING (pro pomalejší sítě)
+   ========================================= */
+.skeleton {
+    background: linear-gradient(90deg, rgba(120,113,108,0.15) 25%, rgba(120,113,108,0.3) 37%, rgba(120,113,108,0.15) 63%);
+    background-size: 400% 100%;
+    animation: shimmer 1.4s ease infinite;
+    border-radius: 6px;
+}
