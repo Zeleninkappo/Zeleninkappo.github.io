@@ -1,6 +1,6 @@
 # Zelix – Smart Training & Lifestyle Manager
 
-![Status](https://img.shields.io/badge/Status-Stable%20v0.6.2-red)
+![Status](https://img.shields.io/badge/Status-Stable%20v0.6.3-red)
 ![Platform](https://img.shields.io/badge/Platform-PWA%20%7C%20Mobile-blue)
 ![License](https://img.shields.io/badge/License-MIT-lightgrey)
 
@@ -9,6 +9,12 @@
 > **Motto:** Žádné zbytečnosti, jen čistá data, vibrace a progres.
 
 ---
+
+## 🆕 v0.6.3 – definitivně vyřešeno: `backdrop-filter` byl viník
+
+Potvrzeno testem na reálném zařízení (Galaxy S24 Ultra): odstranění veškerého `backdrop-filter`/blur z celé appky artefakty definitivně odstranilo. Root cause: kombinace GPU-kompozitovaného live blur efektu a 120Hz adaptivní obnovovací frekvence displeje je na Androidu/Chromu dlouhodobě nestabilní (torn/roztržené framy, půlka layoutu, prázdné boxy - přesně vzorky, které jsme viděli). Header i všech 9 modálů teď používá pevné, téměř neprůhledné pozadí místo živého rozostření. Vizuálně appka vypadá jen nepatrně "plošeji", ale je to 100% spolehlivé napříč zařízeními a šetří GPU/baterii, protože compositor nemusí každý snímek přepočítávat blur.
+
+**Poučení pro budoucí vývoj:** na tomhle stacku (Tailwind CDN + PWA na Androidu) se `backdrop-filter` na `position: sticky` nebo `position: fixed` prvcích nedoporučuje vůbec, bez ohledu na to, jak moc je "jen kosmetický". Pokud se v budoucnu bude chtít sklovitý efekt zpátky, řešit ho jako statický (předrenderovaný) gradient/obrázek, ne živý CSS filtr.
 
 ## 🆕 v0.6.2 – opraven skutečný viník: sticky + backdrop-filter na Android Chrome
 
