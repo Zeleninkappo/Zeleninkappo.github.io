@@ -1,6 +1,6 @@
 # Zelix – Smart Training & Lifestyle Manager
 
-![Status](https://img.shields.io/badge/Status-Stable%20v0.6-red)
+![Status](https://img.shields.io/badge/Status-Stable%20v0.6.1-red)
 ![Platform](https://img.shields.io/badge/Platform-PWA%20%7C%20Mobile-blue)
 ![License](https://img.shields.io/badge/License-MIT-lightgrey)
 
@@ -10,7 +10,11 @@
 
 ---
 
-## 🆕 Co je nové v v0.6.0
+## 🆕 v0.6.1 – definitivní fix "rozjetého" layoutu na reálném mobilu
+
+v0.6.0 opravila jen symptom (cachování starého UI). Skutečná příčina – Tailwind CDN generuje CSS až za běhu přes JS a na pomalejším mobilním CPU může proběhnout první vykreslení dřív, než styly stihnou doběhnout – zůstávala. v0.6.1 definuje layoutově kritické třídy (header, action-card, modály) ručně psaným CSS, které se načte synchronně před Tailwindem, takže k závodu (race condition) už nemůže dojít bez ohledu na rychlost zařízení. Detaily a instrukce pro vyčištění WebAPK úložiště viz sekce *Poznámka k nasazení* níže.
+
+## 🆕 Co je nové v v0.6.0 (souhrn)
 
 Tahle verze je kompletní bezpečnostní a spolehlivostní audit + sada nových funkcí nad rámec v0.5.x.
 
@@ -171,6 +175,19 @@ Tlačítko nahoře *"Změna Režimu"*.
 
 ## 🛠️ Poznámka k nasazení
 
-* Aktuální verze: **v0.6.0** (bump v `config.js` – zajišťuje, že Service Worker stáhne novou verzi místo staré z cache).
+* Aktuální verze: **v0.6.1** (bump v `config.js` – zajišťuje, že Service Worker stáhne novou verzi místo staré z cache).
 * Soubory `icon-192.png` a `icon-512.png` musí existovat ve stejné složce jako `index.html` (nejsou součástí zdrojového kódu appky, jsou to binární obrázky – nahraď vlastním logem).
 * Appka běží čistě staticky (žádný backend) – stačí nahrát všechny soubory na libovolný HTTPS hosting (Service Worker vyžaduje HTTPS nebo `localhost`).
+
+### ⚠️ Když appka nainstalovaná na plochu (WebAPK) pořád ukazuje starou/rozbitou verzi
+
+Android u appek přidaných přes "Přidat na plochu" vytváří samostatný **WebAPK** s vlastním úložištěm, oddělený od běžného Chromu. `Nastavení stránky → Vymazat data` uvnitř Chromu **tohle úložiště nemusí vyčistit**. Pokud po nasazení nové verze appka na ploše pořád vypadá při rozjetá:
+
+1. Smaž ikonu appky z plochy (odinstaluj WebAPK).
+2. Android Nastavení → Aplikace → Zelix (pokud tam ještě figuruje) → Úložiště → Vymazat vše.
+3. V Chromu otevři URL appky, `Nastavení stránky → Vymazat data`.
+4. Znovu "Přidat na plochu".
+
+### Proč se to na telefonu chová jinak než v Chrome DevTools na PC
+
+`cdn.tailwindcss.com` generuje CSS **za běhu přes JS** (Tailwind sám v konzoli varuje, že tohle není pro produkci). DevTools "Device Toolbar" na notebooku pořád běží na desktopovém CPU – Tailwind tam vždy stihne doběhnout dřív, než prohlížeč cokoliv vykreslí. Na reálném mobilu (i vlajkovém) může nastat opak: první vykreslení proběhne dřív, než Tailwind stihne dogenerovat styly pro `sticky`/`flex`/`backdrop-blur` header, a Chromium tenhle napůl vykreslený stav "zamrzne". Od v0.6.1 appka definuje layoutově kritické třídy (box model, flexbox, pozice u headeru a modálů) staticky v `<style>` bloku v `<head>`, který se načte synchronně před Tailwindem – Tailwind je pak jen doplní identickými hodnotami, takže vizuálně nic neproskočí a race condition nemůže nastat. Definitivní řešení (lokální build Tailwindu přes CLI místo CDN) zůstává doporučené pro budoucí verzi, viz sekce Architektura.

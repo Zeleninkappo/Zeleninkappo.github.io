@@ -6,21 +6,91 @@
     <title>Zelix App</title>
 
     <!-- Bezpečnost: omezuje odkud smí appka načítat/spouštět kód a kam smí posílat data.
-         Sníží dopad případného XSS (i kdyby escapování v JS selhalo) a chrání proti clickjackingu. -->
+         Sníží dopad případného XSS (i kdyby escapování v JS selhalo) a chrání proti clickjackingu.
+         Pozn.: frame-ancestors se v <meta> tichem ignoruje (prohlížeč to jen zaloguje) - platí
+         opravdu jen přes HTTP hlavičku ze serveru, proto tu záměrně NENÍ (viz README -> nasazení). -->
     <meta http-equiv="Content-Security-Policy" content="
         default-src 'self';
         script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdn.jsdelivr.net;
         style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
         font-src 'self' https://fonts.gstatic.com;
         img-src 'self' data: blob:;
-        connect-src 'self';
+        connect-src 'self' https://cdn.jsdelivr.net;
         base-uri 'self';
         form-action 'self';
-        frame-ancestors 'none';
         object-src 'none';
     ">
     <meta name="referrer" content="no-referrer">
     <meta name="color-scheme" content="light dark">
+
+    <!-- ============================================================
+         KRITICKÉ STRUKTURÁLNÍ CSS - FIX PRO "ROZJETÝ" LAYOUT NA MOBILU
+         ============================================================
+         cdn.tailwindcss.com generuje CSS AŽ ZA BĚHU přes JS (vidět
+         varování v konzoli - Tailwind sám nedoporučuje tohle pro
+         produkci). Na pomalejším mobilním CPU (reálný telefon, ne
+         Chrome DevTools emulace na desktopu, která pořád běží na
+         desktopovém CPU) může nastat první vykreslení DŘÍV, než
+         Tailwind stihne dogenerovat styly pro sticky header - a
+         Chromium pak tenhle "napůl vykreslený" stav u position:sticky
+         + backdrop-filter (vlastní compositing layer) zamrzne.
+         Řešení: definovat layoutově KRITICKÉ třídy (ne barvy/fonty,
+         jen box model, flexbox, pozici) ručně, synchronně, PŘED
+         načtením Tailwind CDN skriptu. Tailwind je pak jen "doplní"
+         identickými hodnotami - žádný vizuální skok, žádná race
+         condition, protože prohlížeč nikdy nevykreslí stav bez nich. -->
+    <style>
+        html, body { width: 100%; max-width: 100vw; overflow-x: hidden; box-sizing: border-box; }
+        *, *::before, *::after { box-sizing: inherit; }
+        body { display: flex; flex-direction: column; min-height: 100vh; }
+        .sticky { position: sticky; }
+        .top-0 { top: 0; }
+        .z-40 { z-index: 40; }
+        .backdrop-blur { backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+        .border-b { border-bottom-width: 1px; border-bottom-style: solid; }
+        .shadow-md { box-shadow: 0 4px 6px -1px rgba(0,0,0,.1), 0 2px 4px -2px rgba(0,0,0,.1); }
+        .max-w-4xl { max-width: 56rem; width: 100%; }
+        .mx-auto { margin-left: auto; margin-right: auto; }
+        .px-4 { padding-left: 1rem; padding-right: 1rem; }
+        .py-3 { padding-top: .75rem; padding-bottom: .75rem; }
+        .flex { display: flex; }
+        .flex-col { flex-direction: column; }
+        .flex-1 { flex: 1 1 0%; min-width: 0; }
+        .flex-grow { flex-grow: 1; min-width: 0; }
+        .justify-between { justify-content: space-between; }
+        .items-center { align-items: center; }
+        .items-start { align-items: flex-start; }
+        .gap-2 { gap: .5rem; }
+        .gap-3 { gap: .75rem; }
+        .mb-3 { margin-bottom: .75rem; }
+        .text-right { text-align: right; }
+        .w-full { width: 100%; }
+        .rounded-lg { border-radius: .5rem; }
+        .p-3 { padding: .75rem; }
+        .border-l-2 { border-left-width: 2px; border-left-style: solid; }
+        .overflow-hidden { overflow: hidden; }
+        .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .transition-colors { transition-property: color, background-color, border-color; }
+        .duration-300 { transition-duration: .3s; }
+        #action-card { box-sizing: border-box; }
+
+        /* Modály - stejná race condition jako header, jen jiné třídy (viz confirm-modal na screenshotu). */
+        .fixed { position: fixed; }
+        .inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
+        .left-0 { left: 0; }
+        .justify-center { justify-content: center; }
+        .h-full { height: 100%; }
+        .w-11\/12 { width: 91.666667%; }
+        .max-w-sm { max-width: 24rem; }
+        .max-w-md { max-width: 28rem; }
+        .max-w-lg { max-width: 32rem; }
+        .max-w-xl { max-width: 36rem; }
+        .max-w-2xl { max-width: 42rem; }
+        .rounded-xl { border-radius: .75rem; }
+        .text-center { text-align: center; }
+        .p-6 { padding: 1.5rem; }
+        .relative { position: relative; }
+    </style>
 
     <!-- Libraries -->
     <script src="https://cdn.tailwindcss.com"></script>
