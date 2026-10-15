@@ -5,7 +5,7 @@
 const Data = {
     DB_KEY: 'ZELIX_DB_V050',           // Beze změny - zachovává kompatibilitu s existujícími daty
     RECOVERY_KEY: 'ZELIX_RECOVERY_SNAPSHOT', // Auto-záloha vytvořená těsně před importem
-    DB_SCHEMA_VERSION: 2,
+    DB_SCHEMA_VERSION: 3,
 
     // 1. KNIHOVNA CVIKŮ (Suroviny)
     library: {
@@ -32,12 +32,14 @@ const Data = {
     // Current State (Database)
     state: {
         version: typeof APP_VERSION !== 'undefined' ? APP_VERSION : '0.0.0',
-        schemaVersion: 2,
+        schemaVersion: 3,
         bodyweight_history: [],
         userNoWeight: [],
         lastBackupDate: new Date().toISOString(),
         user: { name: 'Sportovec', sport: 'Sport', goal: 'hypertrophy' },
-        settings: { theme: 'auto', days: {} },
+        // oneRmFormula: 'epley' | 'brzycki' | 'lombardi' (viz Logic.calc1RM)
+        // plateIncrement: velikost přírůstku váhy při progresi v kg (viz Logic.calcProgression)
+        settings: { theme: 'auto', days: {}, oneRmFormula: 'epley', plateIncrement: 2.5 },
         stack: [],
         forceRest: null,
         supplements: { enabled: true },
@@ -157,6 +159,11 @@ const Data = {
         if (v < 2) {
             if (!Array.isArray(this.state.userNoWeight)) this.state.userNoWeight = [];
             if (!this.state.supplements) this.state.supplements = { enabled: true };
+        }
+        if (v < 3) {
+            if (!this.state.settings) this.state.settings = {};
+            if (!this.state.settings.oneRmFormula) this.state.settings.oneRmFormula = 'epley';
+            if (!(this.state.settings.plateIncrement > 0)) this.state.settings.plateIncrement = 2.5;
         }
         this.state.schemaVersion = this.DB_SCHEMA_VERSION;
     },
@@ -305,6 +312,12 @@ const Data = {
         const suppsEn = document.getElementById('setup-supps-enabled').checked;
         if (!this.state.supplements) this.state.supplements = {};
         this.state.supplements.enabled = suppsEn;
+
+        // 3b. Uložení 1RM vzorce a přírůstku váhy
+        const ormFormulaEl = document.getElementById('setup-onerm-formula');
+        const plateIncEl = document.getElementById('setup-plate-increment');
+        if (ormFormulaEl) this.state.settings.oneRmFormula = ormFormulaEl.value;
+        if (plateIncEl) this.state.settings.plateIncrement = parseFloat(plateIncEl.value) || 2.5;
 
         // 4. Uložení Rozvrhu (Timeline)
         const days = {};

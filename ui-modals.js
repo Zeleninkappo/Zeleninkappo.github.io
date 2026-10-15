@@ -18,6 +18,12 @@ Object.assign(UI, {
         if (Data.state.supplements) {
             document.getElementById('setup-supps-enabled').checked = Data.state.supplements.enabled;
         }
+        if (Data.state.settings) {
+            const ormFormulaEl = document.getElementById('setup-onerm-formula');
+            if (ormFormulaEl) ormFormulaEl.value = Data.state.settings.oneRmFormula || 'epley';
+            const plateIncEl = document.getElementById('setup-plate-increment');
+            if (plateIncEl) plateIncEl.value = Data.state.settings.plateIncrement || 2.5;
+        }
         this.toggleSuppInputs();
         this.renderStackEditor();
         this.renderExerciseEditor();

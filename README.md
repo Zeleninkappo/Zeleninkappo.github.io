@@ -1,6 +1,6 @@
 # Zelix – Smart Training & Lifestyle Manager
 
-![Status](https://img.shields.io/badge/Status-Stable%20v0.7.0-red)
+![Status](https://img.shields.io/badge/Status-Stable%20v0.8.0-red)
 ![Platform](https://img.shields.io/badge/Platform-PWA%20%7C%20Mobile-blue)
 ![License](https://img.shields.io/badge/License-MIT-lightgrey)
 
@@ -9,6 +9,16 @@
 > **Motto:** Žádné zbytečnosti, jen čistá data, vibrace a progres.
 
 ---
+
+## 🆕 v0.8.0 – chytřejší autoregulace: volba 1RM vzorce a detekce plató
+
+**Nastavení -> Systém** má dvě nová pole:
+* **Vzorec 1RM:** Epley (výchozí, beze změny), Brzycki (přesnější pro nižší opakování, cca do 10), nebo Lombardi. Appka si pamatuje volbu, existující data se nemění.
+* **Přírůstek váhy:** appka dřív při EASY vždy přidávala rovných +2.5 kg bez ohledu na to, jaké kotouče v tělocvičně reálně máš. Teď si lze zvolit 1.25 / 2.5 / 5 kg a appka se tím řídí jak při progresi, tak při zaokrouhlování doporučené váhy nahoru.
+
+**Detekce plató (nový deload systém):** appka teď sleduje, kolikrát **v řadě** jsi u daného cviku dostal HARD, aniž bys postoupil. Po **3x HARD po sobě** appka usoudí, že jde o akumulovanou únavu/plató, a místo dalšího bezcílného "držení" stejné váhy navrhne **deload -10 %** (zaokrouhleno na zvolený přírůstek) a resetuje cílová opakování zpět na standard pro tvůj cíl. Po uložení tréninku appka na to upozorní toastem (`📉 Doporučen deload...`). Progres jiného cviku touhle logikou není nijak ovlivněn - počítadlo je per-cvik a resetuje se při jakémkoliv EASY/OK výsledku.
+
+Interně: samotný výpočet (`Logic.calc1RM`, `Logic.calcProgression`) je teď čistá, testovaná funkce bez přístupu k DOM - viz `test/logic.test.js` a sekce *Vývoj*.
 
 ## 🆕 v0.7.0 – kořenová příčina: appka teď jede bez CDN závislostí
 
@@ -95,11 +105,12 @@ Tvůj denní rozvrh se generuje dynamicky každé ráno.
 ### 3. Tréninkový Režim (GYM) 🏋️‍♂️
 * **Logování:** Váhy a opakování se předvyplňují z minulého úspěšného tréninku.
 * **RPE (Hodnocení):**
-    * 🟢 **EASY:** Váha byla lehká -> Příště systém automaticky přidá (+2.5kg / +1.25kg).
+    * 🟢 **EASY:** Váha byla lehká -> Příště systém automaticky přidá přírůstek nastavený v Nastavení -> Systém (výchozí +2.5kg).
     * 🟡 **OK:** Váha akorát -> Zůstává.
     * 🔴 **HARD:** Limit -> Váha zůstává, nutná regenerace.
+    * **📉 Deload (od v0.8.0):** 3x HARD v řadě na stejném cviku bez progrese appka vyhodnotí jako plató a sama navrhne deload (-10 % váhy, reset na cílová opakování) místo dalšího bezcílného držení stejné zátěže. Upozorní tě na to toastem po uložení tréninku.
 * **Rest Timer:** Po kliknutí na EASY/OK/HARD se automaticky spustí odpočinkový časovač dole na obrazovce (délku lze upravit tlačítky +15s/-15s nebo přeskočit).
-* **1RM Kalkulačka:** Při zadávání váhy/opakování se v rohu ukazuje odhadované maximum.
+* **1RM Kalkulačka:** Při zadávání váhy/opakování se v rohu ukazuje odhadované maximum podle vzorce zvoleného v Nastavení -> Systém (Epley/Brzycki/Lombardi).
 * **Nový rekord:** Pokud zvedneš víc než kdy dřív, appka to po uložení tréninku oznámí.
 
 ---

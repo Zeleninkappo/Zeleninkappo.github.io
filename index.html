@@ -170,6 +170,25 @@
                         <button id="btn-install-app" onclick="UI.installApp()" class="hidden w-full mt-2 py-2 bg-stone-900 dark:bg-white text-white dark:text-stone-900 font-bold text-[10px] rounded uppercase">📲 Nainstalovat na plochu</button>
                     </div>
 
+                    <div class="bg-stone-50 dark:bg-stone-900 p-3 rounded border border-stone-200 dark:border-stone-800 grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-[10px] font-bold block mb-2 uppercase opacity-60" for="setup-onerm-formula">Vzorec 1RM</label>
+                            <select id="setup-onerm-formula" class="z-select">
+                                <option value="epley">Epley</option>
+                                <option value="brzycki">Brzycki</option>
+                                <option value="lombardi">Lombardi</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold block mb-2 uppercase opacity-60" for="setup-plate-increment">Přírůstek váhy</label>
+                            <select id="setup-plate-increment" class="z-select">
+                                <option value="1.25">1.25 kg</option>
+                                <option value="2.5">2.5 kg</option>
+                                <option value="5">5 kg</option>
+                            </select>
+                        </div>
+                    </div>
+
                     <div class="bg-stone-50 dark:bg-stone-900 p-3 rounded border border-stone-200 dark:border-stone-800">
                         <div class="flex justify-between items-center">
                             <label class="text-[10px] font-bold uppercase opacity-60">Využité úložiště</label>
