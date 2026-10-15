@@ -1,0 +1,22 @@
+{
+  "name": "zelix",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Zelix - Smart Training & Lifestyle Manager (static PWA, no backend)",
+  "scripts": {
+    "build:css": "tailwindcss -i ./src/tailwind-input.css -o ./tailwind.css --minify",
+    "watch:css": "tailwindcss -i ./src/tailwind-input.css -o ./tailwind.css --watch",
+    "copy:vendor": "node scripts/copy-vendor.js",
+    "build": "npm run copy:vendor && npm run build:css",
+    "test": "node --test test/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Zeleninkappo/Zeleninkappo.github.io.git"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "chart.js": "^4.4.7",
+    "tailwindcss": "^3.4.17"
+  }
+}

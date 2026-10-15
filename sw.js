@@ -4,12 +4,15 @@ const CACHE_STATIC = `zelix-static-v${APP_VERSION}`;
 const CACHE_RUNTIME = `zelix-runtime-v${APP_VERSION}`;
 const CURRENT_CACHES = [CACHE_STATIC, CACHE_RUNTIME];
 
-// Jen lokální assety (cross-origin CDN necachujeme přes addAll - opaque
-// response by mohl shodit celou instalaci; prohlížeč si CDN cachuje sám přes HTTP cache).
+// Od v0.7.0 appka nemá žádné cross-origin CDN závislosti (Tailwind i Chart.js
+// jsou lokální vendor soubory), takže celý shell lze bezpečně cachovat přes
+// addAll - žádné riziko opaque response, co by shodila celou instalaci.
 const APP_SHELL = [
     './',
     './index.html',
+    './tailwind.css',
     './style.css',
+    './vendor/chart.umd.js',
     './config.js',
     './utils.js',
     './data.js',

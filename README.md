@@ -1,6 +1,6 @@
 # Zelix – Smart Training & Lifestyle Manager
 
-![Status](https://img.shields.io/badge/Status-Stable%20v0.6.3-red)
+![Status](https://img.shields.io/badge/Status-Stable%20v0.7.0-red)
 ![Platform](https://img.shields.io/badge/Platform-PWA%20%7C%20Mobile-blue)
 ![License](https://img.shields.io/badge/License-MIT-lightgrey)
 
@@ -9,6 +9,19 @@
 > **Motto:** Žádné zbytečnosti, jen čistá data, vibrace a progres.
 
 ---
+
+## 🆕 v0.7.0 – kořenová příčina: appka teď jede bez CDN závislostí
+
+Celá série oprav v0.6.0–v0.6.3 (viz níže) řešila **symptomy** jednoho a toho samého problému: `cdn.tailwindcss.com` generuje CSS až za běhu v prohlížeči, takže appka byla závislá na tom, jak rychle Tailwind doběhne dřív, než prohlížeč stihne první vykreslení. v0.6.1 to obešla ručním duplikátem kritických tříd, v0.6.2/v0.6.3 řešily navazující GPU-compositing symptomy na position:sticky/backdrop-filter.
+
+v0.7.0 místo obcházení symptomu odstraňuje příčinu: **Tailwind i Chart.js se teď buildují/kopírují lokálně** (`npm run build`) a appka je načítá jako statické soubory (`tailwind.css`, `vendor/chart.umd.js`), stejně jako kterýkoliv jiný CSS/JS soubor – synchronně, bez JS generování za běhu. Díky tomu:
+
+* Odpadl celý ruční duplikát ~60 Tailwind tříd v `<head>` appky (žádná race condition, protože neexistuje nic, s čím by appka mohla závodit).
+* Appka už nemá žádnou síťovou závislost na cizích CDN (`cdn.tailwindcss.com`, `cdn.jsdelivr.net`) – rychlejší první načtení, menší plocha pro výpadek CDN, a Service Worker teď může bezpečně cachovat kompletní shell přes `addAll` (dřív to bylo záměrně vynechané kvůli riziku opaque response z cizí domény).
+* CSP hlavička je užší – `script-src`/`connect-src` už nepotřebují žádné externí hosty.
+* `.zelix-sticky-header`/`.zelix-header-bg` (fix GPU-compositing bugu z v0.6.2/v0.6.3, nesouvisí s Tailwind CDN) zůstávají beze změny funkčnosti, jen přesunuté z `<head>` do `style.css`, kam vždy patřily jako custom třídy.
+
+**Pro vývoj:** `npm install`, pak `npm run build` (nebo `npm run watch:css` při úpravě tříd) před commitem/nasazením – viz sekce *Vývoj* níže. Vygenerovaný `tailwind.css` a `vendor/chart.umd.js` se commitují do repa, appka je čistě statická a GitHub Pages nemá žádný CI build krok.
 
 ## 🆕 v0.6.3 – definitivně vyřešeno: `backdrop-filter` byl viník
 
@@ -183,9 +196,24 @@ Tlačítko nahoře *"Změna Režimu"*.
 
 ---
 
+## 🧰 Vývoj
+
+Appka je čistě statická (žádný backend, žádný bundler, žádný CI build) – Tailwind a Chart.js se ale od v0.7.0 buildují/kopírují lokálně a výsledek se **commituje do repa**, aby GitHub Pages nemusel nic sestavovat.
+
+```bash
+npm install          # jednorázově – stáhne tailwindcss (dev) a chart.js
+npm run build         # vygeneruje tailwind.css + zkopíruje vendor/chart.umd.js
+npm run watch:css      # živě přegeneruje tailwind.css při úpravě tříd v index.html/*.js
+```
+
+Po jakékoliv změně Tailwind tříd (v `index.html`, `ui.js` apod.) spusť `npm run build:css` a commitni aktualizovaný `tailwind.css` – appka ho načítá jako statický soubor, ne za běhu. `tailwind.config.js` definuje `content` scan (`index.html`, `*.js`) a stejnou barevnou/font paletu jako dřív v CDN configu.
+
+`npm run test` spouští unit testy (`node --test test/`) nad čistou logikou v `logic.js` (RPE autoregulace, 1RM, streak engine, generátor plánu) – bez DOM, bez prohlížeče.
+
 ## 🛠️ Poznámka k nasazení
 
-* Aktuální verze: **v0.6.1** (bump v `config.js` – zajišťuje, že Service Worker stáhne novou verzi místo staré z cache).
+* Aktuální verze appky: viz `config.js` → `APP_VERSION` (bump při každém nasazení – zajišťuje, že Service Worker stáhne novou verzi místo staré z cache).
+* Před nasazením spusť `npm run build` a commitni `tailwind.css` + `vendor/` – appka je sestavená staticky, žádný build krok na serveru neběží.
 * Soubory `icon-192.png` a `icon-512.png` musí existovat ve stejné složce jako `index.html` (nejsou součástí zdrojového kódu appky, jsou to binární obrázky – nahraď vlastním logem).
 * Appka běží čistě staticky (žádný backend) – stačí nahrát všechny soubory na libovolný HTTPS hosting (Service Worker vyžaduje HTTPS nebo `localhost`).
 
@@ -198,6 +226,8 @@ Android u appek přidaných přes "Přidat na plochu" vytváří samostatný **W
 3. V Chromu otevři URL appky, `Nastavení stránky → Vymazat data`.
 4. Znovu "Přidat na plochu".
 
-### Proč se to na telefonu chová jinak než v Chrome DevTools na PC
+### Proč se to na telefonu chovalo jinak než v Chrome DevTools na PC (historie, vyřešeno v0.7.0)
 
-`cdn.tailwindcss.com` generuje CSS **za běhu přes JS** (Tailwind sám v konzoli varuje, že tohle není pro produkci). DevTools "Device Toolbar" na notebooku pořád běží na desktopovém CPU – Tailwind tam vždy stihne doběhnout dřív, než prohlížeč cokoliv vykreslí. Na reálném mobilu (i vlajkovém) může nastat opak: první vykreslení proběhne dřív, než Tailwind stihne dogenerovat styly pro `sticky`/`flex`/`backdrop-blur` header, a Chromium tenhle napůl vykreslený stav "zamrzne". Od v0.6.1 appka definuje layoutově kritické třídy (box model, flexbox, pozice u headeru a modálů) staticky v `<style>` bloku v `<head>`, který se načte synchronně před Tailwindem – Tailwind je pak jen doplní identickými hodnotami, takže vizuálně nic neproskočí a race condition nemůže nastat. Definitivní řešení (lokální build Tailwindu přes CLI místo CDN) zůstává doporučené pro budoucí verzi, viz sekce Architektura.
+> Appka od v0.7.0 nepoužívá `cdn.tailwindcss.com` – Tailwind je předbuildovaný lokálně (viz sekce *Vývoj*), takže tenhle celý problém se netýká aktuální verze. Sekce zůstává jako záznam, proč appka kdysi vypadala na mobilu jinak než v DevTools, a proč runtime CDN generování CSS nebyl dobrý nápad.
+
+`cdn.tailwindcss.com` generovalo CSS **za běhu přes JS** (Tailwind sám v konzoli varuje, že tohle není pro produkci). DevTools "Device Toolbar" na notebooku pořád běží na desktopovém CPU – Tailwind tam vždy stihne doběhnout dřív, než prohlížeč cokoliv vykreslí. Na reálném mobilu (i vlajkovém) může nastat opak: první vykreslení proběhne dřív, než Tailwind stihne dogenerovat styly pro `sticky`/`flex`/`backdrop-blur` header, a Chromium tenhle napůl vykreslený stav "zamrzne". Od v0.6.1 appka definuje layoutově kritické třídy (box model, flexbox, pozice u headeru a modálů) staticky v `<style>` bloku v `<head>`, který se načte synchronně před Tailwindem – Tailwind je pak jen doplní identickými hodnotami, takže vizuálně nic neproskočí a race condition nemůže nastat. Definitivní řešení (lokální build Tailwindu přes CLI místo CDN) zůstává doporučené pro budoucí verzi, viz sekce Architektura.
