@@ -566,12 +566,21 @@
 
     <div id="session-delete-modal" class="modal fixed w-full h-full top-0 left-0 flex items-center justify-center z-[280] bg-black/95 opacity-0 pointer-events-none" role="alertdialog" aria-modal="true" aria-label="Smazat trénink"><div class="w-11/12 max-w-sm bg-white dark:bg-panel p-6 rounded-xl text-center border border-red-500 shadow-2xl"><h2 class="text-xl font-bold mb-4 uppercase text-red-600">Smazat trénink?</h2><p id="del-session-date" class="text-sm opacity-70 mb-6 font-mono font-bold">...</p><div class="flex gap-2"><button onclick="UI.closeSessionDeleteModal()" class="flex-1 py-3 bg-stone-200 dark:bg-stone-800 rounded text-xs font-bold uppercase">Zpět</button><button onclick="Logic.executeSessionDelete()" class="flex-1 py-3 bg-red-600 text-white rounded text-xs font-bold uppercase">Smazat</button></div></div></div>
 
-    <!-- LOAD SCRIPTS (pořadí je závazné: utils musí být první, na Utils spoléhají všechny ostatní moduly) -->
+    <!-- LOAD SCRIPTS (pořadí je závazné: utils musí být první, na Utils spoléhají všechny ostatní moduly;
+         ui-core.js musí být první z ui-*.js souborů, viz komentář níže) -->
     <script src="config.js"></script>
     <script src="utils.js"></script>
     <script src="data.js"></script>
     <script src="logic.js"></script>
-    <script src="ui.js"></script>
+    <!-- ui-core.js musí být první z UI modulů - deklaruje `const UI = {...}`,
+         ostatní ui-*.js na něj navazují přes Object.assign(UI, {...}). -->
+    <script src="ui-core.js"></script>
+    <script src="ui-onboarding.js"></script>
+    <script src="ui-modals.js"></script>
+    <script src="ui-settings.js"></script>
+    <script src="ui-workout.js"></script>
+    <script src="ui-report.js"></script>
+    <script src="ui-history.js"></script>
     <script>
         window.onload = function() {
             Data.init();

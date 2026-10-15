@@ -17,7 +17,13 @@ const APP_SHELL = [
     './utils.js',
     './data.js',
     './logic.js',
-    './ui.js',
+    './ui-core.js',
+    './ui-onboarding.js',
+    './ui-modals.js',
+    './ui-settings.js',
+    './ui-workout.js',
+    './ui-report.js',
+    './ui-history.js',
     './manifest.json',
     './offline.html'
 ];

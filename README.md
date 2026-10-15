@@ -206,9 +206,24 @@ npm run build         # vygeneruje tailwind.css + zkopíruje vendor/chart.umd.js
 npm run watch:css      # živě přegeneruje tailwind.css při úpravě tříd v index.html/*.js
 ```
 
-Po jakékoliv změně Tailwind tříd (v `index.html`, `ui.js` apod.) spusť `npm run build:css` a commitni aktualizovaný `tailwind.css` – appka ho načítá jako statický soubor, ne za běhu. `tailwind.config.js` definuje `content` scan (`index.html`, `*.js`) a stejnou barevnou/font paletu jako dřív v CDN configu.
+Po jakékoliv změně Tailwind tříd (v `index.html`, `ui-*.js` apod.) spusť `npm run build:css` a commitni aktualizovaný `tailwind.css` – appka ho načítá jako statický soubor, ne za běhu. `tailwind.config.js` definuje `content` scan (`index.html`, `*.js`) a stejnou barevnou/font paletu jako dřív v CDN configu.
 
 `npm run test` spouští unit testy (`node --test test/`) nad čistou logikou v `logic.js` (RPE autoregulace, 1RM, streak engine, generátor plánu) – bez DOM, bez prohlížeče.
+
+**Struktura souborů:**
+
+| Soubor | Co obsahuje |
+|---|---|
+| `config.js`, `utils.js`, `data.js`, `logic.js` | verze appky, helpery, datový model/stav, business logika (bez DOM) |
+| `ui-core.js` | deklaruje `const UI = {...}` – app shell, dashboard, motiv, toasty, live čas, hlavní graf. **Musí se načíst první** ze všech `ui-*.js`. |
+| `ui-onboarding.js` | onboarding wizard + „Nový plán" regenerace |
+| `ui-modals.js` | obecné modály (Nastavení taby, confirm/alert, váha, wipe, success) |
+| `ui-settings.js` | editor rozvrhu, suplementů (Stack) a cviků (Tuning) |
+| `ui-workout.js` | GYM log modál + rest timer |
+| `ui-report.js` | Report modál (Analýza výkonu, radar graf, markdown) |
+| `ui-history.js` | LOG modál, editace historie, mazání tréninku |
+
+Ostatní `ui-*.js` soubory volají `Object.assign(UI, {...})`, takže rozšiřují stejný globální `UI` objekt – pořadí v `index.html` je proto závazné (`ui-core.js` první).
 
 ## 🛠️ Poznámka k nasazení
 
@@ -230,4 +245,4 @@ Android u appek přidaných přes "Přidat na plochu" vytváří samostatný **W
 
 > Appka od v0.7.0 nepoužívá `cdn.tailwindcss.com` – Tailwind je předbuildovaný lokálně (viz sekce *Vývoj*), takže tenhle celý problém se netýká aktuální verze. Sekce zůstává jako záznam, proč appka kdysi vypadala na mobilu jinak než v DevTools, a proč runtime CDN generování CSS nebyl dobrý nápad.
 
-`cdn.tailwindcss.com` generovalo CSS **za běhu přes JS** (Tailwind sám v konzoli varuje, že tohle není pro produkci). DevTools "Device Toolbar" na notebooku pořád běží na desktopovém CPU – Tailwind tam vždy stihne doběhnout dřív, než prohlížeč cokoliv vykreslí. Na reálném mobilu (i vlajkovém) může nastat opak: první vykreslení proběhne dřív, než Tailwind stihne dogenerovat styly pro `sticky`/`flex`/`backdrop-blur` header, a Chromium tenhle napůl vykreslený stav "zamrzne". Od v0.6.1 appka definuje layoutově kritické třídy (box model, flexbox, pozice u headeru a modálů) staticky v `<style>` bloku v `<head>`, který se načte synchronně před Tailwindem – Tailwind je pak jen doplní identickými hodnotami, takže vizuálně nic neproskočí a race condition nemůže nastat. Definitivní řešení (lokální build Tailwindu přes CLI místo CDN) zůstává doporučené pro budoucí verzi, viz sekce Architektura.
+`cdn.tailwindcss.com` generovalo CSS **za běhu přes JS** (Tailwind sám v konzoli varuje, že tohle není pro produkci). DevTools "Device Toolbar" na notebooku pořád běží na desktopovém CPU – Tailwind tam vždy stihne doběhnout dřív, než prohlížeč cokoliv vykreslí. Na reálném mobilu (i vlajkovém) může nastat opak: první vykreslení proběhne dřív, než Tailwind stihne dogenerovat styly pro `sticky`/`flex`/`backdrop-blur` header, a Chromium tenhle napůl vykreslený stav "zamrzne". Od v0.6.1 appka definuje layoutově kritické třídy (box model, flexbox, pozice u headeru a modálů) staticky v `<style>` bloku v `<head>`, který se načte synchronně před Tailwindem – Tailwind je pak jen doplní identickými hodnotami, takže vizuálně nic neproskočí a race condition nemůže nastat. Definitivní řešení (lokální build Tailwindu přes CLI místo CDN) bylo zavedeno v v0.7.0, viz sekce *Vývoj* výše.
