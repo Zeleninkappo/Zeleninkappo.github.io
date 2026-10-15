@@ -208,7 +208,7 @@ npm run watch:css      # živě přegeneruje tailwind.css při úpravě tříd v
 
 Po jakékoliv změně Tailwind tříd (v `index.html`, `ui-*.js` apod.) spusť `npm run build:css` a commitni aktualizovaný `tailwind.css` – appka ho načítá jako statický soubor, ne za běhu. `tailwind.config.js` definuje `content` scan (`index.html`, `*.js`) a stejnou barevnou/font paletu jako dřív v CDN configu.
 
-`npm run test` spouští unit testy (`node --test test/`) nad čistou logikou v `logic.js` (RPE autoregulace, 1RM, streak engine, generátor plánu) – bez DOM, bez prohlížeče.
+`npm run test` spouští unit testy (`node --test`, vestavěný Node test runner – žádná další závislost) nad čistou logikou v `logic.js`/`data.js`/`utils.js` (RPE autoregulace, 1RM kalkulačka, streak engine, generátor plánu, escapeHtml) – appka samotná (`.js` soubory bez module systému, globály jako `Data`/`Logic`/`UI`) se v `test/helpers/load-app.js` natáhne přes Node `vm` sandbox s minimálním `localStorage`/`document` stubem, takže testy neběží v prohlížeči ani nepotřebují žádný bundler.
 
 **Struktura souborů:**
 

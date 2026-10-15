@@ -405,6 +405,49 @@ const Logic = {
         this.update1RM(i);
     },
 
+    // Epley formula - odhad 1RM z (kg, opakování). Čistá funkce, pokrytá
+    // testy v test/logic.test.js (žádný DOM přístup).
+    calc1RM: function (kg, reps) {
+        if (!(kg > 0) || !(reps > 0)) return 0;
+        return Math.round(kg * (1 + reps / 30));
+    },
+
+    // RPE autoregulace (EASY/OK/HARD) - čistá funkce, pokrytá testy v
+    // test/logic.test.js. targetReps = cílové opakování pro aktuální
+    // tréninkový cíl (Data.strategies[goal].reps). Cviky bez závaží
+    // (isNoWeight) se vahou nikdy neupravují.
+    calcProgression: function (kg, reps, rpe, targetReps, isNoWeight) {
+        const extraRepsNeeded = Math.max(1, Math.round(targetReps * 0.2));
+        const progressionThreshold = targetReps + extraRepsNeeded;
+
+        let nextKg = kg;
+        let nextReps = reps;
+
+        if (!isNoWeight) {
+            if (rpe === 'easy') {
+                if (reps >= progressionThreshold) {
+                    nextKg += 2.5;
+                    nextReps = targetReps;
+                } else {
+                    nextKg = kg;
+                    nextReps = reps + 1;
+                }
+            }
+            else if (rpe === 'medium') {
+                nextKg = kg;
+                nextReps = reps;
+            }
+            else if (rpe === 'hard') {
+                nextKg = kg;
+                nextReps = Math.max(reps - 1, targetReps - extraRepsNeeded);
+            }
+
+            nextKg = Math.ceil(nextKg / 2.5) * 2.5;
+        }
+
+        return { nextKg, nextReps };
+    },
+
     update1RM: function (i) {
         const kgInput = document.getElementById(`kg-${i}`);
         const repsInput = document.getElementById(`reps-${i}`);
@@ -413,14 +456,10 @@ const Logic = {
 
         const kg = parseFloat(kgInput.value) || 0;
         const reps = parseFloat(repsInput.value) || 0;
+        const oneRm = this.calc1RM(kg, reps);
 
-        if (kg > 0 && reps > 0) {
-            const oneRm = Math.round(kg * (1 + reps / 30));
-            if (reps > 1) {
-                el.innerText = `Est. 1RM: ${oneRm}kg`;
-            } else {
-                el.innerText = '';
-            }
+        if (oneRm > 0 && reps > 1) {
+            el.innerText = `Est. 1RM: ${oneRm}kg`;
         } else {
             el.innerText = '';
         }
@@ -476,35 +515,9 @@ const Logic = {
                 const currentGoal = Data.state.user.goal || 'hypertrophy';
                 const strategy = Data.strategies[currentGoal] || { reps: 10 };
                 const targetReps = strategy.reps;
-
-                const extraRepsNeeded = Math.max(1, Math.round(targetReps * 0.2));
-                const progressionThreshold = targetReps + extraRepsNeeded;
-
-                let nextKg = kg;
-                let nextReps = r;
                 const rpe = this.tempActiveRPEs[ex] || 'medium';
 
-                if (!isNoWeight) {
-                    if (rpe === 'easy') {
-                        if (r >= progressionThreshold) {
-                            nextKg += 2.5;
-                            nextReps = targetReps;
-                        } else {
-                            nextKg = kg;
-                            nextReps = r + 1;
-                        }
-                    }
-                    else if (rpe === 'medium') {
-                        nextKg = kg;
-                        nextReps = r;
-                    }
-                    else if (rpe === 'hard') {
-                        nextKg = kg;
-                        nextReps = Math.max(r - 1, targetReps - extraRepsNeeded);
-                    }
-
-                    nextKg = Math.ceil(nextKg / 2.5) * 2.5;
-                }
+                const { nextKg, nextReps } = this.calcProgression(kg, r, rpe, targetReps, isNoWeight);
 
                 // NOVÝ OSOBNÍ REKORD? Porovnáme proti dosavadnímu maximu napříč celou historií (ne jen exercise_stats,
                 // protože ten se u PR pokusů (r<=2) nepřepisuje - viz isPR níže).

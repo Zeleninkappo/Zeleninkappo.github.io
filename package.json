@@ -8,7 +8,7 @@
     "watch:css": "tailwindcss -i ./src/tailwind-input.css -o ./tailwind.css --watch",
     "copy:vendor": "node scripts/copy-vendor.js",
     "build": "npm run copy:vendor && npm run build:css",
-    "test": "node --test test/"
+    "test": "node --test"
   },
   "repository": {
     "type": "git",
