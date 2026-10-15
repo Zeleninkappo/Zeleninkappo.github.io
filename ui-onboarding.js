@@ -14,14 +14,42 @@ Object.assign(UI, {
         UI.vibrate(20);
     },
 
+    // Vícenásobný výběr (vybavení/omezení) - na rozdíl od selectGoal (jen
+    // jedna volba) tu appka jen přepne .selected na kliknutém chipu, finální
+    // výběr se čte přímo z DOM (querySelectorAll '.selected') v
+    // finishOnboarding, žádný duplicitní JS stav.
+    toggleChip: function (group, value, btn) {
+        btn.classList.toggle('selected');
+        UI.vibrate(15);
+    },
+
+    // Při vstupu do kroku vybavení/omezení appka přednastaví chipy podle
+    // toho, co má uživatel už uložené (relevantní hlavně pro "Nový Plán"
+    // regen wizard - nový uživatel má defaultně "mám všechno" = stejný stav,
+    // jaký má HTML samo o sobě).
+    populateChipsFromState: function () {
+        const equipment = (Data.state.user && Array.isArray(Data.state.user.equipment) && Data.state.user.equipment.length > 0)
+            ? Data.state.user.equipment : Data.ALL_EQUIPMENT;
+        const injuries = (Data.state.user && Array.isArray(Data.state.user.injuries)) ? Data.state.user.injuries : [];
+        document.querySelectorAll('#ob-equipment-chips .chip-btn').forEach(b => {
+            b.classList.toggle('selected', equipment.includes(b.dataset.value));
+        });
+        document.querySelectorAll('#ob-injury-chips .chip-btn').forEach(b => {
+            b.classList.toggle('selected', injuries.includes(b.dataset.value));
+        });
+    },
+
     nextOnboardingStep: function (targetStep) {
         if (targetStep === 2) {
             const name = document.getElementById('ob-name').value.trim();
             if (!name) { UI.vibrate([50, 50]); return; }
             Data.state.user.name = name.slice(0, 40);
         }
+        if (targetStep === 3) {
+            this.populateChipsFromState();
+        }
 
-        const progress = (targetStep / 4) * 100;
+        const progress = (targetStep / 5) * 100;
         document.getElementById('ob-progress').style.width = `${progress}%`;
 
         const current = document.querySelector('.step-content:not(.hidden)');
@@ -43,6 +71,13 @@ Object.assign(UI, {
         const prBench = Utils.clamp(parseFloat(document.getElementById('ob-pr-bench').value) || 0, 0, 500);
         const prSquat = Utils.clamp(parseFloat(document.getElementById('ob-pr-squat').value) || 0, 0, 500);
         const prDL = Utils.clamp(parseFloat(document.getElementById('ob-pr-dl').value) || 0, 0, 500);
+        const bodyweight = Utils.clamp(parseFloat(document.getElementById('ob-bodyweight').value) || 0, 0, 400);
+
+        const equipment = Array.from(document.querySelectorAll('#ob-equipment-chips .chip-btn.selected')).map(b => b.dataset.value);
+        const injuries = Array.from(document.querySelectorAll('#ob-injury-chips .chip-btn.selected')).map(b => b.dataset.value);
+        Data.state.user.equipment = equipment.length > 0 ? equipment : [...Data.ALL_EQUIPMENT];
+        Data.state.user.injuries = injuries;
+        Data.state.user.level = Logic.estimateLevel(bodyweight, { bench: prBench, squat: prSquat, deadlift: prDL });
 
         const scheduleMap = Data.generateProgram(goal, daysCount);
 
@@ -58,6 +93,13 @@ Object.assign(UI, {
         if (!Data.state.settings) Data.state.settings = {};
         Data.state.settings.days = days;
         Data.state.user.goal = goal;
+
+        if (bodyweight > 0) {
+            const today = new Date().toISOString().split('T')[0];
+            if (!Data.state.bodyweight_history) Data.state.bodyweight_history = [];
+            Data.state.bodyweight_history = Data.state.bodyweight_history.filter(x => x.date !== today);
+            Data.state.bodyweight_history.push({ date: today, kg: bodyweight });
+        }
 
         if (prBench > 0 || prSquat > 0 || prDL > 0) {
             const prLog = [];
@@ -89,10 +131,15 @@ Object.assign(UI, {
 
         UI.vibrate([100, 50, 100, 50, 200]);
 
+        const levelLabels = { novice: 'Začátečník', intermediate: 'Pokročilý', advanced: 'Expert' };
+        const levelLine = Data.state.user.level
+            ? `<br>Odhadovaná úroveň: <span class="text-primary font-black">${levelLabels[Data.state.user.level]}</span> (podle toho appka doladila tempo progrese)`
+            : '';
+
         setTimeout(() => {
             this.openSuccessModal(
                 `Vítej v týmu, ${Utils.escapeHtml(Data.state.user.name)}`,
-                `Režim: <span class="text-primary font-black">${Utils.escapeHtml(goal.toUpperCase())}</span><br><br>Tvůj tréninkový plán byl vygenerován a kalibrován podle zadaných dat.<br><br>Hodně štěstí.`
+                `Režim: <span class="text-primary font-black">${Utils.escapeHtml(goal.toUpperCase())}</span>${levelLine}<br><br>Tvůj tréninkový plán byl vygenerován a kalibrován podle zadaných dat.<br><br>Hodně štěstí.`
             );
         }, 500);
     },
@@ -106,7 +153,7 @@ Object.assign(UI, {
         const step2 = document.getElementById('ob-step-2');
         step2.classList.remove('hidden', 'opacity-0', 'translate-x-10');
 
-        document.getElementById('ob-progress').style.width = '50%';
+        document.getElementById('ob-progress').style.width = '40%'; // krok 2 z 5
 
         modal.classList.add('active');
     },

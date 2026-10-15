@@ -41,6 +41,17 @@ body.modal-active { overflow: hidden; }
 }
 
 /* =========================================
+   ONBOARDING CHIPS (vybavení / omezení - vícenásobný výběr)
+   ========================================= */
+.chip-btn {
+    padding: 10px 6px; border-radius: 10px; font-size: 0.7rem; font-weight: 700; text-align: center;
+    border: 1px solid #d6d3d1; background: #fafaf9; color: #78716c; cursor: pointer; transition: all .15s ease;
+}
+.dark .chip-btn { border-color: #44403c; background: #1c1917; color: #a8a29e; }
+.chip-btn.selected { border-color: #DC2626; background: rgba(220, 38, 38, 0.08); color: #DC2626; }
+.dark .chip-btn.selected { border-color: #f87171; background: rgba(248, 113, 113, 0.1); color: #f87171; }
+
+/* =========================================
    ANIMACE
    ========================================= */
 @keyframes pulse-red {

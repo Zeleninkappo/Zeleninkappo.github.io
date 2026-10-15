@@ -1,6 +1,6 @@
 # Zelix – Smart Training & Lifestyle Manager
 
-![Status](https://img.shields.io/badge/Status-Stable%20v0.8.0-red)
+![Status](https://img.shields.io/badge/Status-Stable%20v0.9.0-red)
 ![Platform](https://img.shields.io/badge/Platform-PWA%20%7C%20Mobile-blue)
 ![License](https://img.shields.io/badge/License-MIT-lightgrey)
 
@@ -9,6 +9,15 @@
 > **Motto:** Žádné zbytečnosti, jen čistá data, vibrace a progres.
 
 ---
+
+## 🆕 v0.9.0 – generátor plánu teď myslí na vybavení, zranění a tvou úroveň
+
+Onboarding (a "⚡ Nový Plán" regenerace) má dva nové kroky:
+
+* **Vybavení & Omezení:** vyber, co máš k dispozici (osa, činky, stroje, kladka, kettlebell, vlastní váha) a jestli máš nějaké citlivé místo (rameno/koleno/záda/zápěstí/loket). Výchozí stav je "mám všechno, nic mě netrápí" - appka nic nefiltruje, dokud sám něco neodškrtneš/nezaškrtneš. Generátor plánu (`Data.buildSession`) pak cviky vybírá jen z toho, co projde oběma filtry - a pokud by kombinace vybavení+omezení vyprázdnila celou kategorii (typicky "nohy" - každý dřep nějak zatíží koleno), appka upřednostní **bezpečnost před pohodlím**: radši nabídne cvik, na který nemáš ideální vybavení, než cvik, co by mohl rozbolet zraněné místo.
+* **Tělesná váha + 1RM kalibrace:** appka teď z poměru (Bench+Squat+Deadlift) / tělesná váha odhadne tvou úroveň (Začátečník / Pokročilý / Expert) - běžně používaný powerliftingový benchmark, ne lékařský nástroj. Úroveň pak mění, jak snadno appka uzná EASY jako "čas přidat váhu": začátečník postupuje skoro každý trénink (klasická lineární progrese), expert musí nejdřív "vydolovat" víc opakování v rezervě, než mu appka přidá zátěž. Zadaná tělesná váha se rovnou uloží i do grafu *Analýza Výkonu -> Tělesná váha*, nemusíš ji zadávat znovu.
+
+Omezení: vybavení/zranění/úroveň se teď dají nastavit jen přes onboarding nebo "Nový Plán" (Nastavení -> Cviky) - vlastní Nastavení pro jejich pozdější úpravu bez plné regenerace zatím appka nemá.
 
 ## 🆕 v0.8.0 – chytřejší autoregulace: volba 1RM vzorce a detekce plató
 
@@ -90,7 +99,7 @@ Tahle verze je kompletní bezpečnostní a spolehlivostní audit + sada nových 
 ### 1. Instalace & Start 🚀
 * **Android/iOS:** Přidat na plochu (Add to Home Screen), nebo použij tlačítko "📲 Nainstalovat na plochu" v Nastavení → Systém.
 * **Baterie:** Na Androidu nutné povolit režim **"Neomezeno"** pro aplikaci (Chrome/Zelix), jinak nebudou chodit notifikace.
-* **Onboarding:** Při prvním spuštění projdeš kalibrací (Jméno, Cíl, Frekvence, Maximálky).
+* **Onboarding:** Při prvním spuštění projdeš kalibrací (Jméno, Cíl, Vybavení &amp; Omezení, Tělesná váha &amp; Maximálky, Frekvence).
 
 ### 2. Dashboard (Hlavní Panel) 📋
 Tvůj denní rozvrh se generuje dynamicky každé ráno.

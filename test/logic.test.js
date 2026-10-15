@@ -136,4 +136,51 @@ describe('Logic.calcProgression (RPE autoregulation)', () => {
         assert.equal(nextKg, 0);
         assert.equal(consecutiveHard, 0); // isNoWeight path never updates the counter
     });
+
+    test('no/unknown level behaves exactly like before v0.9.0 (same as explicit "intermediate")', () => {
+        const noLevel = Logic.calcProgression(50, 12, 'easy', targetReps, false, {});
+        const intermediate = Logic.calcProgression(50, 12, 'easy', targetReps, false, { level: 'intermediate' });
+        assert.deepEqual(
+            { nextKg: noLevel.nextKg, nextReps: noLevel.nextReps },
+            { nextKg: intermediate.nextKg, nextReps: intermediate.nextReps }
+        );
+    });
+
+    test('novice crosses the progression threshold with fewer extra reps than advanced', () => {
+        // novice threshold = targetReps + max(1, round(10*0.15)) = 10 + 2 = 12
+        // advanced threshold = targetReps + max(1, round(10*0.25)) = 10 + 3 = 13
+        const atTwelveReps = { kg: 50, reps: 12 };
+        const novice = Logic.calcProgression(atTwelveReps.kg, atTwelveReps.reps, 'easy', targetReps, false, { level: 'novice' });
+        const advanced = Logic.calcProgression(atTwelveReps.kg, atTwelveReps.reps, 'easy', targetReps, false, { level: 'advanced' });
+        assert.equal(novice.nextKg, 52.5); // novice: 12 reps already clears its lower threshold -> weight jump
+        assert.equal(advanced.nextKg, 50); // advanced: 12 reps is still short of its higher threshold -> rep add only
+    });
+});
+
+describe('Logic.estimateLevel', () => {
+    test('returns null without a usable bodyweight or any 1RM data', () => {
+        assert.equal(Logic.estimateLevel(0, { bench: 100 }), null);
+        assert.equal(Logic.estimateLevel(80, {}), null);
+        assert.equal(Logic.estimateLevel(80, { bench: 0, squat: 0, deadlift: 0 }), null);
+    });
+
+    test('classifies novice below a 2.5x bodyweight total', () => {
+        // total 150 / bodyweight 80 = 1.875
+        assert.equal(Logic.estimateLevel(80, { bench: 50, squat: 50, deadlift: 50 }), 'novice');
+    });
+
+    test('classifies intermediate between 2.5x and 4x bodyweight total', () => {
+        // total 240 / bodyweight 80 = 3.0
+        assert.equal(Logic.estimateLevel(80, { bench: 80, squat: 80, deadlift: 80 }), 'intermediate');
+    });
+
+    test('classifies advanced at or above 4x bodyweight total', () => {
+        // total 480 / bodyweight 80 = 6.0
+        assert.equal(Logic.estimateLevel(80, { bench: 120, squat: 160, deadlift: 200 }), 'advanced');
+    });
+
+    test('works with partial 1RM data (missing lifts count as 0)', () => {
+        // total 200 (bench only) / bodyweight 80 = 2.5 -> intermediate (boundary, not novice)
+        assert.equal(Logic.estimateLevel(80, { bench: 200 }), 'intermediate');
+    });
 });

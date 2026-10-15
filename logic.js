@@ -425,6 +425,32 @@ const Logic = {
         }
     },
 
+    // Hrubý odhad tréninkové úrovně z poměru (odhad 1RM bench+squat+deadlift)
+    // / tělesná váha - běžně citovaný powerliftingový "total/BW" benchmark,
+    // ne lékařský nástroj. Appka ho použije jen k tomu, aby věděla, jak moc
+    // opatrně/agresivně má autoregulovat (viz PROGRESSION_THRESHOLD_BY_LEVEL
+    // a calcProgression) - novice typicky progreduje rychle (lineární
+    // progrese), pokročilý potřebuje víc "důkazu" (víc opakování v rezervě),
+    // než mu appka přidá váhu. Vrací null, pokud nemá dost dat na odhad
+    // (appka se pak chová jako dřív, jako 'intermediate').
+    estimateLevel: function (bodyweightKg, oneRMs) {
+        if (!(bodyweightKg > 0)) return null;
+        oneRMs = oneRMs || {};
+        const total = (oneRMs.bench || 0) + (oneRMs.squat || 0) + (oneRMs.deadlift || 0);
+        if (total <= 0) return null;
+        const ratio = total / bodyweightKg;
+        if (ratio < 2.5) return 'novice';
+        if (ratio < 4) return 'intermediate';
+        return 'advanced';
+    },
+
+    // Jak velký "polštář" opakování navíc appka vyžaduje, než na EASY přidá
+    // váhu - novice ho dostane menší (progreduje skoro každý trénink, jak je
+    // u začátečníků běžné), pokročilý větší (potřebuje víc konzistence, než
+    // mu appka zvedne zátěž). Beze změny odhadu úrovně (level=null/neznámé)
+    // appka používá stejnou hodnotu jako před v0.9.0.
+    PROGRESSION_THRESHOLD_BY_LEVEL: { novice: 0.15, intermediate: 0.2, advanced: 0.25 },
+
     // Kolik po sobě jdoucích HARD výsledků u jednoho cviku appka bere jako
     // signál plató/akumulované únavy a navrhne deload místo dalšího "držení" vah.
     DELOAD_AFTER_CONSECUTIVE_HARD: 3,
@@ -441,14 +467,17 @@ const Logic = {
     // gym má jen 1.25kg kotouče).
     // opts.consecutiveHard = kolikrát v řadě PŘED touto sérií byl u tohoto
     // cviku výsledek HARD (viz Data.state.exercise_stats[ex].consecutiveHard).
+    // opts.level = 'novice'|'intermediate'|'advanced' (Data.state.user.level,
+    // viz estimateLevel) - mění, jak snadno appka uzná EASY jako "čas přidat".
     // Vrací navíc { consecutiveHard, deload } pro uložení do exercise_stats a
     // zobrazení doporučení v UI.
     calcProgression: function (kg, reps, rpe, targetReps, isNoWeight, opts) {
         opts = opts || {};
         const increment = opts.increment > 0 ? opts.increment : 2.5;
         const consecutiveHard = opts.consecutiveHard || 0;
+        const thresholdMultiplier = this.PROGRESSION_THRESHOLD_BY_LEVEL[opts.level] || this.PROGRESSION_THRESHOLD_BY_LEVEL.intermediate;
 
-        const extraRepsNeeded = Math.max(1, Math.round(targetReps * 0.2));
+        const extraRepsNeeded = Math.max(1, Math.round(targetReps * thresholdMultiplier));
         const progressionThreshold = targetReps + extraRepsNeeded;
 
         let nextKg = kg;
@@ -568,7 +597,7 @@ const Logic = {
 
                 const { nextKg, nextReps, consecutiveHard, deload } = this.calcProgression(
                     kg, r, rpe, targetReps, isNoWeight,
-                    { increment, consecutiveHard: prevStats.consecutiveHard || 0 }
+                    { increment, consecutiveHard: prevStats.consecutiveHard || 0, level: Data.state.user.level }
                 );
                 if (deload) deloadExercises.push(ex);
 

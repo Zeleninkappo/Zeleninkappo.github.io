@@ -499,10 +499,45 @@
                 </div>
 
                 <div id="ob-step-3" class="step-content space-y-4 hidden opacity-0 translate-x-10">
+                    <h2 class="text-xl font-black text-stone-900 dark:text-white uppercase">Vybavení &amp; Omezení</h2>
+                    <p class="text-stone-500 dark:text-stone-400 text-sm">Podle toho vyberu vhodné cviky. Nic neškrtej, pokud chceš mít přístup ke všemu.</p>
+
+                    <div>
+                        <label class="text-[10px] font-bold uppercase opacity-60 block mb-2">Dostupné vybavení</label>
+                        <div class="grid grid-cols-3 gap-2" id="ob-equipment-chips">
+                            <button type="button" onclick="UI.toggleChip('equipment','barbell',this)" class="chip-btn selected" data-value="barbell">Osa</button>
+                            <button type="button" onclick="UI.toggleChip('equipment','dumbbell',this)" class="chip-btn selected" data-value="dumbbell">Činky</button>
+                            <button type="button" onclick="UI.toggleChip('equipment','machine',this)" class="chip-btn selected" data-value="machine">Stroje</button>
+                            <button type="button" onclick="UI.toggleChip('equipment','cable',this)" class="chip-btn selected" data-value="cable">Kladka</button>
+                            <button type="button" onclick="UI.toggleChip('equipment','kettlebell',this)" class="chip-btn selected" data-value="kettlebell">Kettlebell</button>
+                            <button type="button" onclick="UI.toggleChip('equipment','bodyweight',this)" class="chip-btn selected" data-value="bodyweight">Vlastní váha</button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="text-[10px] font-bold uppercase opacity-60 block mb-2">Omezení / citlivá místa</label>
+                        <div class="grid grid-cols-3 gap-2" id="ob-injury-chips">
+                            <button type="button" onclick="UI.toggleChip('injuries','shoulder',this)" class="chip-btn" data-value="shoulder">Rameno</button>
+                            <button type="button" onclick="UI.toggleChip('injuries','knee',this)" class="chip-btn" data-value="knee">Koleno</button>
+                            <button type="button" onclick="UI.toggleChip('injuries','lowerback',this)" class="chip-btn" data-value="lowerback">Záda</button>
+                            <button type="button" onclick="UI.toggleChip('injuries','wrist',this)" class="chip-btn" data-value="wrist">Zápěstí</button>
+                            <button type="button" onclick="UI.toggleChip('injuries','elbow',this)" class="chip-btn" data-value="elbow">Loket</button>
+                        </div>
+                    </div>
+
+                    <button onclick="UI.nextOnboardingStep(4)" class="w-full bg-stone-200 hover:bg-stone-300 dark:bg-stone-100 dark:hover:bg-white text-stone-900 font-bold py-3 rounded-xl uppercase tracking-widest mt-4">Další</button>
+                </div>
+
+                <div id="ob-step-4" class="step-content space-y-4 hidden opacity-0 translate-x-10">
                     <h2 class="text-xl font-black text-stone-900 dark:text-white uppercase">Kalibrace (Volitelné)</h2>
-                    <p class="text-stone-500 dark:text-stone-400 text-sm">Znáš svá maxima (1RM)? Zadej je, ať můžu počítat rekordy.</p>
+                    <p class="text-stone-500 dark:text-stone-400 text-sm">Znáš svá maxima (1RM) a váhu? Appka z nich odhadne tvou úroveň a přizpůsobí tempo progrese.</p>
 
                     <div class="space-y-3">
+                        <div class="relative">
+                            <span class="absolute left-4 top-3 text-stone-400 font-bold text-xs uppercase">Tělesná váha</span>
+                            <input type="number" id="ob-bodyweight" min="1" max="400" step="0.1" class="w-full bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 text-stone-900 dark:text-white text-right font-bold py-3 px-4 rounded-xl focus:border-primary focus:outline-none placeholder-stone-300 dark:placeholder-stone-600" placeholder="0">
+                            <span class="absolute right-2 top-5 text-stone-400 text-xs">kg</span>
+                        </div>
                         <div class="relative">
                             <span class="absolute left-4 top-3 text-stone-400 font-bold text-xs uppercase">Bench Press</span>
                             <input type="number" id="ob-pr-bench" min="0" max="600" class="w-full bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 text-stone-900 dark:text-white text-right font-bold py-3 px-4 rounded-xl focus:border-primary focus:outline-none placeholder-stone-300 dark:placeholder-stone-600" placeholder="0">
@@ -519,11 +554,11 @@
                             <span class="absolute right-2 top-5 text-stone-400 text-xs">kg</span>
                         </div>
                     </div>
-                    <button onclick="UI.nextOnboardingStep(4)" class="w-full bg-stone-200 hover:bg-stone-300 dark:bg-stone-100 dark:hover:bg-white text-stone-900 font-bold py-3 rounded-xl uppercase tracking-widest mt-4">Uložit &amp; Další</button>
-                    <button onclick="UI.nextOnboardingStep(4)" class="w-full text-stone-400 hover:text-stone-600 dark:hover:text-white font-bold text-xs uppercase py-2 transition-colors">Nevím / Přeskočit</button>
+                    <button onclick="UI.nextOnboardingStep(5)" class="w-full bg-stone-200 hover:bg-stone-300 dark:bg-stone-100 dark:hover:bg-white text-stone-900 font-bold py-3 rounded-xl uppercase tracking-widest mt-4">Uložit &amp; Další</button>
+                    <button onclick="UI.nextOnboardingStep(5)" class="w-full text-stone-400 hover:text-stone-600 dark:hover:text-white font-bold text-xs uppercase py-2 transition-colors">Nevím / Přeskočit</button>
                 </div>
 
-                <div id="ob-step-4" class="step-content space-y-6 hidden opacity-0 translate-x-10">
+                <div id="ob-step-5" class="step-content space-y-6 hidden opacity-0 translate-x-10">
                     <h2 class="text-xl font-black text-stone-900 dark:text-white uppercase">Finále: Rozvrh</h2>
                     <p class="text-stone-500 dark:text-stone-400 text-sm">Kdy chceš makat?</p>
 

@@ -111,6 +111,70 @@ describe('Data.getStreak', () => {
     });
 });
 
+describe('Data.isExerciseAllowed', () => {
+    test('allows a custom/unknown exercise name (fail open - Tuning exercises have no metadata)', () => {
+        const Data = freshData();
+        assert.equal(Data.isExerciseAllowed('Nějaký vlastní cvik', ['dumbbell'], ['knee']), true);
+    });
+
+    test('blocks an exercise whose required equipment is not in the allowed list', () => {
+        const Data = freshData();
+        assert.equal(Data.isExerciseAllowed('Bench Press', ['dumbbell'], []), false); // Bench Press needs barbell
+        assert.equal(Data.isExerciseAllowed('Bench Press', ['barbell'], []), true);
+    });
+
+    test('an empty equipment list means "no equipment restriction"', () => {
+        const Data = freshData();
+        assert.equal(Data.isExerciseAllowed('Bench Press', [], []), true);
+    });
+
+    test('blocks an exercise whose risk joints intersect the injury list', () => {
+        const Data = freshData();
+        assert.equal(Data.isExerciseAllowed('Squat', Data.ALL_EQUIPMENT, ['knee']), false);
+        assert.equal(Data.isExerciseAllowed('Squat', Data.ALL_EQUIPMENT, ['wrist']), true);
+    });
+
+    test('an empty injuries list means "no exclusions"', () => {
+        const Data = freshData();
+        assert.equal(Data.isExerciseAllowed('Squat', Data.ALL_EQUIPMENT, []), true);
+    });
+});
+
+describe('Data.buildSession respects equipment/injury constraints', () => {
+    test('with only cable equipment, the core slot always picks the one cable exercise (Woodchoppers)', () => {
+        const Data = freshData();
+        Data.state.user.equipment = ['cable'];
+        Data.state.user.injuries = [];
+        const strat = Data.strategies.hypertrophy;
+        // FB_A picks legs_squat, push_compound, pull_compound, legs_hinge, core (index 4)
+        for (let i = 0; i < 15; i++) {
+            const session = Data.buildSession('FB_A', 'A', strat);
+            assert.equal(session[4], 'Woodchoppers');
+        }
+    });
+
+    test('excluding the shoulder joint narrows pull_iso to the two elbow-only exercises', () => {
+        const Data = freshData();
+        Data.state.user.equipment = Data.ALL_EQUIPMENT;
+        Data.state.user.injuries = ['shoulder'];
+        const strat = Data.strategies.hypertrophy;
+        // UPPER_A picks push_compound, pull_compound, push_iso, pull_iso (index 3), core
+        for (let i = 0; i < 15; i++) {
+            const session = Data.buildSession('UPPER_A', 'A', strat);
+            assert.ok(['Biceps Curls', 'Hammer Curls'].includes(session[3]), `unexpected pull_iso pick: ${session[3]}`);
+        }
+    });
+
+    test('an equipment choice with zero matches in a category falls back to the full category rather than returning nothing', () => {
+        const Data = freshData();
+        Data.state.user.equipment = ['cable']; // legs_squat has no cable exercises at all
+        Data.state.user.injuries = [];
+        const strat = Data.strategies.hypertrophy;
+        const session = Data.buildSession('FB_A', 'A', strat);
+        assert.ok(session[0], 'legs_squat slot should never be empty/undefined');
+    });
+});
+
 describe('Data.generateProgram', () => {
     for (const daysCount of [3, 4, 5]) {
         test(`${daysCount}x/week schedule assigns exactly ${daysCount} training days`, () => {
