@@ -199,7 +199,7 @@
                     <div class="pt-2 border-t border-stone-200 dark:border-stone-800">
                         <div class="grid grid-cols-2 gap-2 mb-2">
                             <button onclick="Data.exportData()" class="py-2.5 bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 font-bold text-xs rounded border border-stone-300 dark:border-stone-700 uppercase">⬇ Export</button>
-                            <label class="py-2.5 bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 font-bold text-xs rounded border border-stone-300 dark:border-stone-700 uppercase text-center cursor-pointer">⬆ Import <input type="file" accept="application/json" class="hidden" onchange="Data.importData(this)"></label>
+                            <label class="py-2.5 bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 font-bold text-xs rounded border border-stone-300 dark:border-stone-700 uppercase text-center cursor-pointer">⬆ Import <input type="file" accept="application/json,.json" class="hidden" onchange="Data.importData(this)"></label>
                         </div>
                         <button onclick="Data.restoreRecovery()" class="w-full mb-4 py-2 bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400 font-bold text-[10px] rounded border border-stone-300 dark:border-stone-700 uppercase">↩ Obnovit zálohu před posledním importem</button>
                         <button onclick="UI.openWipeModal()" class="w-full py-2 bg-red-50 dark:bg-red-900/10 text-red-600 dark:text-red-500 font-bold text-xs rounded border border-red-200 dark:border-red-900 uppercase">Smazat Data</button>
