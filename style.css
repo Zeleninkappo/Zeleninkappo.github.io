@@ -16,6 +16,42 @@ body.modal-active { overflow: hidden; }
 }
 
 /* =========================================
+   STICKY HEADER (fix kompozitního bugu na Android Chrome, viz README)
+   =========================================
+   isolation:isolate + translateZ(0) donutí prohlížeč vytvořit stabilní
+   vlastní GPU compositing vrstvu hned od prvního vykreslení, a .zelix-
+   header-bg nese pozadí na samostatném absolutně pozicovaném prvku
+   uvnitř sticky kontejneru (ne přímo na něm) - viz changelog v0.6.2/v0.6.3. */
+.zelix-sticky-header {
+    isolation: isolate;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+}
+.zelix-header-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background-color: rgba(255, 255, 255, .97);
+    border-bottom: 1px solid #e7e5e4;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,.1), 0 2px 4px -2px rgba(0,0,0,.1);
+}
+.dark .zelix-header-bg {
+    background-color: rgba(12, 10, 9, .97);
+    border-bottom-color: #292524;
+}
+
+/* =========================================
+   ONBOARDING CHIPS (vybavení / omezení - vícenásobný výběr)
+   ========================================= */
+.chip-btn {
+    padding: 10px 6px; border-radius: 10px; font-size: 0.7rem; font-weight: 700; text-align: center;
+    border: 1px solid #d6d3d1; background: #fafaf9; color: #78716c; cursor: pointer; transition: all .15s ease;
+}
+.dark .chip-btn { border-color: #44403c; background: #1c1917; color: #a8a29e; }
+.chip-btn.selected { border-color: #DC2626; background: rgba(220, 38, 38, 0.08); color: #DC2626; }
+.dark .chip-btn.selected { border-color: #f87171; background: rgba(248, 113, 113, 0.1); color: #f87171; }
+
+/* =========================================
    ANIMACE
    ========================================= */
 @keyframes pulse-red {

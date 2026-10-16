@@ -1,6 +1,6 @@
 # Zelix – Smart Training & Lifestyle Manager
 
-![Status](https://img.shields.io/badge/Status-Stable%20v0.6.3-red)
+![Status](https://img.shields.io/badge/Status-Stable%20v0.9.1-red)
 ![Platform](https://img.shields.io/badge/Platform-PWA%20%7C%20Mobile-blue)
 ![License](https://img.shields.io/badge/License-MIT-lightgrey)
 
@@ -9,6 +9,42 @@
 > **Motto:** Žádné zbytečnosti, jen čistá data, vibrace a progres.
 
 ---
+
+## 🆕 v0.9.1 – vybavení/omezení/úroveň jdou upravit i bez nového plánu
+
+v0.9.0 dala možnost nastavit vybavení/omezení/úroveň jen přes onboarding nebo "Nový Plán" (= plná regenerace rozvrhu). **Nastavení -> Uživatel** teď má stejné ovládání (chipy na vybavení/omezení + select na úroveň) bez nutnosti cokoliv regenerovat - mění se jen to, co appka bere v potaz v budoucnu (generátor při příští regeneraci dne/plánu, autoregulace progrese hned od příštího uloženého tréninku).
+
+Navíc tlačítko **"Přepočítat z dat"** vedle úrovně: appka vezme poslední zadanou tělesnou váhu (⚖️ VÁHA) a aktuální váhy u Bench Press/Squat/Deadlift (podle zvoleného 1RM vzorce) a sama navrhne úroveň - nemusíš znovu nic ručně počítat ani procházet kalibraci znovu. Úroveň lze samozřejmě nastavit i ručně, přepočet je jen pomocník.
+
+## 🆕 v0.9.0 – generátor plánu teď myslí na vybavení, zranění a tvou úroveň
+
+Onboarding (a "⚡ Nový Plán" regenerace) má dva nové kroky:
+
+* **Vybavení & Omezení:** vyber, co máš k dispozici (osa, činky, stroje, kladka, kettlebell, vlastní váha) a jestli máš nějaké citlivé místo (rameno/koleno/záda/zápěstí/loket). Výchozí stav je "mám všechno, nic mě netrápí" - appka nic nefiltruje, dokud sám něco neodškrtneš/nezaškrtneš. Generátor plánu (`Data.buildSession`) pak cviky vybírá jen z toho, co projde oběma filtry - a pokud by kombinace vybavení+omezení vyprázdnila celou kategorii (typicky "nohy" - každý dřep nějak zatíží koleno), appka upřednostní **bezpečnost před pohodlím**: radši nabídne cvik, na který nemáš ideální vybavení, než cvik, co by mohl rozbolet zraněné místo.
+* **Tělesná váha + 1RM kalibrace:** appka teď z poměru (Bench+Squat+Deadlift) / tělesná váha odhadne tvou úroveň (Začátečník / Pokročilý / Expert) - běžně používaný powerliftingový benchmark, ne lékařský nástroj. Úroveň pak mění, jak snadno appka uzná EASY jako "čas přidat váhu": začátečník postupuje skoro každý trénink (klasická lineární progrese), expert musí nejdřív "vydolovat" víc opakování v rezervě, než mu appka přidá zátěž. Zadaná tělesná váha se rovnou uloží i do grafu *Analýza Výkonu -> Tělesná váha*, nemusíš ji zadávat znovu.
+
+## 🆕 v0.8.0 – chytřejší autoregulace: volba 1RM vzorce a detekce plató
+
+**Nastavení -> Systém** má dvě nová pole:
+* **Vzorec 1RM:** Epley (výchozí, beze změny), Brzycki (přesnější pro nižší opakování, cca do 10), nebo Lombardi. Appka si pamatuje volbu, existující data se nemění.
+* **Přírůstek váhy:** appka dřív při EASY vždy přidávala rovných +2.5 kg bez ohledu na to, jaké kotouče v tělocvičně reálně máš. Teď si lze zvolit 1.25 / 2.5 / 5 kg a appka se tím řídí jak při progresi, tak při zaokrouhlování doporučené váhy nahoru.
+
+**Detekce plató (nový deload systém):** appka teď sleduje, kolikrát **v řadě** jsi u daného cviku dostal HARD, aniž bys postoupil. Po **3x HARD po sobě** appka usoudí, že jde o akumulovanou únavu/plató, a místo dalšího bezcílného "držení" stejné váhy navrhne **deload -10 %** (zaokrouhleno na zvolený přírůstek) a resetuje cílová opakování zpět na standard pro tvůj cíl. Po uložení tréninku appka na to upozorní toastem (`📉 Doporučen deload...`). Progres jiného cviku touhle logikou není nijak ovlivněn - počítadlo je per-cvik a resetuje se při jakémkoliv EASY/OK výsledku.
+
+Interně: samotný výpočet (`Logic.calc1RM`, `Logic.calcProgression`) je teď čistá, testovaná funkce bez přístupu k DOM - viz `test/logic.test.js` a sekce *Vývoj*.
+
+## 🆕 v0.7.0 – kořenová příčina: appka teď jede bez CDN závislostí
+
+Celá série oprav v0.6.0–v0.6.3 (viz níže) řešila **symptomy** jednoho a toho samého problému: `cdn.tailwindcss.com` generuje CSS až za běhu v prohlížeči, takže appka byla závislá na tom, jak rychle Tailwind doběhne dřív, než prohlížeč stihne první vykreslení. v0.6.1 to obešla ručním duplikátem kritických tříd, v0.6.2/v0.6.3 řešily navazující GPU-compositing symptomy na position:sticky/backdrop-filter.
+
+v0.7.0 místo obcházení symptomu odstraňuje příčinu: **Tailwind i Chart.js se teď buildují/kopírují lokálně** (`npm run build`) a appka je načítá jako statické soubory (`tailwind.css`, `vendor/chart.umd.js`), stejně jako kterýkoliv jiný CSS/JS soubor – synchronně, bez JS generování za běhu. Díky tomu:
+
+* Odpadl celý ruční duplikát ~60 Tailwind tříd v `<head>` appky (žádná race condition, protože neexistuje nic, s čím by appka mohla závodit).
+* Appka už nemá žádnou síťovou závislost na cizích CDN (`cdn.tailwindcss.com`, `cdn.jsdelivr.net`) – rychlejší první načtení, menší plocha pro výpadek CDN, a Service Worker teď může bezpečně cachovat kompletní shell přes `addAll` (dřív to bylo záměrně vynechané kvůli riziku opaque response z cizí domény).
+* CSP hlavička je užší – `script-src`/`connect-src` už nepotřebují žádné externí hosty.
+* `.zelix-sticky-header`/`.zelix-header-bg` (fix GPU-compositing bugu z v0.6.2/v0.6.3, nesouvisí s Tailwind CDN) zůstávají beze změny funkčnosti, jen přesunuté z `<head>` do `style.css`, kam vždy patřily jako custom třídy.
+
+**Pro vývoj:** `npm install`, pak `npm run build` (nebo `npm run watch:css` při úpravě tříd) před commitem/nasazením – viz sekce *Vývoj* níže. Vygenerovaný `tailwind.css` a `vendor/chart.umd.js` se commitují do repa, appka je čistě statická a GitHub Pages nemá žádný CI build krok.
 
 ## 🆕 v0.6.3 – definitivně vyřešeno: `backdrop-filter` byl viník
 
@@ -67,7 +103,7 @@ Tahle verze je kompletní bezpečnostní a spolehlivostní audit + sada nových 
 ### 1. Instalace & Start 🚀
 * **Android/iOS:** Přidat na plochu (Add to Home Screen), nebo použij tlačítko "📲 Nainstalovat na plochu" v Nastavení → Systém.
 * **Baterie:** Na Androidu nutné povolit režim **"Neomezeno"** pro aplikaci (Chrome/Zelix), jinak nebudou chodit notifikace.
-* **Onboarding:** Při prvním spuštění projdeš kalibrací (Jméno, Cíl, Frekvence, Maximálky).
+* **Onboarding:** Při prvním spuštění projdeš kalibrací (Jméno, Cíl, Vybavení &amp; Omezení, Tělesná váha &amp; Maximálky, Frekvence).
 
 ### 2. Dashboard (Hlavní Panel) 📋
 Tvůj denní rozvrh se generuje dynamicky každé ráno.
@@ -82,11 +118,12 @@ Tvůj denní rozvrh se generuje dynamicky každé ráno.
 ### 3. Tréninkový Režim (GYM) 🏋️‍♂️
 * **Logování:** Váhy a opakování se předvyplňují z minulého úspěšného tréninku.
 * **RPE (Hodnocení):**
-    * 🟢 **EASY:** Váha byla lehká -> Příště systém automaticky přidá (+2.5kg / +1.25kg).
+    * 🟢 **EASY:** Váha byla lehká -> Příště systém automaticky přidá přírůstek nastavený v Nastavení -> Systém (výchozí +2.5kg).
     * 🟡 **OK:** Váha akorát -> Zůstává.
     * 🔴 **HARD:** Limit -> Váha zůstává, nutná regenerace.
+    * **📉 Deload (od v0.8.0):** 3x HARD v řadě na stejném cviku bez progrese appka vyhodnotí jako plató a sama navrhne deload (-10 % váhy, reset na cílová opakování) místo dalšího bezcílného držení stejné zátěže. Upozorní tě na to toastem po uložení tréninku.
 * **Rest Timer:** Po kliknutí na EASY/OK/HARD se automaticky spustí odpočinkový časovač dole na obrazovce (délku lze upravit tlačítky +15s/-15s nebo přeskočit).
-* **1RM Kalkulačka:** Při zadávání váhy/opakování se v rohu ukazuje odhadované maximum.
+* **1RM Kalkulačka:** Při zadávání váhy/opakování se v rohu ukazuje odhadované maximum podle vzorce zvoleného v Nastavení -> Systém (Epley/Brzycki/Lombardi).
 * **Nový rekord:** Pokud zvedneš víc než kdy dřív, appka to po uložení tréninku oznámí.
 
 ---
@@ -183,9 +220,39 @@ Tlačítko nahoře *"Změna Režimu"*.
 
 ---
 
+## 🧰 Vývoj
+
+Appka je čistě statická (žádný backend, žádný bundler, žádný CI build) – Tailwind a Chart.js se ale od v0.7.0 buildují/kopírují lokálně a výsledek se **commituje do repa**, aby GitHub Pages nemusel nic sestavovat.
+
+```bash
+npm install          # jednorázově – stáhne tailwindcss (dev) a chart.js
+npm run build         # vygeneruje tailwind.css + zkopíruje vendor/chart.umd.js
+npm run watch:css      # živě přegeneruje tailwind.css při úpravě tříd v index.html/*.js
+```
+
+Po jakékoliv změně Tailwind tříd (v `index.html`, `ui-*.js` apod.) spusť `npm run build:css` a commitni aktualizovaný `tailwind.css` – appka ho načítá jako statický soubor, ne za běhu. `tailwind.config.js` definuje `content` scan (`index.html`, `*.js`) a stejnou barevnou/font paletu jako dřív v CDN configu.
+
+`npm run test` spouští unit testy (`node --test`, vestavěný Node test runner – žádná další závislost) nad čistou logikou v `logic.js`/`data.js`/`utils.js` (RPE autoregulace, 1RM kalkulačka, streak engine, generátor plánu, escapeHtml) – appka samotná (`.js` soubory bez module systému, globály jako `Data`/`Logic`/`UI`) se v `test/helpers/load-app.js` natáhne přes Node `vm` sandbox s minimálním `localStorage`/`document` stubem, takže testy neběží v prohlížeči ani nepotřebují žádný bundler.
+
+**Struktura souborů:**
+
+| Soubor | Co obsahuje |
+|---|---|
+| `config.js`, `utils.js`, `data.js`, `logic.js` | verze appky, helpery, datový model/stav, business logika (bez DOM) |
+| `ui-core.js` | deklaruje `const UI = {...}` – app shell, dashboard, motiv, toasty, live čas, hlavní graf. **Musí se načíst první** ze všech `ui-*.js`. |
+| `ui-onboarding.js` | onboarding wizard + „Nový plán" regenerace |
+| `ui-modals.js` | obecné modály (Nastavení taby, confirm/alert, váha, wipe, success) |
+| `ui-settings.js` | editor rozvrhu, suplementů (Stack) a cviků (Tuning) |
+| `ui-workout.js` | GYM log modál + rest timer |
+| `ui-report.js` | Report modál (Analýza výkonu, radar graf, markdown) |
+| `ui-history.js` | LOG modál, editace historie, mazání tréninku |
+
+Ostatní `ui-*.js` soubory volají `Object.assign(UI, {...})`, takže rozšiřují stejný globální `UI` objekt – pořadí v `index.html` je proto závazné (`ui-core.js` první).
+
 ## 🛠️ Poznámka k nasazení
 
-* Aktuální verze: **v0.6.1** (bump v `config.js` – zajišťuje, že Service Worker stáhne novou verzi místo staré z cache).
+* Aktuální verze appky: viz `config.js` → `APP_VERSION` (bump při každém nasazení – zajišťuje, že Service Worker stáhne novou verzi místo staré z cache).
+* Před nasazením spusť `npm run build` a commitni `tailwind.css` + `vendor/` – appka je sestavená staticky, žádný build krok na serveru neběží.
 * Soubory `icon-192.png` a `icon-512.png` musí existovat ve stejné složce jako `index.html` (nejsou součástí zdrojového kódu appky, jsou to binární obrázky – nahraď vlastním logem).
 * Appka běží čistě staticky (žádný backend) – stačí nahrát všechny soubory na libovolný HTTPS hosting (Service Worker vyžaduje HTTPS nebo `localhost`).
 
@@ -198,6 +265,8 @@ Android u appek přidaných přes "Přidat na plochu" vytváří samostatný **W
 3. V Chromu otevři URL appky, `Nastavení stránky → Vymazat data`.
 4. Znovu "Přidat na plochu".
 
-### Proč se to na telefonu chová jinak než v Chrome DevTools na PC
+### Proč se to na telefonu chovalo jinak než v Chrome DevTools na PC (historie, vyřešeno v0.7.0)
 
-`cdn.tailwindcss.com` generuje CSS **za běhu přes JS** (Tailwind sám v konzoli varuje, že tohle není pro produkci). DevTools "Device Toolbar" na notebooku pořád běží na desktopovém CPU – Tailwind tam vždy stihne doběhnout dřív, než prohlížeč cokoliv vykreslí. Na reálném mobilu (i vlajkovém) může nastat opak: první vykreslení proběhne dřív, než Tailwind stihne dogenerovat styly pro `sticky`/`flex`/`backdrop-blur` header, a Chromium tenhle napůl vykreslený stav "zamrzne". Od v0.6.1 appka definuje layoutově kritické třídy (box model, flexbox, pozice u headeru a modálů) staticky v `<style>` bloku v `<head>`, který se načte synchronně před Tailwindem – Tailwind je pak jen doplní identickými hodnotami, takže vizuálně nic neproskočí a race condition nemůže nastat. Definitivní řešení (lokální build Tailwindu přes CLI místo CDN) zůstává doporučené pro budoucí verzi, viz sekce Architektura.
+> Appka od v0.7.0 nepoužívá `cdn.tailwindcss.com` – Tailwind je předbuildovaný lokálně (viz sekce *Vývoj*), takže tenhle celý problém se netýká aktuální verze. Sekce zůstává jako záznam, proč appka kdysi vypadala na mobilu jinak než v DevTools, a proč runtime CDN generování CSS nebyl dobrý nápad.
+
+`cdn.tailwindcss.com` generovalo CSS **za běhu přes JS** (Tailwind sám v konzoli varuje, že tohle není pro produkci). DevTools "Device Toolbar" na notebooku pořád běží na desktopovém CPU – Tailwind tam vždy stihne doběhnout dřív, než prohlížeč cokoliv vykreslí. Na reálném mobilu (i vlajkovém) může nastat opak: první vykreslení proběhne dřív, než Tailwind stihne dogenerovat styly pro `sticky`/`flex`/`backdrop-blur` header, a Chromium tenhle napůl vykreslený stav "zamrzne". Od v0.6.1 appka definuje layoutově kritické třídy (box model, flexbox, pozice u headeru a modálů) staticky v `<style>` bloku v `<head>`, který se načte synchronně před Tailwindem – Tailwind je pak jen doplní identickými hodnotami, takže vizuálně nic neproskočí a race condition nemůže nastat. Definitivní řešení (lokální build Tailwindu přes CLI místo CDN) bylo zavedeno v v0.7.0, viz sekce *Vývoj* výše.

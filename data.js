@@ -5,7 +5,7 @@
 const Data = {
     DB_KEY: 'ZELIX_DB_V050',           // Beze změny - zachovává kompatibilitu s existujícími daty
     RECOVERY_KEY: 'ZELIX_RECOVERY_SNAPSHOT', // Auto-záloha vytvořená těsně před importem
-    DB_SCHEMA_VERSION: 2,
+    DB_SCHEMA_VERSION: 4,
 
     // 1. KNIHOVNA CVIKŮ (Suroviny)
     library: {
@@ -21,6 +21,88 @@ const Data = {
         cardio:        ["Burpees", "Jump Rope", "Battle Ropes", "Sprint Intervals", "Rowing Machine"]
     },
 
+    // Druhy vybavení, co appka rozlišuje u filtrování cviků (onboarding ->
+    // "Dostupné vybavení"). Výchozí stav pro nové i stávající uživatele je
+    // "mám všechno" - filtrování je čistě opt-in zúžení, nikdy nezačíná
+    // tím, že by appka něco skrývala bez vyžádání.
+    ALL_EQUIPMENT: ['barbell', 'dumbbell', 'machine', 'cable', 'kettlebell', 'bodyweight'],
+
+    // 1b. METADATA CVIKŮ (vybavení + rizikové klouby) - používá
+    // isExerciseAllowed() k filtrování knihovny podle onboarding odpovědí
+    // (vybavení, omezení/zranění). Cviky, co uživatel přidá ručně v Tuningu,
+    // v tabulce nejsou - isExerciseAllowed je pro neznámé jméno "fail open"
+    // (nikdy neblokuje cvik, o kterém nic neví).
+    exerciseMeta: {
+        "Bench Press": { equipment: 'barbell', joints: ['shoulder', 'elbow', 'wrist'] },
+        "Military Press": { equipment: 'barbell', joints: ['shoulder', 'lowerback'] },
+        "Dips (Weighted)": { equipment: 'bodyweight', joints: ['shoulder', 'elbow'] },
+        "Incline DB Press": { equipment: 'dumbbell', joints: ['shoulder', 'elbow'] },
+        "Landmine Press": { equipment: 'barbell', joints: ['shoulder'] },
+
+        "Triceps Pushdown": { equipment: 'cable', joints: ['elbow'] },
+        "Lateral Raises": { equipment: 'dumbbell', joints: ['shoulder'] },
+        "Skullcrushers": { equipment: 'barbell', joints: ['elbow'] },
+        "Flyes": { equipment: 'dumbbell', joints: ['shoulder'] },
+        "Front Raises": { equipment: 'dumbbell', joints: ['shoulder'] },
+
+        "Deadlift": { equipment: 'barbell', joints: ['lowerback', 'knee'] },
+        "Pull Ups": { equipment: 'bodyweight', joints: ['shoulder', 'elbow'] },
+        "Barbell Row": { equipment: 'barbell', joints: ['lowerback', 'shoulder'] },
+        "Chin Ups": { equipment: 'bodyweight', joints: ['shoulder', 'elbow'] },
+        "T-Bar Row": { equipment: 'machine', joints: ['lowerback'] },
+
+        "Biceps Curls": { equipment: 'dumbbell', joints: ['elbow'] },
+        "Face Pulls": { equipment: 'cable', joints: ['shoulder'] },
+        "Hammer Curls": { equipment: 'dumbbell', joints: ['elbow'] },
+        "Lat Pulldown": { equipment: 'cable', joints: ['shoulder'] },
+        "Rear Delt Fly": { equipment: 'dumbbell', joints: ['shoulder'] },
+
+        "Squat": { equipment: 'barbell', joints: ['knee', 'lowerback'] },
+        "Front Squat": { equipment: 'barbell', joints: ['knee', 'wrist', 'lowerback'] },
+        "Leg Press": { equipment: 'machine', joints: ['knee'] },
+        "Goblet Squat": { equipment: 'dumbbell', joints: ['knee'] },
+        "Bulgarian Split Squat": { equipment: 'dumbbell', joints: ['knee'] },
+
+        "RDL (Romanian DL)": { equipment: 'barbell', joints: ['lowerback'] },
+        "Leg Curl": { equipment: 'machine', joints: ['knee'] },
+        "Hip Thrust": { equipment: 'barbell', joints: ['lowerback'] },
+        "Glute Ham Raise": { equipment: 'machine', joints: ['knee', 'lowerback'] },
+        "Good Mornings": { equipment: 'barbell', joints: ['lowerback'] },
+
+        "Leg Extension": { equipment: 'machine', joints: ['knee'] },
+        "Calf Raise": { equipment: 'machine', joints: [] },
+        "Seated Calf Raise": { equipment: 'machine', joints: [] },
+
+        "Plank": { equipment: 'bodyweight', joints: [] },
+        "Ab Wheel": { equipment: 'bodyweight', joints: ['lowerback'] },
+        "Hanging Leg Raises": { equipment: 'bodyweight', joints: ['shoulder'] },
+        "Russian Twists": { equipment: 'bodyweight', joints: ['lowerback'] },
+        "Woodchoppers": { equipment: 'cable', joints: ['lowerback'] },
+
+        "Power Clean": { equipment: 'barbell', joints: ['knee', 'lowerback', 'wrist'] },
+        "Box Jumps": { equipment: 'bodyweight', joints: ['knee'] },
+        "Kettlebell Swing": { equipment: 'kettlebell', joints: ['lowerback'] },
+        "MedBall Slam": { equipment: 'bodyweight', joints: ['lowerback', 'shoulder'] },
+        "Broad Jumps": { equipment: 'bodyweight', joints: ['knee'] },
+
+        "Burpees": { equipment: 'bodyweight', joints: ['knee', 'wrist'] },
+        "Jump Rope": { equipment: 'bodyweight', joints: ['knee'] },
+        "Battle Ropes": { equipment: 'machine', joints: ['shoulder'] },
+        "Sprint Intervals": { equipment: 'bodyweight', joints: ['knee'] },
+        "Rowing Machine": { equipment: 'machine', joints: ['lowerback'] }
+    },
+
+    // Smí appka tenhle cvik nabídnout danému uživateli? Čistá funkce, pokrytá
+    // testy v test/data.test.js. "fail open" pro neznámé jméno (custom cviky
+    // z Tuningu nejsou v exerciseMeta, appka je proto nikdy neblokuje).
+    isExerciseAllowed: function (exName, equipment, injuries) {
+        const meta = this.exerciseMeta[exName];
+        if (!meta) return true;
+        if (equipment && equipment.length > 0 && !equipment.includes(meta.equipment)) return false;
+        if (injuries && injuries.length > 0 && meta.joints.some(j => injuries.includes(j))) return false;
+        return true;
+    },
+
     // 2. LOGIKA PRO CÍLE (Koření)
     strategies: {
         'strength':    { reps: 5,  sets: 5, rest: '3-5 min', focus: ['push_compound', 'pull_compound', 'legs_squat'] },
@@ -32,12 +114,21 @@ const Data = {
     // Current State (Database)
     state: {
         version: typeof APP_VERSION !== 'undefined' ? APP_VERSION : '0.0.0',
-        schemaVersion: 2,
+        schemaVersion: 4,
         bodyweight_history: [],
         userNoWeight: [],
         lastBackupDate: new Date().toISOString(),
-        user: { name: 'Sportovec', sport: 'Sport', goal: 'hypertrophy' },
-        settings: { theme: 'auto', days: {} },
+        // equipment: pole z Data.ALL_EQUIPMENT (výchozí = všechno, appka nic
+        // nefiltruje, dokud uživatel v onboardingu/"Novém plánu" něco neodškrtne).
+        // injuries: pole rizikových kloubů (viz exerciseMeta) - appka podle
+        // nich vynechá rizikové cviky při generování plánu.
+        // level: 'novice'|'intermediate'|'advanced'|null - odhad z PR/váhy při
+        // onboardingu (Logic.estimateLevel), mění agresivitu progrese v
+        // Logic.calcProgression. null = appka se chová jako dřív (intermediate).
+        user: { name: 'Sportovec', sport: 'Sport', goal: 'hypertrophy', equipment: ['barbell', 'dumbbell', 'machine', 'cable', 'kettlebell', 'bodyweight'], injuries: [], level: null },
+        // oneRmFormula: 'epley' | 'brzycki' | 'lombardi' (viz Logic.calc1RM)
+        // plateIncrement: velikost přírůstku váhy při progresi v kg (viz Logic.calcProgression)
+        settings: { theme: 'auto', days: {}, oneRmFormula: 'epley', plateIncrement: 2.5 },
         stack: [],
         forceRest: null,
         supplements: { enabled: true },
@@ -157,6 +248,20 @@ const Data = {
         if (v < 2) {
             if (!Array.isArray(this.state.userNoWeight)) this.state.userNoWeight = [];
             if (!this.state.supplements) this.state.supplements = { enabled: true };
+        }
+        if (v < 3) {
+            if (!this.state.settings) this.state.settings = {};
+            if (!this.state.settings.oneRmFormula) this.state.settings.oneRmFormula = 'epley';
+            if (!(this.state.settings.plateIncrement > 0)) this.state.settings.plateIncrement = 2.5;
+        }
+        if (v < 4) {
+            if (!this.state.user) this.state.user = {};
+            // "mám všechno" - zachovává stávajícím uživatelům přesně stejný
+            // výběr cviků jako dřív, dokud si sami v onboardingu/"Novém
+            // plánu" vybavení/omezení nezúží.
+            if (!Array.isArray(this.state.user.equipment)) this.state.user.equipment = [...this.ALL_EQUIPMENT];
+            if (!Array.isArray(this.state.user.injuries)) this.state.user.injuries = [];
+            if (this.state.user.level === undefined) this.state.user.level = null;
         }
         this.state.schemaVersion = this.DB_SCHEMA_VERSION;
     },
@@ -301,10 +406,25 @@ const Data = {
         const tD = document.getElementById('setup-time-dinner').value;
         this.state.user.mealTimes = { breakfast: tB, lunch: tL, dinner: tD };
 
+        // 2b. Uložení vybavení, omezení a tréninkové úrovně (viz Logic.estimateLevel,
+        // Data.isExerciseAllowed - ovlivní generátor plánu a autoregulaci progrese)
+        const equipment = Array.from(document.querySelectorAll('#setup-equipment-chips .chip-btn.selected')).map(b => b.dataset.value);
+        const injuries = Array.from(document.querySelectorAll('#setup-injury-chips .chip-btn.selected')).map(b => b.dataset.value);
+        this.state.user.equipment = equipment.length > 0 ? equipment : [...this.ALL_EQUIPMENT];
+        this.state.user.injuries = injuries;
+        const levelEl = document.getElementById('setup-level');
+        if (levelEl) this.state.user.level = levelEl.value || null;
+
         // 3. Uložení Stacku (Supplements toggle)
         const suppsEn = document.getElementById('setup-supps-enabled').checked;
         if (!this.state.supplements) this.state.supplements = {};
         this.state.supplements.enabled = suppsEn;
+
+        // 3b. Uložení 1RM vzorce a přírůstku váhy
+        const ormFormulaEl = document.getElementById('setup-onerm-formula');
+        const plateIncEl = document.getElementById('setup-plate-increment');
+        if (ormFormulaEl) this.state.settings.oneRmFormula = ormFormulaEl.value;
+        if (plateIncEl) this.state.settings.plateIncrement = parseFloat(plateIncEl.value) || 2.5;
 
         // 4. Uložení Rozvrhu (Timeline)
         const days = {};
@@ -383,12 +503,34 @@ const Data = {
     },
 
     buildSession: function (type, variant, strat) {
+        // Vybavení/omezení z onboardingu (nebo migrace, viz migrateState) -
+        // prázdné/chybějící pole = appka nic nefiltruje (zachovává dřívější
+        // chování appky beze změny).
+        const equipment = (this.state.user && Array.isArray(this.state.user.equipment) && this.state.user.equipment.length > 0)
+            ? this.state.user.equipment : this.ALL_EQUIPMENT;
+        const injuries = (this.state.user && Array.isArray(this.state.user.injuries)) ? this.state.user.injuries : [];
+
         const exercises = [];
         const pick = (cat) => {
-            const pool = this.library[cat];
+            const fullPool = this.library[cat];
+            const byBoth = fullPool.filter(ex => this.isExerciseAllowed(ex, equipment, injuries));
+            // Fallback v prioritě "bezpečnost před pohodlím": pokud vybavení +
+            // omezení dohromady vyprázdní kategorii (typicky celá "nohy"
+            // kategorie je nevyhnutelně koleno-zátěžová), appka radši ignoruje
+            // vybavení a dál respektuje zranění, než aby nabídla rizikový cvik
+            // jen proto, že náhodou máš potřebné vybavení. Jen když by i to
+            // vyprázdnilo kategorii úplně (zranění vyřadí fakt všechno), appka
+            // ukáže nevhodný cvik k ruční úpravě - lepší než žádný.
+            const byInjuryOnly = fullPool.filter(ex => this.isExerciseAllowed(ex, this.ALL_EQUIPMENT, injuries));
+            const pool = byBoth.length > 0 ? byBoth : (byInjuryOnly.length > 0 ? byInjuryOnly : fullPool);
             const seed = variant === 'A' ? 0 : 1;
             return pool[(seed + Math.floor(Math.random() * pool.length)) % pool.length];
         };
+        // Pro pevně dané (ne náhodně vybírané) cviky typu "Deadlift"/"Squat" -
+        // pokud je nevhodný (vybavení/zranění), nahradí ho náhodným cvikem ze
+        // stejné kategorie přes pick() výše.
+        const pickNamed = (exName, fallbackCategory) =>
+            this.isExerciseAllowed(exName, equipment, injuries) ? exName : pick(fallbackCategory);
 
         if (type.includes("FB")) {
             exercises.push(pick('legs_squat'));
@@ -412,33 +554,33 @@ const Data = {
         }
         else if (type === "PUSH") {
             exercises.push(pick('push_compound'));
-            exercises.push("Incline DB Press");
+            exercises.push(pickNamed("Incline DB Press", 'push_compound'));
             exercises.push(pick('push_iso'));
             exercises.push(pick('push_iso'));
         }
         else if (type === "PULL") {
-            exercises.push("Deadlift");
+            exercises.push(pickNamed("Deadlift", 'pull_compound'));
             exercises.push(pick('pull_compound'));
             exercises.push(pick('pull_iso'));
-            exercises.push("Face Pulls");
+            exercises.push(pickNamed("Face Pulls", 'pull_iso'));
         }
         else if (type === "LEGS") {
-            exercises.push("Squat");
-            exercises.push("RDL (Romanian DL)");
-            exercises.push("Leg Press");
+            exercises.push(pickNamed("Squat", 'legs_squat'));
+            exercises.push(pickNamed("RDL (Romanian DL)", 'legs_hinge'));
+            exercises.push(pickNamed("Leg Press", 'legs_squat'));
             exercises.push(pick('legs_iso'));
         }
         else if (type === "explosive") {
-            exercises.push("Power Clean");
-            exercises.push("Box Jumps");
-            exercises.push("Kettlebell Swing");
-            exercises.push("MedBall Slam");
-            exercises.push("Broad Jumps");
+            exercises.push(pickNamed("Power Clean", 'explosive'));
+            exercises.push(pickNamed("Box Jumps", 'explosive'));
+            exercises.push(pickNamed("Kettlebell Swing", 'explosive'));
+            exercises.push(pickNamed("MedBall Slam", 'explosive'));
+            exercises.push(pickNamed("Broad Jumps", 'explosive'));
         }
         else if (type === "PR_TEST") {
-            exercises.push("Squat");
-            exercises.push("Bench Press");
-            exercises.push("Deadlift");
+            exercises.push(pickNamed("Squat", 'legs_squat'));
+            exercises.push(pickNamed("Bench Press", 'push_compound'));
+            exercises.push(pickNamed("Deadlift", 'pull_compound'));
         }
 
         exercises.forEach(ex => {

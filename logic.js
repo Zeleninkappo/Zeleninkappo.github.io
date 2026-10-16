@@ -405,6 +405,123 @@ const Logic = {
         this.update1RM(i);
     },
 
+    // Odhad 1RM z (kg, opakování) - 3 běžné vzorce na výběr (Nastavení -> Systém,
+    // Data.state.settings.oneRmFormula). Čistá funkce, pokrytá testy v
+    // test/logic.test.js (žádný DOM přístup). Epley zůstává výchozí (zachovává
+    // chování appky před v0.8.0).
+    calc1RM: function (kg, reps, formula) {
+        if (!(kg > 0) || !(reps > 0)) return 0;
+        switch (formula || 'epley') {
+            case 'brzycki':
+                // Brzycki dělí (37 - reps) - při reps >= 37 by vyšlo nula/záporné
+                // číslo, což nedává smysl jako odhad maxima, appka to ohlásí jako 0
+                // (UI pak 1RM řádek jednoduše skryje, stejně jako při reps<=1 u Epley).
+                return reps >= 37 ? 0 : Math.round(kg * 36 / (37 - reps));
+            case 'lombardi':
+                return Math.round(kg * Math.pow(reps, 0.10));
+            case 'epley':
+            default:
+                return Math.round(kg * (1 + reps / 30));
+        }
+    },
+
+    // Hrubý odhad tréninkové úrovně z poměru (odhad 1RM bench+squat+deadlift)
+    // / tělesná váha - běžně citovaný powerliftingový "total/BW" benchmark,
+    // ne lékařský nástroj. Appka ho použije jen k tomu, aby věděla, jak moc
+    // opatrně/agresivně má autoregulovat (viz PROGRESSION_THRESHOLD_BY_LEVEL
+    // a calcProgression) - novice typicky progreduje rychle (lineární
+    // progrese), pokročilý potřebuje víc "důkazu" (víc opakování v rezervě),
+    // než mu appka přidá váhu. Vrací null, pokud nemá dost dat na odhad
+    // (appka se pak chová jako dřív, jako 'intermediate').
+    estimateLevel: function (bodyweightKg, oneRMs) {
+        if (!(bodyweightKg > 0)) return null;
+        oneRMs = oneRMs || {};
+        const total = (oneRMs.bench || 0) + (oneRMs.squat || 0) + (oneRMs.deadlift || 0);
+        if (total <= 0) return null;
+        const ratio = total / bodyweightKg;
+        if (ratio < 2.5) return 'novice';
+        if (ratio < 4) return 'intermediate';
+        return 'advanced';
+    },
+
+    // Jak velký "polštář" opakování navíc appka vyžaduje, než na EASY přidá
+    // váhu - novice ho dostane menší (progreduje skoro každý trénink, jak je
+    // u začátečníků běžné), pokročilý větší (potřebuje víc konzistence, než
+    // mu appka zvedne zátěž). Beze změny odhadu úrovně (level=null/neznámé)
+    // appka používá stejnou hodnotu jako před v0.9.0.
+    PROGRESSION_THRESHOLD_BY_LEVEL: { novice: 0.15, intermediate: 0.2, advanced: 0.25 },
+
+    // Kolik po sobě jdoucích HARD výsledků u jednoho cviku appka bere jako
+    // signál plató/akumulované únavy a navrhne deload místo dalšího "držení" vah.
+    DELOAD_AFTER_CONSECUTIVE_HARD: 3,
+    DELOAD_FACTOR: 0.9, // -10% váhy při deloadu
+
+    // RPE autoregulace (EASY/OK/HARD) - čistá funkce, pokrytá testy v
+    // test/logic.test.js. targetReps = cílové opakování pro aktuální
+    // tréninkový cíl (Data.strategies[goal].reps). Cviky bez závaží
+    // (isNoWeight) se vahou nikdy neupravují.
+    //
+    // opts.increment = velikost přírůstku váhy při progresi (výchozí 2.5kg,
+    // nastavitelné v Nastavení -> Systém, Data.state.settings.plateIncrement -
+    // appky na menších kotoučích by appka jinak nutila skákat po 2.5kg, i když
+    // gym má jen 1.25kg kotouče).
+    // opts.consecutiveHard = kolikrát v řadě PŘED touto sérií byl u tohoto
+    // cviku výsledek HARD (viz Data.state.exercise_stats[ex].consecutiveHard).
+    // opts.level = 'novice'|'intermediate'|'advanced' (Data.state.user.level,
+    // viz estimateLevel) - mění, jak snadno appka uzná EASY jako "čas přidat".
+    // Vrací navíc { consecutiveHard, deload } pro uložení do exercise_stats a
+    // zobrazení doporučení v UI.
+    calcProgression: function (kg, reps, rpe, targetReps, isNoWeight, opts) {
+        opts = opts || {};
+        const increment = opts.increment > 0 ? opts.increment : 2.5;
+        const consecutiveHard = opts.consecutiveHard || 0;
+        const thresholdMultiplier = this.PROGRESSION_THRESHOLD_BY_LEVEL[opts.level] || this.PROGRESSION_THRESHOLD_BY_LEVEL.intermediate;
+
+        const extraRepsNeeded = Math.max(1, Math.round(targetReps * thresholdMultiplier));
+        const progressionThreshold = targetReps + extraRepsNeeded;
+
+        let nextKg = kg;
+        let nextReps = reps;
+        let nextConsecutiveHard = 0;
+        let deload = false;
+
+        if (!isNoWeight) {
+            if (rpe === 'easy') {
+                if (reps >= progressionThreshold) {
+                    nextKg += increment;
+                    nextReps = targetReps;
+                } else {
+                    nextKg = kg;
+                    nextReps = reps + 1;
+                }
+            }
+            else if (rpe === 'medium') {
+                nextKg = kg;
+                nextReps = reps;
+            }
+            else if (rpe === 'hard') {
+                nextConsecutiveHard = consecutiveHard + 1;
+
+                if (kg > 0 && nextConsecutiveHard >= this.DELOAD_AFTER_CONSECUTIVE_HARD) {
+                    // Appka "držela" váhu přes opakovaná selhání bez progrese -
+                    // pravděpodobné plató/akumulovaná únava. Navrhni deload
+                    // místo dalšího donekonečna opakovaného HARD.
+                    nextKg = kg * this.DELOAD_FACTOR;
+                    nextReps = targetReps;
+                    nextConsecutiveHard = 0;
+                    deload = true;
+                } else {
+                    nextKg = kg;
+                    nextReps = Math.max(reps - 1, targetReps - extraRepsNeeded);
+                }
+            }
+
+            nextKg = Math.ceil(nextKg / increment) * increment;
+        }
+
+        return { nextKg, nextReps, consecutiveHard: nextConsecutiveHard, deload };
+    },
+
     update1RM: function (i) {
         const kgInput = document.getElementById(`kg-${i}`);
         const repsInput = document.getElementById(`reps-${i}`);
@@ -413,14 +530,11 @@ const Logic = {
 
         const kg = parseFloat(kgInput.value) || 0;
         const reps = parseFloat(repsInput.value) || 0;
+        const formula = (Data.state.settings && Data.state.settings.oneRmFormula) || 'epley';
+        const oneRm = this.calc1RM(kg, reps, formula);
 
-        if (kg > 0 && reps > 0) {
-            const oneRm = Math.round(kg * (1 + reps / 30));
-            if (reps > 1) {
-                el.innerText = `Est. 1RM: ${oneRm}kg`;
-            } else {
-                el.innerText = '';
-            }
+        if (oneRm > 0 && reps > 1) {
+            el.innerText = `Est. 1RM: ${oneRm}kg`;
         } else {
             el.innerText = '';
         }
@@ -460,6 +574,8 @@ const Logic = {
         const t = new Date().toISOString().split('T')[0];
         const l = [];
         const newPRs = [];
+        const deloadExercises = [];
+        const increment = (Data.state.settings && Data.state.settings.plateIncrement > 0) ? Data.state.settings.plateIncrement : 2.5;
         const noteEl = document.getElementById('workout-note');
         const noteVal = noteEl ? noteEl.value.trim().slice(0, 500) : '';
 
@@ -471,40 +587,19 @@ const Logic = {
             const r = repsEl ? (parseFloat(repsEl.value) || 0) : 0;
             const s = setsEl ? (parseFloat(setsEl.value) || 0) : 0;
             const isNoWeight = Data.isNoWeight(ex);
+            const prevStats = Data.state.exercise_stats[ex] || {};
 
             if (r > 0) {
                 const currentGoal = Data.state.user.goal || 'hypertrophy';
                 const strategy = Data.strategies[currentGoal] || { reps: 10 };
                 const targetReps = strategy.reps;
-
-                const extraRepsNeeded = Math.max(1, Math.round(targetReps * 0.2));
-                const progressionThreshold = targetReps + extraRepsNeeded;
-
-                let nextKg = kg;
-                let nextReps = r;
                 const rpe = this.tempActiveRPEs[ex] || 'medium';
 
-                if (!isNoWeight) {
-                    if (rpe === 'easy') {
-                        if (r >= progressionThreshold) {
-                            nextKg += 2.5;
-                            nextReps = targetReps;
-                        } else {
-                            nextKg = kg;
-                            nextReps = r + 1;
-                        }
-                    }
-                    else if (rpe === 'medium') {
-                        nextKg = kg;
-                        nextReps = r;
-                    }
-                    else if (rpe === 'hard') {
-                        nextKg = kg;
-                        nextReps = Math.max(r - 1, targetReps - extraRepsNeeded);
-                    }
-
-                    nextKg = Math.ceil(nextKg / 2.5) * 2.5;
-                }
+                const { nextKg, nextReps, consecutiveHard, deload } = this.calcProgression(
+                    kg, r, rpe, targetReps, isNoWeight,
+                    { increment, consecutiveHard: prevStats.consecutiveHard || 0, level: Data.state.user.level }
+                );
+                if (deload) deloadExercises.push(ex);
 
                 // NOVÝ OSOBNÍ REKORD? Porovnáme proti dosavadnímu maximu napříč celou historií (ne jen exercise_stats,
                 // protože ten se u PR pokusů (r<=2) nepřepisuje - viz isPR níže).
@@ -521,7 +616,7 @@ const Logic = {
                 const isPR = r <= 2 || (w.title && w.title.toUpperCase().includes("PR"));
 
                 if (!isPR) {
-                    Data.state.exercise_stats[ex] = { weight: nextKg, reps: nextReps, sets: s, rpe: rpe };
+                    Data.state.exercise_stats[ex] = { weight: nextKg, reps: nextReps, sets: s, rpe: rpe, consecutiveHard: consecutiveHard };
                 }
             }
         });
@@ -541,6 +636,11 @@ const Logic = {
             if (newPRs.length > 0) {
                 const label = newPRs.map(p => `${Utils.escapeHtml(p.ex)} ${p.kg}kg`).join(', ');
                 UI.showToast(`🏆 Nový rekord! ${label}`, 'success', 5000);
+            } else if (deloadExercises.length > 0) {
+                // 3x HARD v řadě na stejném cviku bez progrese - appka navrhla
+                // deload (-10% váhy) místo dalšího bezcílného držení zátěže.
+                const label = deloadExercises.map(e => Utils.escapeHtml(e)).join(', ');
+                UI.showToast(`📉 Doporučen deload (3x HARD v řadě): ${label}`, 'info', 5500);
             } else {
                 UI.showToast('Trénink uložen 💾', 'success');
             }
