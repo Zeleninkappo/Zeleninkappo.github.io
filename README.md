@@ -1,6 +1,6 @@
 # Zelix – Smart Training & Lifestyle Manager
 
-![Status](https://img.shields.io/badge/Status-Stable%20v0.9.1-red)
+![Status](https://img.shields.io/badge/Status-Stable%20v0.9.2-red)
 ![Platform](https://img.shields.io/badge/Platform-PWA%20%7C%20Mobile-blue)
 ![License](https://img.shields.io/badge/License-MIT-lightgrey)
 
@@ -9,6 +9,10 @@
 > **Motto:** Žádné zbytečnosti, jen čistá data, vibrace a progres.
 
 ---
+
+## 🆕 v0.9.2 – oprava: Import zálohy na mobilu
+
+Tlačítko **Import** mělo `accept="application/json"` na file inputu. Na mobilu (hlavně Android) spousta aplikací pro výběr souboru hlásí u `.json` souborů jiný/neurčitý MIME typ, takže picker soubor nenabídl k výběru vůbec - appka nedostala šanci ho ani zkusit načíst. Teď `accept="application/json,.json"` - picker porovnává i podle přípony, takže se stará záloha dá vybrat bez ohledu na to, jak ji systém MIME-typuje.
 
 ## 🆕 v0.9.1 – vybavení/omezení/úroveň jdou upravit i bez nového plánu
 
