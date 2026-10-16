@@ -1,6 +1,6 @@
 # Zelix – Smart Training & Lifestyle Manager
 
-![Status](https://img.shields.io/badge/Status-Stable%20v0.9.3-red)
+![Status](https://img.shields.io/badge/Status-Stable%20v0.9.4-red)
 ![Platform](https://img.shields.io/badge/Platform-PWA%20%7C%20Mobile-blue)
 ![License](https://img.shields.io/badge/License-MIT-lightgrey)
 
@@ -9,6 +9,12 @@
 > **Motto:** Žádné zbytečnosti, jen čistá data, vibrace a progres.
 
 ---
+
+## 🆕 v0.9.4 – oprava: Import pořád blokovaný mobilním file pickerem
+
+v0.9.2 přidala `.json` do `accept` atributu, ale na některých telefonech/prohlížečích to pořád nestačilo - picker soubor nenabídl k výběru vůbec (přesně jako když Windows dialog omezíš na `*.csv` a hledaný soubor prostě není vidět/není vybratelný). Mobilní file pickery se chovají hodně nekonzistentně v tom, jak porovnávají `accept` s MIME typem/příponou souboru, hlavně když soubor přišel přes cloud/sdílení a jeho nahlášený typ neodpovídá očekávání.
+
+Řešení: `accept` atribut u Importu appka **úplně odstranila** - picker teď nabídne úplně libovolný soubor. Appka si soubor ověří sama až po výběru (parsuje JSON, kontroluje strukturu dat) a nevalidní/poškozený soubor srozumitelně odmítne hláškou, místo aby spoléhala na nespolehlivé filtrování file pickeru, které se mezi telefony/prohlížeči chová jinak.
 
 ## 🆕 v0.9.3 – Import zálohy přímo z onboardingu
 
