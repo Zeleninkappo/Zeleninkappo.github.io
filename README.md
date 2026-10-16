@@ -1,6 +1,6 @@
 # Zelix – Smart Training & Lifestyle Manager
 
-![Status](https://img.shields.io/badge/Status-Stable%20v0.9.2-red)
+![Status](https://img.shields.io/badge/Status-Stable%20v0.9.3-red)
 ![Platform](https://img.shields.io/badge/Platform-PWA%20%7C%20Mobile-blue)
 ![License](https://img.shields.io/badge/License-MIT-lightgrey)
 
@@ -9,6 +9,14 @@
 > **Motto:** Žádné zbytečnosti, jen čistá data, vibrace a progres.
 
 ---
+
+## 🆕 v0.9.3 – Import zálohy přímo z onboardingu
+
+Import byl schovaný v Nastavení -> Systém, ale k Nastavení se nejde dostat, dokud neprojdeš celým onboardingem (ikonka ozubeného kola je v hlavičce appky, kterou onboarding modál celou zakrývá). Pro někoho, kdo má starou zálohu a chce jen obnovit svůj účet, to znamenalo vyplnit cíl/vybavení/kalibraci jen proto, aby to vzápětí celé přepsal importem.
+
+Úvodní obrazovka onboardingu (krok 1 - jméno) má teď odkaz **"Mám zálohu – Import"** přímo pod tlačítkem Potvrdit. Funguje úplně stejně jako Import v Nastavení (stejná validace, recovery snapshot, potvrzovací dialog) - jen je o krok blíž. Po úspěšném importu appka rovnou naběhne na dashboard s obnovenými daty, onboarding wizard se už neukáže (appka pozná, že `user.name` už není výchozí placeholder).
+
+Ověřeno end-to-end s reálnou starou zálohou (appka v0.1.4, schemaVersion 2) - import, potvrzení, reload, dashboard se správně obnovenou historií, váhou i rozvrhem.
 
 ## 🆕 v0.9.2 – oprava: Import zálohy na mobilu
 
@@ -218,7 +226,7 @@ Tlačítko nahoře *"Změna Režimu"*.
 ### 9. Data & Bezpečnost 💾
 * **Export:** *Nastavení -> Systém -> Export*. Stáhne JSON soubor.
 * **Watchdog:** Pokud systém zjistí, že záloha je starší než 7 dní, při startu tě vyzve k uložení.
-* **Import:** Pro přenos na nový telefon. Před přepsáním dat appka automaticky uloží zálohu ("Recovery Slot"), kterou lze kdykoliv vzít zpět.
+* **Import:** Pro přenos na nový telefon. Před přepsáním dat appka automaticky uloží zálohu ("Recovery Slot"), kterou lze kdykoliv vzít zpět. Jde udělat z Nastavení -> Systém, nebo rovnou na první obrazovce onboardingu (odkaz "Mám zálohu – Import") - nemusíš kvůli tomu procházet celou kalibraci.
 * **Obnovit zálohu:** Tlačítko v Nastavení → Systém vrátí data do stavu těsně před posledním importem.
 * **Wipe:** Smazání všech dat (Hard Reset) – nevratné, appka na to upozorní.
 
