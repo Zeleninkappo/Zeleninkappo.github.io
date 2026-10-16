@@ -3,6 +3,38 @@
    ========================================= */
 
 Object.assign(UI, {
+    // Nastavení -> Uživatel -> "Přepočítat z dat": odhadne tréninkovou
+    // úroveň z poslední zadané tělesné váhy (⚖️ VÁHA) a aktuálních vah u
+    // Bench Press/Squat/Deadlift (Data.state.exercise_stats), bez nutnosti
+    // znovu procházet celý onboarding. Jen přednastaví select - uloží se
+    // až kliknutím na "Uložit" jako zbytek formuláře.
+    recalcLevelFromData: function () {
+        const history = Data.state.bodyweight_history || [];
+        if (history.length === 0) {
+            this.openAlertModal('Chybí data', 'Appka nemá žádný záznam tělesné váhy (tlačítko ⚖️ VÁHA v hlavičce). Zadej ji a zkus to znovu.');
+            return;
+        }
+        const bodyweight = history[history.length - 1].kg;
+        const formula = (Data.state.settings && Data.state.settings.oneRmFormula) || 'epley';
+        const oneRmFor = (exName) => {
+            const stats = Data.state.exercise_stats[exName];
+            if (!stats || !(stats.weight > 0) || !(stats.reps > 0)) return 0;
+            return Logic.calc1RM(stats.weight, stats.reps, formula);
+        };
+        const oneRMs = { bench: oneRmFor('Bench Press'), squat: oneRmFor('Squat'), deadlift: oneRmFor('Deadlift') };
+        const level = Logic.estimateLevel(bodyweight, oneRMs);
+
+        if (!level) {
+            this.openAlertModal('Málo dat', 'Appka nenašla dost dat o Bench Press / Squat / Deadlift (zadej váhy u těchto cviků v GYM módu, nebo projdi kalibrací znovu přes "Nový Plán").');
+            return;
+        }
+
+        document.getElementById('setup-level').value = level;
+        this.vibrate([50, 50]);
+        const labels = { novice: 'Začátečník', intermediate: 'Pokročilý', advanced: 'Expert' };
+        this.showToast(`Přepočteno: ${labels[level]}`, 'info');
+    },
+
     populateScheduleInputs: function () {
         const c = document.getElementById('setup-days-container');
         if (!c) return;

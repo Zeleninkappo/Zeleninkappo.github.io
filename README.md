@@ -1,6 +1,6 @@
 # Zelix – Smart Training & Lifestyle Manager
 
-![Status](https://img.shields.io/badge/Status-Stable%20v0.9.0-red)
+![Status](https://img.shields.io/badge/Status-Stable%20v0.9.1-red)
 ![Platform](https://img.shields.io/badge/Platform-PWA%20%7C%20Mobile-blue)
 ![License](https://img.shields.io/badge/License-MIT-lightgrey)
 
@@ -10,14 +10,18 @@
 
 ---
 
+## 🆕 v0.9.1 – vybavení/omezení/úroveň jdou upravit i bez nového plánu
+
+v0.9.0 dala možnost nastavit vybavení/omezení/úroveň jen přes onboarding nebo "Nový Plán" (= plná regenerace rozvrhu). **Nastavení -> Uživatel** teď má stejné ovládání (chipy na vybavení/omezení + select na úroveň) bez nutnosti cokoliv regenerovat - mění se jen to, co appka bere v potaz v budoucnu (generátor při příští regeneraci dne/plánu, autoregulace progrese hned od příštího uloženého tréninku).
+
+Navíc tlačítko **"Přepočítat z dat"** vedle úrovně: appka vezme poslední zadanou tělesnou váhu (⚖️ VÁHA) a aktuální váhy u Bench Press/Squat/Deadlift (podle zvoleného 1RM vzorce) a sama navrhne úroveň - nemusíš znovu nic ručně počítat ani procházet kalibraci znovu. Úroveň lze samozřejmě nastavit i ručně, přepočet je jen pomocník.
+
 ## 🆕 v0.9.0 – generátor plánu teď myslí na vybavení, zranění a tvou úroveň
 
 Onboarding (a "⚡ Nový Plán" regenerace) má dva nové kroky:
 
 * **Vybavení & Omezení:** vyber, co máš k dispozici (osa, činky, stroje, kladka, kettlebell, vlastní váha) a jestli máš nějaké citlivé místo (rameno/koleno/záda/zápěstí/loket). Výchozí stav je "mám všechno, nic mě netrápí" - appka nic nefiltruje, dokud sám něco neodškrtneš/nezaškrtneš. Generátor plánu (`Data.buildSession`) pak cviky vybírá jen z toho, co projde oběma filtry - a pokud by kombinace vybavení+omezení vyprázdnila celou kategorii (typicky "nohy" - každý dřep nějak zatíží koleno), appka upřednostní **bezpečnost před pohodlím**: radši nabídne cvik, na který nemáš ideální vybavení, než cvik, co by mohl rozbolet zraněné místo.
 * **Tělesná váha + 1RM kalibrace:** appka teď z poměru (Bench+Squat+Deadlift) / tělesná váha odhadne tvou úroveň (Začátečník / Pokročilý / Expert) - běžně používaný powerliftingový benchmark, ne lékařský nástroj. Úroveň pak mění, jak snadno appka uzná EASY jako "čas přidat váhu": začátečník postupuje skoro každý trénink (klasická lineární progrese), expert musí nejdřív "vydolovat" víc opakování v rezervě, než mu appka přidá zátěž. Zadaná tělesná váha se rovnou uloží i do grafu *Analýza Výkonu -> Tělesná váha*, nemusíš ji zadávat znovu.
-
-Omezení: vybavení/zranění/úroveň se teď dají nastavit jen přes onboarding nebo "Nový Plán" (Nastavení -> Cviky) - vlastní Nastavení pro jejich pozdější úpravu bez plné regenerace zatím appka nemá.
 
 ## 🆕 v0.8.0 – chytřejší autoregulace: volba 1RM vzorce a detekce plató
 

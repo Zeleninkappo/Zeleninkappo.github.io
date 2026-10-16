@@ -406,6 +406,15 @@ const Data = {
         const tD = document.getElementById('setup-time-dinner').value;
         this.state.user.mealTimes = { breakfast: tB, lunch: tL, dinner: tD };
 
+        // 2b. Uložení vybavení, omezení a tréninkové úrovně (viz Logic.estimateLevel,
+        // Data.isExerciseAllowed - ovlivní generátor plánu a autoregulaci progrese)
+        const equipment = Array.from(document.querySelectorAll('#setup-equipment-chips .chip-btn.selected')).map(b => b.dataset.value);
+        const injuries = Array.from(document.querySelectorAll('#setup-injury-chips .chip-btn.selected')).map(b => b.dataset.value);
+        this.state.user.equipment = equipment.length > 0 ? equipment : [...this.ALL_EQUIPMENT];
+        this.state.user.injuries = injuries;
+        const levelEl = document.getElementById('setup-level');
+        if (levelEl) this.state.user.level = levelEl.value || null;
+
         // 3. Uložení Stacku (Supplements toggle)
         const suppsEn = document.getElementById('setup-supps-enabled').checked;
         if (!this.state.supplements) this.state.supplements = {};

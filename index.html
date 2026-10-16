@@ -212,6 +212,39 @@
                         <div class="bg-stone-50 dark:bg-stone-900 p-3 rounded border border-stone-200 dark:border-stone-800"><label class="text-[10px] font-bold block mb-2 uppercase opacity-60" for="setup-sport">Sport</label><input type="text" id="setup-sport" maxlength="40" class="z-input font-bold"></div>
                     </div>
                     <div class="bg-stone-50 dark:bg-stone-900 p-3 rounded border border-stone-200 dark:border-stone-800 mt-4">
+                        <label class="text-[10px] font-bold block mb-2 uppercase opacity-60">Dostupné vybavení <span class="help-btn" title="Omezuje, jaké cviky ti generátor nabídne (Tuning -> Nový Plán i Rychlý Generátor).">?</span></label>
+                        <div class="grid grid-cols-3 gap-2" id="setup-equipment-chips">
+                            <button type="button" onclick="UI.toggleChip('equipment','barbell',this)" class="chip-btn" data-value="barbell">Osa</button>
+                            <button type="button" onclick="UI.toggleChip('equipment','dumbbell',this)" class="chip-btn" data-value="dumbbell">Činky</button>
+                            <button type="button" onclick="UI.toggleChip('equipment','machine',this)" class="chip-btn" data-value="machine">Stroje</button>
+                            <button type="button" onclick="UI.toggleChip('equipment','cable',this)" class="chip-btn" data-value="cable">Kladka</button>
+                            <button type="button" onclick="UI.toggleChip('equipment','kettlebell',this)" class="chip-btn" data-value="kettlebell">Kettlebell</button>
+                            <button type="button" onclick="UI.toggleChip('equipment','bodyweight',this)" class="chip-btn" data-value="bodyweight">Vlastní váha</button>
+                        </div>
+                        <label class="text-[10px] font-bold block mb-2 mt-4 uppercase opacity-60">Omezení / citlivá místa</label>
+                        <div class="grid grid-cols-3 gap-2" id="setup-injury-chips">
+                            <button type="button" onclick="UI.toggleChip('injuries','shoulder',this)" class="chip-btn" data-value="shoulder">Rameno</button>
+                            <button type="button" onclick="UI.toggleChip('injuries','knee',this)" class="chip-btn" data-value="knee">Koleno</button>
+                            <button type="button" onclick="UI.toggleChip('injuries','lowerback',this)" class="chip-btn" data-value="lowerback">Záda</button>
+                            <button type="button" onclick="UI.toggleChip('injuries','wrist',this)" class="chip-btn" data-value="wrist">Zápěstí</button>
+                            <button type="button" onclick="UI.toggleChip('injuries','elbow',this)" class="chip-btn" data-value="elbow">Loket</button>
+                        </div>
+                    </div>
+
+                    <div class="bg-stone-50 dark:bg-stone-900 p-3 rounded border border-stone-200 dark:border-stone-800 mt-4">
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="text-[10px] font-bold uppercase opacity-60">Tréninková úroveň <span class="help-btn" title="Mění, jak snadno appka na EASY uzná 'čas přidat váhu' - novice rychleji, expert potřebuje víc opakování v rezervě.">?</span></label>
+                            <button type="button" onclick="UI.recalcLevelFromData()" class="text-[9px] font-bold bg-stone-200 dark:bg-stone-800 px-3 py-1 rounded hover:bg-primary hover:text-white transition-colors whitespace-nowrap">Přepočítat z dat</button>
+                        </div>
+                        <select id="setup-level" class="z-select">
+                            <option value="">Neznámá (chová se jako Pokročilý)</option>
+                            <option value="novice">Začátečník</option>
+                            <option value="intermediate">Pokročilý</option>
+                            <option value="advanced">Expert</option>
+                        </select>
+                    </div>
+
+                    <div class="bg-stone-50 dark:bg-stone-900 p-3 rounded border border-stone-200 dark:border-stone-800 mt-4">
                     <label class="text-[10px] font-bold block mb-2 uppercase opacity-60">Časy jídel</label>
                         <div class="grid grid-cols-3 gap-2">
                             <div>

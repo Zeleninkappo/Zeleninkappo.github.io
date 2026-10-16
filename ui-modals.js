@@ -14,6 +14,18 @@ Object.assign(UI, {
             const tB = document.getElementById('setup-time-breakfast'); if (tB) tB.value = mt.breakfast;
             const tL = document.getElementById('setup-time-lunch'); if (tL) tL.value = mt.lunch;
             const tD = document.getElementById('setup-time-dinner'); if (tD) tD.value = mt.dinner;
+
+            const equipment = Array.isArray(Data.state.user.equipment) && Data.state.user.equipment.length > 0
+                ? Data.state.user.equipment : Data.ALL_EQUIPMENT;
+            const injuries = Array.isArray(Data.state.user.injuries) ? Data.state.user.injuries : [];
+            document.querySelectorAll('#setup-equipment-chips .chip-btn').forEach(b => {
+                b.classList.toggle('selected', equipment.includes(b.dataset.value));
+            });
+            document.querySelectorAll('#setup-injury-chips .chip-btn').forEach(b => {
+                b.classList.toggle('selected', injuries.includes(b.dataset.value));
+            });
+            const levelEl = document.getElementById('setup-level');
+            if (levelEl) levelEl.value = Data.state.user.level || '';
         }
         if (Data.state.supplements) {
             document.getElementById('setup-supps-enabled').checked = Data.state.supplements.enabled;
